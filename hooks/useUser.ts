@@ -1,4 +1,6 @@
-import { useEffect, useState, useCallback } from 'react'
+'use client'
+
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
@@ -13,7 +15,7 @@ interface UseUserReturn {
 
 export function useUser(): UseUserReturn {
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
@@ -25,13 +27,12 @@ export function useUser(): UseUserReturn {
         .select('id, full_name, role, academy_id, belt, photo_url, created_at')
         .eq('id', userId)
         .single()
-
       if (error || !data) {
         setProfile(null)
       } else {
         setProfile(data as Profile)
       }
-    } catch (err) {
+    } catch {
       setProfile(null)
     }
   }, [supabase])
@@ -47,12 +48,11 @@ export function useUser(): UseUserReturn {
   }, [fetchProfile])
 
   useEffect(() => {
-    // Initial fetch
     const initAuth = async () => {
       try {
         const { data: { user: sessionUser } } = await supabase.auth.getUser()
         await handleAuthStateChange(sessionUser)
-      } catch (err) {
+      } catch {
         setUser(null)
         setProfile(null)
         setLoading(false)
@@ -79,18 +79,12 @@ export function useUser(): UseUserReturn {
       setUser(null)
       setProfile(null)
       router.push('/auth/login')
-    } catch (err) {
-      // Fallback redirect
+    } catch {
       router.push('/auth/login')
     } finally {
       setLoading(false)
     }
   }
 
-  return {
-    user,
-    profile,
-    loading,
-    signOut,
-  }
+  return { user, profile, loading, signOut }
 }
