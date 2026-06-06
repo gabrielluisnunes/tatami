@@ -35,12 +35,29 @@ export default async function AlunosPage({
     redirect('/onboarding')
   }
 
-  const { data: alunos } = await supabase
+  const { data: rawAlunos } = await supabase
     .from('profiles')
     .select('id, full_name, phone, belt, photo_url, created_at')
     .eq('academy_id', profile.academy_id)
     .eq('role', 'aluno')
     .order('full_name', { ascending: true })
+
+  const alunos = rawAlunos
+    ? await Promise.all(
+        rawAlunos.map(async (aluno) => {
+          if (aluno.photo_url && !aluno.photo_url.startsWith('http') && !aluno.photo_url.startsWith('data:')) {
+            const { data } = await supabase.storage
+              .from('student-photos')
+              .createSignedUrl(aluno.photo_url, 3600)
+            return {
+              ...aluno,
+              photo_url: data?.signedUrl || null,
+            }
+          }
+          return aluno
+        })
+      )
+    : []
 
   return (
     <div className="space-y-6">

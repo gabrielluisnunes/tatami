@@ -4,7 +4,7 @@ export interface Profile {
   role: 'admin' | 'professor' | 'aluno';
   academy_id: string;
   photo_url?: string | null;
-  rekognition_face_id?: string | null;
+  face_descriptor?: number[] | null;
   belt: string;
   belt_updated_at?: string | null;
   phone?: string | null;

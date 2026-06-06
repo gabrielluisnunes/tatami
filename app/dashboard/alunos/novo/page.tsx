@@ -11,6 +11,7 @@ import {
   Select, SelectContent, SelectItem,
   SelectTrigger, SelectValue,
 } from '@/components/ui/select'
+import { PhotoCapture } from '@/components/photo-capture'
 
 export default function NovoAlunoPage() {
   const router = useRouter()
@@ -19,11 +20,28 @@ export default function NovoAlunoPage() {
   const [password, setPassword] = useState('')
   const [phone, setPhone] = useState('')
   const [belt, setBelt] = useState('branca')
+  const [photoBase64, setPhotoBase64] = useState<string | null>(null)
+  const [faceDescriptor, setFaceDescriptor] = useState<number[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
+  const handlePhotoCapture = (base64: string, descriptor: number[]) => {
+    setPhotoBase64(base64)
+    setFaceDescriptor(descriptor)
+  }
+
+  const handlePhotoClear = () => {
+    setPhotoBase64(null)
+    setFaceDescriptor(null)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!photoBase64 || !faceDescriptor) {
+      setError('A foto com detecção de rosto é obrigatória.')
+      return
+    }
 
     try {
       setLoading(true)
@@ -39,6 +57,8 @@ export default function NovoAlunoPage() {
           role: 'aluno',           // sempre fixo como 'aluno' nesta página
           belt,
           phone: phone || undefined,
+          photo_base64: photoBase64,
+          face_descriptor: faceDescriptor,
         }),
       })
 
@@ -88,6 +108,12 @@ export default function NovoAlunoPage() {
       {/* Card do formulário */}
       <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-8 shadow-2xl backdrop-blur-xl">
         <form onSubmit={handleSubmit} className="space-y-5">
+
+          {/* Captura de Foto (IA) */}
+          <PhotoCapture
+            onCapture={handlePhotoCapture}
+            onClear={handlePhotoClear}
+          />
 
           {/* Nome completo */}
           <div className="space-y-1.5">
@@ -208,7 +234,7 @@ export default function NovoAlunoPage() {
             </Link>
             <Button
               type="submit"
-              disabled={loading || !fullName || !email || !password}
+              disabled={loading || !fullName || !email || !password || !photoBase64 || !faceDescriptor}
               className="flex-1 rounded-xl bg-indigo-600 py-6 font-semibold text-white shadow-lg shadow-indigo-600/20 transition-all duration-200 hover:bg-indigo-500"
             >
               {loading ? 'Cadastrando...' : 'Cadastrar aluno'}
