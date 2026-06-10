@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
+import { StudentActions } from '@/components/dashboard/student-actions'
 
 const beltColors: Record<string, string> = {
   branca: 'bg-zinc-700/60 text-zinc-200 ring-1 ring-zinc-600/40',
@@ -16,7 +17,7 @@ const beltColors: Record<string, string> = {
 export default async function AlunosPage({
   searchParams,
 }: {
-  searchParams: { success?: string }
+  searchParams: { success?: string; updated?: string }
 }) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -37,7 +38,7 @@ export default async function AlunosPage({
 
   const { data: rawAlunos } = await supabase
     .from('profiles')
-    .select('id, full_name, phone, belt, photo_url, created_at')
+    .select('id, full_name, phone, belt, photo_url, city, state, created_at')
     .eq('academy_id', profile.academy_id)
     .eq('role', 'aluno')
     .order('full_name', { ascending: true })
@@ -61,13 +62,13 @@ export default async function AlunosPage({
 
   return (
     <div className="space-y-6">
-      {searchParams.success === 'true' && (
+      {(searchParams.success === 'true' || searchParams.updated === 'true') && (
         <div className="flex items-center gap-3 rounded-xl border border-emerald-800/40 bg-emerald-950/40 px-4 py-3">
           <svg className="h-4 w-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
           <p className="text-sm text-emerald-300">
-            Aluno cadastrado com sucesso.
+            {searchParams.success === 'true' ? 'Aluno cadastrado com sucesso.' : 'Dados atualizados com sucesso.'}
           </p>
         </div>
       )}
@@ -97,8 +98,10 @@ export default async function AlunosPage({
                 <th className="px-4 py-3 text-left font-medium text-zinc-400">Foto</th>
                 <th className="px-4 py-3 text-left font-medium text-zinc-400">Nome</th>
                 <th className="px-4 py-3 text-left font-medium text-zinc-400">Telefone</th>
+                <th className="px-4 py-3 text-left font-medium text-zinc-400">Localização</th>
                 <th className="px-4 py-3 text-left font-medium text-zinc-400">Faixa</th>
                 <th className="px-4 py-3 text-left font-medium text-zinc-400">Desde</th>
+                <th className="px-4 py-3 text-right font-medium text-zinc-400"></th>
               </tr>
             </thead>
             <tbody>
@@ -126,6 +129,11 @@ export default async function AlunosPage({
                   </td>
                   <td className="px-4 py-3 font-medium text-zinc-200">{aluno.full_name}</td>
                   <td className="px-4 py-3 text-zinc-400">{aluno.phone || '—'}</td>
+                  <td className="px-4 py-3 text-zinc-400">
+                    {aluno.city && aluno.state
+                      ? `${aluno.city}/${aluno.state}`
+                      : aluno.city || aluno.state || '—'}
+                  </td>
                   <td className="px-4 py-3">
                     {aluno.belt ? (
                       <span
@@ -145,6 +153,9 @@ export default async function AlunosPage({
                       month: '2-digit',
                       year: 'numeric',
                     })}
+                  </td>
+                  <td className="px-4 py-3">
+                    <StudentActions studentId={aluno.id} studentName={aluno.full_name} />
                   </td>
                 </tr>
               ))}

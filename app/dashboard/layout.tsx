@@ -7,16 +7,18 @@ import {
   Camera,
   Calendar,
   Award,
-  LogOut,
+  GraduationCap,
 } from 'lucide-react'
+import { LogoutButton } from '@/components/dashboard/logout-button'
 
 const navItems = [
-  { href: '/dashboard', icon: LayoutDashboard, label: 'Painel' },
-  { href: '/dashboard/alunos', icon: Users, label: 'Alunos' },
-  { href: '/dashboard/financeiro', icon: DollarSign, label: 'Financeiro' },
-  { href: '/dashboard/checkins', icon: Camera, label: 'Check-ins' },
-  { href: '/dashboard/turmas', icon: Calendar, label: 'Turmas' },
-  { href: '/dashboard/graduacoes', icon: Award, label: 'Graduações' },
+  { href: '/dashboard',             icon: LayoutDashboard, label: 'Painel' },
+  { href: '/dashboard/alunos',      icon: Users,           label: 'Alunos' },
+  { href: '/dashboard/professores', icon: GraduationCap,   label: 'Professores' },
+  { href: '/dashboard/financeiro',  icon: DollarSign,      label: 'Financeiro' },
+  { href: '/dashboard/checkins',    icon: Camera,          label: 'Check-ins' },
+  { href: '/dashboard/turmas',      icon: Calendar,        label: 'Turmas' },
+  { href: '/dashboard/graduacoes',  icon: Award,           label: 'Graduações' },
 ]
 
 export default function DashboardLayout({
@@ -57,13 +59,7 @@ export default function DashboardLayout({
 
         {/* Logout */}
         <div className="border-t border-zinc-800 px-3 py-4">
-          <Link
-            href="/auth/logout"
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-red-400"
-          >
-            <LogOut className="h-4 w-4" />
-            Sair
-          </Link>
+          <LogoutButton />
         </div>
       </aside>
 

@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { env } from '@/lib/env'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 export function createClient() {
   const cookieStore = cookies()
@@ -48,6 +49,19 @@ export function createAdminClient() {
             // The `setAll` method was called from a Server Component.
           }
         },
+      },
+    }
+  )
+}
+
+export function createStorageAdminClient() {
+  return createSupabaseClient(
+    env.NEXT_PUBLIC_SUPABASE_URL,
+    env.SUPABASE_SERVICE_ROLE_KEY,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
       },
     }
   )

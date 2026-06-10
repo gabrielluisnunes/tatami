@@ -8,6 +8,12 @@ export interface Profile {
   belt: string;
   belt_updated_at?: string | null;
   phone?: string | null;
+  emergency_phone?: string | null;
+  cep?: string | null;
+  address?: string | null;
+  neighborhood?: string | null;
+  city?: string | null;
+  state?: string | null;
   created_at: string;
 }
 
@@ -16,7 +22,6 @@ export interface Academy {
   owner_id: string;
   name: string;
   sport: string;
-  rekognition_collection_id?: string | null;
   monthly_price: number;
   due_day: number;
   stripe_customer_id?: string | null;
