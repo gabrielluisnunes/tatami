@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Logo } from '@/components/logo'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -85,19 +86,8 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 px-4 text-slate-100 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
-        <div className="flex flex-col items-center space-y-2 text-center">
-          <div className="rounded-2xl bg-indigo-600/10 p-3 ring-1 ring-indigo-500/20">
-            <svg className="h-10 w-10 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-            </svg>
-          </div>
-          <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 via-indigo-200 to-white bg-clip-text text-transparent">
-            Tatami
-          </h1>
-          <p className="text-sm text-slate-400">
-            Gestão inteligente de academias de artes marciais
-          </p>
+        <div className="flex flex-col items-center space-y-2 text-center mb-6">
+          <Logo className="h-28 w-auto" variant="full" />
         </div>
 
         <div className="bg-slate-900/40 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-8 shadow-2xl space-y-6">

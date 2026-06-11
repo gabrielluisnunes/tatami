@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Camera } from 'lucide-react'
 
@@ -24,19 +24,21 @@ export default async function ProfessorFrequenciaPage() {
   if (!profile?.academy_id) redirect('/auth/login')
   if (profile.role !== 'professor' && profile.role !== 'admin') redirect('/auth/login')
 
-  // Checkins do professor diretamente por professor_id
-  const { data: rawCheckins } = await supabase
+  // createAdminClient() para ler checkins — bypassa RLS
+  const adminSupabase = createAdminClient()
+
+  const { data: rawCheckins } = await adminSupabase
     .from('checkins')
     .select('id, checked_in_at, status, classes ( name )')
     .eq('professor_id', user.id)
+    .eq('academy_id', profile.academy_id)
     .order('checked_in_at', { ascending: false })
     .limit(30)
 
   const checkinIds = (rawCheckins ?? []).map(c => c.id as string)
 
-  // Contagem de presenças por checkin (evita N+1)
   const { data: rawAttendance } = checkinIds.length
-    ? await supabase
+    ? await adminSupabase
         .from('attendance')
         .select('checkin_id')
         .in('checkin_id', checkinIds)
@@ -67,10 +69,7 @@ export default async function ProfessorFrequenciaPage() {
           {checkins.map(c => {
             const date = new Date(c.checked_in_at)
             return (
-              <div
-                key={c.id}
-                className="rounded-xl border border-zinc-800/60 bg-zinc-900/40 px-4 py-3"
-              >
+              <div key={c.id} className="rounded-xl border border-zinc-800/60 bg-zinc-900/40 px-4 py-3">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium text-zinc-200">{c.class_name}</p>
                   <span className={`text-xs font-medium ${

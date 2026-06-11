@@ -175,7 +175,7 @@ export function NovaTurmaForm({ professors }: NovaTurmaFormProps) {
                     value={startTime}
                     onChange={e => setStartTime(e.target.value)}
                     onClick={e => e.currentTarget.showPicker?.()}
-                    style={{ colorScheme: 'dark' }}
+                    style={{ colorScheme: 'light' }}
                     required
                     disabled={loading}
                     className={`${inputClass} cursor-pointer`}
@@ -188,7 +188,7 @@ export function NovaTurmaForm({ professors }: NovaTurmaFormProps) {
                     value={endTime}
                     onChange={e => setEndTime(e.target.value)}
                     onClick={e => e.currentTarget.showPicker?.()}
-                    style={{ colorScheme: 'dark' }}
+                    style={{ colorScheme: 'light' }}
                     required
                     disabled={loading}
                     className={`${inputClass} cursor-pointer`}

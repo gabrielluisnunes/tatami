@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Image from 'next/image'
 
@@ -25,7 +25,10 @@ export default async function ProfessorAlunosPage() {
   if (!profile?.academy_id) redirect('/auth/login')
   if (profile.role !== 'professor' && profile.role !== 'admin') redirect('/auth/login')
 
-  const { data: rawAlunos } = await supabase
+  // createAdminClient() para ler perfis de outros usuários — bypassa RLS
+  const adminSupabase = createAdminClient()
+
+  const { data: rawAlunos } = await adminSupabase
     .from('profiles')
     .select('id, full_name, belt, phone, photo_url')
     .eq('academy_id', profile.academy_id)
@@ -40,7 +43,7 @@ export default async function ProfessorAlunosPage() {
             !aluno.photo_url.startsWith('http') &&
             !aluno.photo_url.startsWith('data:')
           ) {
-            const { data } = await supabase.storage
+            const { data } = await adminSupabase.storage
               .from('student-photos')
               .createSignedUrl(aluno.photo_url, 3600)
             return { ...aluno, photo_url: data?.signedUrl || null }

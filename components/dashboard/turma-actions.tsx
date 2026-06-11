@@ -249,7 +249,7 @@ export function TurmaActions({ turma, professors }: TurmaActionsProps) {
                         <td className="px-3 py-2.5 text-right">
                           <span className={`inline-flex min-w-[2rem] items-center justify-center rounded-full px-2 py-0.5 text-xs font-semibold ${
                             i === 0
-                              ? 'bg-indigo-600/20 text-indigo-300'
+                              ? 'bg-indigo-600/20 text-indigo-700'
                               : 'bg-zinc-800 text-zinc-400'
                           }`}>
                             {s.count}
@@ -355,7 +355,7 @@ export function TurmaActions({ turma, professors }: TurmaActionsProps) {
                     value={editStart}
                     onChange={e => setEditStart(e.target.value)}
                     onClick={e => e.currentTarget.showPicker?.()}
-                    style={{ colorScheme: 'dark' }}
+                    style={{ colorScheme: 'light' }}
                     required
                     disabled={editLoading}
                     className={`${inputClass} cursor-pointer`}
@@ -368,7 +368,7 @@ export function TurmaActions({ turma, professors }: TurmaActionsProps) {
                     value={editEnd}
                     onChange={e => setEditEnd(e.target.value)}
                     onClick={e => e.currentTarget.showPicker?.()}
-                    style={{ colorScheme: 'dark' }}
+                    style={{ colorScheme: 'light' }}
                     required
                     disabled={editLoading}
                     className={`${inputClass} cursor-pointer`}
