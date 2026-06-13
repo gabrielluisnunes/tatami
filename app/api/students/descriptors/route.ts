@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createStorageAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
@@ -17,8 +17,10 @@ export async function GET() {
     return NextResponse.json({ error: 'Acesso negado' }, { status: 403 })
   }
 
+  const adminSupabase = createStorageAdminClient()
+
   // Busca todos os alunos da academia que têm face_descriptor cadastrado
-  const { data: rawStudents, error } = await supabase
+  const { data: rawStudents, error } = await adminSupabase
     .from('profiles')
     .select('id, full_name, photo_url, face_descriptor')
     .eq('academy_id', profile.academy_id)
@@ -32,7 +34,7 @@ export async function GET() {
     ? await Promise.all(
         rawStudents.map(async (student) => {
           if (student.photo_url && !student.photo_url.startsWith('http') && !student.photo_url.startsWith('data:')) {
-            const { data } = await supabase.storage
+            const { data } = await adminSupabase.storage
               .from('student-photos')
               .createSignedUrl(student.photo_url, 3600)
             return {

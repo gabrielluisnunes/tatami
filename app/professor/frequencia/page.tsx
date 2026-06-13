@@ -1,6 +1,7 @@
-import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { createClient, createStorageAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Camera } from 'lucide-react'
+import Link from 'next/link'
 
 interface CheckinRecord {
   id: string
@@ -24,8 +25,8 @@ export default async function ProfessorFrequenciaPage() {
   if (!profile?.academy_id) redirect('/auth/login')
   if (profile.role !== 'professor' && profile.role !== 'admin') redirect('/auth/login')
 
-  // createAdminClient() para ler checkins — bypassa RLS
-  const adminSupabase = createAdminClient()
+  // createStorageAdminClient() para ler checkins — bypassa RLS
+  const adminSupabase = createStorageAdminClient()
 
   const { data: rawCheckins } = await adminSupabase
     .from('checkins')
@@ -72,11 +73,16 @@ export default async function ProfessorFrequenciaPage() {
               <div key={c.id} className="rounded-xl border border-zinc-800/60 bg-zinc-900/40 px-4 py-3">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium text-zinc-200">{c.class_name}</p>
-                  <span className={`text-xs font-medium ${
-                    c.status === 'confirmed' ? 'text-emerald-400' : 'text-amber-400'
-                  }`}>
-                    {c.status === 'confirmed' ? 'Confirmado' : 'Pendente'}
-                  </span>
+                  {c.status === 'confirmed' ? (
+                    <span className="text-xs font-medium text-emerald-400">Confirmado</span>
+                  ) : (
+                    <Link
+                      href={`/professor/checkin/${c.id}`}
+                      className="text-xs font-medium text-amber-400 underline-offset-2 hover:underline transition-colors"
+                    >
+                      Pendente
+                    </Link>
+                  )}
                 </div>
                 <div className="mt-1 flex items-center justify-between">
                   <p className="text-xs text-zinc-500">

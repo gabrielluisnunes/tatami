@@ -74,14 +74,14 @@ export function GroupPhotoUpload({ onSelect, onClear, disabled }: GroupPhotoUplo
   return (
     <div className="space-y-3">
       {preview ? (
-        <div className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950">
+        <div className="relative overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-950">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={preview} alt="Foto da turma" className="w-full object-cover max-h-72" />
           <button
             type="button"
             onClick={handleClear}
             disabled={disabled}
-            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-zinc-950/80 text-zinc-400 border border-zinc-800 hover:text-white transition-colors backdrop-blur-md"
+            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-zinc-950/80 text-zinc-400 border border-zinc-700 hover:text-zinc-50 transition-colors backdrop-blur-md"
           >
             <X className="h-4 w-4" />
           </button>
@@ -91,7 +91,7 @@ export function GroupPhotoUpload({ onSelect, onClear, disabled }: GroupPhotoUplo
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled || compressing}
-          className="flex h-56 w-full flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-zinc-800 bg-zinc-950/40 text-zinc-500 transition-colors hover:border-indigo-600/60 hover:text-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-56 w-full flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-zinc-700 bg-zinc-950/40 text-zinc-500 transition-colors hover:border-indigo-600/60 hover:text-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {compressing ? (
             <>

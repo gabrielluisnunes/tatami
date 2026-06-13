@@ -3,11 +3,11 @@ import { redirect } from 'next/navigation'
 import { Activity } from 'lucide-react'
 
 const beltColors: Record<string, string> = {
-  branca: 'bg-zinc-200 text-zinc-900',
-  azul:   'bg-blue-600 text-white',
-  roxa:   'bg-purple-700 text-white',
-  marrom: 'bg-amber-800 text-white',
-  preta:  'bg-zinc-950 text-white border border-zinc-600',
+  branca: 'bg-zinc-800 text-zinc-100 ring-1 ring-zinc-700',
+  azul:   'bg-blue-100 text-blue-800 ring-1 ring-blue-200',
+  roxa:   'bg-purple-100 text-purple-800 ring-1 ring-purple-200',
+  marrom: 'bg-amber-950 text-amber-200 ring-1 ring-amber-800',
+  preta:  'bg-zinc-50 text-zinc-900 ring-1 ring-zinc-300',
 }
 
 function formatLocalDate(dateStr: string) {

@@ -127,13 +127,13 @@ export function AttendanceReview({ confirmed, allStudents, onRemove, onAdd }: At
           type="button"
           variant="outline"
           onClick={() => setShowSearch(true)}
-          className="w-full rounded-xl border-zinc-800 bg-zinc-900/40 py-5 text-zinc-400 hover:bg-zinc-800 hover:text-white gap-2"
+          className="w-full rounded-xl border-zinc-700 bg-zinc-900/40 py-5 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-50 gap-2"
         >
           <UserPlus className="h-4 w-4" />
           Adicionar aluno manualmente
         </Button>
       ) : (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 space-y-3">
+        <div className="rounded-2xl border border-zinc-700 bg-zinc-900/60 p-4 space-y-3">
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold text-zinc-400">Buscar aluno</p>
             <button
@@ -151,7 +151,7 @@ export function AttendanceReview({ confirmed, allStudents, onRemove, onAdd }: At
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Nome do aluno..."
-              className="pl-9 rounded-xl border-zinc-800 bg-zinc-950/60 text-white placeholder-zinc-600 focus-visible:ring-indigo-500"
+              className="pl-9 rounded-xl border-zinc-700 bg-zinc-950/60 text-zinc-100 placeholder-zinc-600 focus-visible:ring-indigo-500"
             />
           </div>
           {searchResults.length > 0 && (

@@ -46,11 +46,18 @@ export async function POST(request: Request) {
     .single()
 
   if (!checkin) return NextResponse.json({ error: 'Check-in não encontrado' }, { status: 404 })
-  if (checkin.status === 'confirmed') {
-    return NextResponse.json({ error: 'Check-in já confirmado' }, { status: 409 })
-  }
 
   const now = new Date().toISOString()
+
+  // Deleta presenças existentes para esse check-in (para lidar com remoções de alunos e re-confirmação)
+  const { error: deleteError } = await supabase
+    .from('attendance')
+    .delete()
+    .eq('checkin_id', body.checkin_id)
+
+  if (deleteError) {
+    return NextResponse.json({ error: 'Erro ao limpar presenças anteriores' }, { status: 500 })
+  }
 
   // Insere registros de presença
   const attendanceRecords = body.students.map(({ student_id, source, similarity }) => ({

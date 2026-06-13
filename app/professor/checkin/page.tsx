@@ -270,7 +270,7 @@ export default function ProfessorCheckinPage() {
           <button
             type="button"
             onClick={() => setStep('select-class')}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-700 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-50 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
@@ -330,7 +330,7 @@ export default function ProfessorCheckinPage() {
             type="button"
             onClick={() => setStep('upload-photo')}
             disabled={submitting}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors disabled:opacity-50"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-700 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-50 transition-colors disabled:opacity-50"
           >
             <ArrowLeft className="h-4 w-4" />
           </button>

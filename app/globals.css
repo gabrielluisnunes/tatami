@@ -94,8 +94,8 @@
 
 /* ── COMPATIBILIDADE TEMA CLARO ── */
 
-/* Corrige cor de texto de inputs, selectores e textareas que estavam brancos */
-input, select, textarea {
+/* Corrige cor de texto de inputs, selectores, textareas e select triggers (botões) que estavam brancos */
+input, select, textarea, button[data-slot="select-trigger"], [data-slot="select-value"] {
   color: var(--foreground) !important;
 }
 input::placeholder, textarea::placeholder {

@@ -3,17 +3,17 @@ import { redirect } from 'next/navigation'
 import { Award } from 'lucide-react'
 
 const beltConfig: Record<string, { dot: string; badge: string; label: string }> = {
-  branca: { dot: 'bg-zinc-200',    badge: 'bg-zinc-200 text-zinc-900',                  label: 'Branca'  },
-  azul:   { dot: 'bg-blue-500',    badge: 'bg-blue-600 text-white',                     label: 'Azul'    },
-  roxa:   { dot: 'bg-purple-500',  badge: 'bg-purple-700 text-white',                   label: 'Roxa'    },
-  marrom: { dot: 'bg-amber-700',   badge: 'bg-amber-800 text-white',                    label: 'Marrom'  },
-  preta:  { dot: 'bg-zinc-800',    badge: 'bg-zinc-950 text-white border border-zinc-600', label: 'Preta' },
+  branca: { dot: 'bg-zinc-700',    badge: 'bg-zinc-800 text-zinc-100 ring-1 ring-zinc-700', label: 'Branca'  },
+  azul:   { dot: 'bg-blue-600',    badge: 'bg-blue-100 text-blue-800 ring-1 ring-blue-200', label: 'Azul'    },
+  roxa:   { dot: 'bg-purple-700',  badge: 'bg-purple-100 text-purple-800 ring-1 ring-purple-200', label: 'Roxa'    },
+  marrom: { dot: 'bg-amber-800',   badge: 'bg-amber-950 text-amber-200 ring-1 ring-amber-800', label: 'Marrom'  },
+  preta:  { dot: 'bg-zinc-50',    badge: 'bg-zinc-50 text-zinc-900 ring-1 ring-zinc-300', label: 'Preta' },
 }
 
 function getBeltConfig(belt: string) {
   return beltConfig[belt?.toLowerCase()] ?? {
     dot: 'bg-zinc-600',
-    badge: 'bg-zinc-700 text-zinc-200',
+    badge: 'bg-zinc-800 text-zinc-100 ring-1 ring-zinc-700',
     label: belt ?? 'Desconhecida',
   }
 }

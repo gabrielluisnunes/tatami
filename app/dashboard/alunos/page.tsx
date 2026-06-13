@@ -7,11 +7,11 @@ import { Plus } from 'lucide-react'
 import { StudentActions } from '@/components/dashboard/student-actions'
 
 const beltColors: Record<string, string> = {
-  branca: 'bg-zinc-700/60 text-zinc-200 ring-1 ring-zinc-600/40',
-  azul:   'bg-blue-900/50 text-blue-300 ring-1 ring-blue-700/40',
-  roxa:   'bg-purple-900/50 text-purple-300 ring-1 ring-purple-700/40',
-  marrom: 'bg-amber-900/40 text-amber-300 ring-1 ring-amber-700/40',
-  preta:  'bg-zinc-900 text-zinc-100 ring-1 ring-zinc-600',
+  branca: 'bg-zinc-800 text-zinc-100 ring-1 ring-zinc-700',
+  azul:   'bg-blue-100 text-blue-800 ring-1 ring-blue-200',
+  roxa:   'bg-purple-100 text-purple-800 ring-1 ring-purple-200',
+  marrom: 'bg-amber-950 text-amber-200 ring-1 ring-amber-800',
+  preta:  'bg-zinc-50 text-zinc-900 ring-1 ring-zinc-300',
 }
 
 export default async function AlunosPage({
