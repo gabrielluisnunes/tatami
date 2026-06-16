@@ -8,6 +8,7 @@ import {
   Calendar,
   Award,
   GraduationCap,
+  FileText,
 } from 'lucide-react'
 import { LogoutButton } from '@/components/dashboard/logout-button'
 import { Logo } from '@/components/logo'
@@ -20,6 +21,7 @@ const navItems = [
   { href: '/dashboard/checkins',    icon: Camera,          label: 'Check-ins' },
   { href: '/dashboard/turmas',      icon: Calendar,        label: 'Turmas' },
   { href: '/dashboard/graduacoes',  icon: Award,           label: 'Graduações' },
+  { href: '/dashboard/contratos',   icon: FileText,        label: 'Contratos' },
 ]
 
 export default function DashboardLayout({

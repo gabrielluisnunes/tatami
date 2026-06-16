@@ -34,6 +34,7 @@ function formatLocalDate(dateStr: string) {
 interface BeltHistoryItem {
   id: string
   belt: string
+  degree: number
   graded_at: string
   notes: string | null
   trainings_at_graduation: number | null
@@ -50,7 +51,7 @@ export default async function AlunoGraduacoesPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, academy_id, belt, full_name, created_at')
+    .select('role, academy_id, belt, degree, full_name, created_at')
     .eq('id', user.id)
     .single()
 
@@ -59,7 +60,7 @@ export default async function AlunoGraduacoesPage() {
 
   const { data: history } = await supabase
     .from('belt_history')
-    .select('id, belt, graded_at, notes, trainings_at_graduation, profiles!belt_history_graded_by_fkey(full_name)')
+    .select('id, belt, degree, graded_at, notes, trainings_at_graduation, profiles!belt_history_graded_by_fkey(full_name)')
     .eq('student_id', user.id)
     .order('graded_at', { ascending: false })
 
@@ -81,7 +82,17 @@ export default async function AlunoGraduacoesPage() {
           <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Faixa atual</p>
           <p className="text-2xl font-black text-zinc-100 mt-0.5">
             {currentBeltCfg.label}
+            {(profile.degree ?? 0) > 0 && (
+              <span className="ml-2 text-lg font-bold tracking-tighter opacity-50">
+                {'●'.repeat(profile.degree ?? 0)}
+              </span>
+            )}
           </p>
+          {(profile.degree ?? 0) > 0 && (
+            <p className="text-xs text-zinc-500 mt-0.5">
+              {profile.degree}º grau
+            </p>
+          )}
           <p className="text-xs text-zinc-600 mt-0.5">
             Desde {formatLocalDate(profile.created_at)}
           </p>
@@ -115,8 +126,11 @@ export default async function AlunoGraduacoesPage() {
                     {/* Card */}
                     <div className="flex-1 rounded-xl border border-zinc-800/60 bg-zinc-900/40 p-4 space-y-2">
                       <div className="flex items-center justify-between gap-2">
-                        <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${cfg.badge}`}>
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${cfg.badge}`}>
                           Faixa {cfg.label}
+                          {item.degree > 0 && (
+                            <span className="tracking-tighter opacity-60">{'●'.repeat(item.degree)}</span>
+                          )}
                         </span>
                         <span className="text-xs text-zinc-500">
                           {formatLocalDate(item.graded_at)}
@@ -126,6 +140,12 @@ export default async function AlunoGraduacoesPage() {
                       {item.trainings_at_graduation != null && (
                         <p className="text-xs text-zinc-500">
                           {item.trainings_at_graduation} treinos na graduação
+                        </p>
+                      )}
+
+                      {item.degree > 0 && (
+                        <p className="text-xs text-zinc-500">
+                          {item.degree}º grau
                         </p>
                       )}
 

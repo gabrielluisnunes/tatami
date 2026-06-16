@@ -18,6 +18,7 @@ interface StudentRow {
   id: string
   full_name: string
   belt: string
+  degree: number
   trainings_since_belt: number
 }
 
@@ -29,6 +30,7 @@ export function GraduationModal({ students }: GraduationModalProps) {
   const router = useRouter()
   const [selectedStudent, setSelectedStudent] = useState<StudentRow | null>(null)
   const [belt, setBelt] = useState('azul')
+  const [degree, setDegree] = useState(0)
   const [notes, setNotes] = useState('')
   const [trainings, setTrainings] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -37,11 +39,19 @@ export function GraduationModal({ students }: GraduationModalProps) {
   const openModal = (student: StudentRow) => {
     setSelectedStudent(student)
     setTrainings(student.trainings_since_belt)
-    // Sugere próxima faixa automaticamente
-    const idx = BELTS.findIndex(b => b.value === student.belt)
-    setBelt(BELTS[Math.min(idx + 1, BELTS.length - 1)].value)
     setNotes('')
     setError(null)
+
+    const idx = BELTS.findIndex(b => b.value === student.belt)
+    const nextBelt = BELTS[Math.min(idx + 1, BELTS.length - 1)].value
+    setBelt(nextBelt)
+
+    // Grau sugerido: 0 se nova faixa, degree+1 se mesma faixa (nunca passa de 4)
+    if (nextBelt === student.belt) {
+      setDegree(Math.min((student.degree ?? 0) + 1, 4))
+    } else {
+      setDegree(0)
+    }
   }
 
   const closeModal = () => {
@@ -51,6 +61,14 @@ export function GraduationModal({ students }: GraduationModalProps) {
 
   const handleConfirm = async () => {
     if (!selectedStudent) return
+    if (
+      selectedStudent &&
+      belt === selectedStudent.belt &&
+      degree <= (selectedStudent.degree ?? 0)
+    ) {
+      setError(`Para promoção de grau, o novo grau deve ser maior que o atual (${selectedStudent.degree ?? 0}º grau)`)
+      return
+    }
     setLoading(true)
     setError(null)
     try {
@@ -58,9 +76,10 @@ export function GraduationModal({ students }: GraduationModalProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          student_id: selectedStudent.id,
+          student_id:              selectedStudent.id,
           belt,
-          notes: notes || undefined,
+          degree,
+          notes:                   notes || undefined,
           trainings_at_graduation: trainings,
         }),
       })
@@ -103,10 +122,13 @@ export function GraduationModal({ students }: GraduationModalProps) {
               <tr key={student.id} className="border-b border-zinc-800/40 last:border-0">
                 <td className="px-4 py-3 font-medium text-zinc-200">{student.full_name}</td>
                 <td className="px-4 py-3">
-                  <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                  <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                     beltColors[student.belt] ?? 'bg-zinc-700 text-zinc-200'
                   }`}>
                     {student.belt.charAt(0).toUpperCase() + student.belt.slice(1)}
+                    {student.degree > 0 && (
+                      <span className="tracking-tighter opacity-60">{'●'.repeat(student.degree)}</span>
+                    )}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-zinc-400">
@@ -152,13 +174,43 @@ export function GraduationModal({ students }: GraduationModalProps) {
                 <Label className="text-xs font-semibold text-zinc-400">Nova faixa</Label>
                 <select
                   value={belt}
-                  onChange={e => setBelt(e.target.value)}
+                  onChange={e => {
+                    const newBelt = e.target.value
+                    setBelt(newBelt)
+                    if (selectedStudent && newBelt === selectedStudent.belt) {
+                      setDegree(Math.min((selectedStudent.degree ?? 0) + 1, 4))
+                    } else {
+                      setDegree(0)
+                    }
+                  }}
                   className="w-full rounded-xl border border-zinc-800/80 bg-zinc-950/60 px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   {BELTS.map(b => (
                     <option key={b.value} value={b.value}>{b.label}</option>
                   ))}
                 </select>
+              </div>
+
+              {/* Grau */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-zinc-400">Grau</Label>
+                <select
+                  value={degree}
+                  onChange={e => setDegree(Number(e.target.value))}
+                  className="w-full rounded-xl border border-zinc-800/80 bg-zinc-950/60 px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value={0}>Sem grau</option>
+                  <option value={1}>1º grau</option>
+                  <option value={2}>2º grau</option>
+                  <option value={3}>3º grau</option>
+                  <option value={4}>4º grau</option>
+                </select>
+                {selectedStudent && belt === selectedStudent.belt && (
+                  <p className="text-[10px] text-zinc-600">
+                    Grau atual: {selectedStudent.degree > 0 ? `${selectedStudent.degree}º grau` : 'sem grau'}.
+                    {selectedStudent.degree >= 4 ? ' Considere promover de faixa.' : ''}
+                  </p>
+                )}
               </div>
 
               {/* Treinos acumulados */}

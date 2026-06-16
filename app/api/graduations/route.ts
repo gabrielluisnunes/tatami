@@ -5,9 +5,10 @@ import { z } from 'zod'
 const BELTS = ['branca', 'azul', 'roxa', 'marrom', 'preta'] as const
 
 const graduationSchema = z.object({
-  student_id: z.string().uuid(),
-  belt: z.enum(BELTS),
-  notes: z.string().optional(),
+  student_id:              z.string().uuid(),
+  belt:                    z.enum(BELTS),
+  degree:                  z.number().int().min(0).max(4),
+  notes:                   z.string().optional(),
   trainings_at_graduation: z.number().int().min(0).optional(),
 })
 
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
   // Verifica que o aluno pertence à academia
   const { data: student } = await supabase
     .from('profiles')
-    .select('id, belt')
+    .select('id, belt, degree')
     .eq('id', body.student_id)
     .eq('academy_id', profile.academy_id)
     .eq('role', 'aluno')
@@ -47,18 +48,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Aluno não encontrado' }, { status: 404 })
   }
 
+  if (body.belt === student.belt && body.degree <= (student.degree ?? 0)) {
+    return NextResponse.json(
+      { error: `Para promoção de grau na mesma faixa, o novo grau deve ser maior que o atual (${student.degree ?? 0}º grau)` },
+      { status: 400 }
+    )
+  }
+
   const now = new Date().toISOString()
 
   // INSERT em belt_history
   const { error: historyError } = await supabase
     .from('belt_history')
     .insert({
-      student_id: body.student_id,
-      academy_id: profile.academy_id,
-      belt: body.belt,
-      graded_at: now,
-      graded_by: user.id,
-      notes: body.notes ?? null,
+      student_id:              body.student_id,
+      academy_id:              profile.academy_id,
+      belt:                    body.belt,
+      degree:                  body.degree,
+      graded_at:               now,
+      graded_by:               user.id,
+      notes:                   body.notes ?? null,
       trainings_at_graduation: body.trainings_at_graduation ?? null,
     })
 
@@ -69,7 +78,7 @@ export async function POST(request: Request) {
   // UPDATE em profiles
   const { error: profileError } = await supabase
     .from('profiles')
-    .update({ belt: body.belt, belt_updated_at: now })
+    .update({ belt: body.belt, degree: body.degree, belt_updated_at: now })
     .eq('id', body.student_id)
 
   if (profileError) {

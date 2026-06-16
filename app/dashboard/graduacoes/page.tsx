@@ -4,9 +4,10 @@ import { GraduationModal } from '@/components/dashboard/graduation-modal'
 import { Award } from 'lucide-react'
 
 interface StudentViewRecord {
-  student_id: string
-  full_name: string
-  belt: string | null
+  student_id:           string
+  full_name:            string
+  belt:                 string | null
+  degree:               number | null
   trainings_since_belt: number | null
 }
 
@@ -28,7 +29,7 @@ export default async function GraduacoesPage() {
   // Busca alunos com treinos desde última faixa via view
   const { data: raw } = await supabase
     .from('v_trainings_since_belt')
-    .select('student_id, full_name, belt, trainings_since_belt')
+    .select('student_id, full_name, belt, degree, trainings_since_belt')
     .eq('academy_id', profile.academy_id)
     .order('full_name', { ascending: true })
 
@@ -36,6 +37,7 @@ export default async function GraduacoesPage() {
     id:                   s.student_id,
     full_name:            s.full_name,
     belt:                 s.belt || 'branca',
+    degree:               s.degree ?? 0,
     trainings_since_belt: s.trainings_since_belt || 0,
   }))
 

@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { Activity } from 'lucide-react'
+import { Activity, AlertTriangle } from 'lucide-react'
+import { formatLocalDate } from '@/lib/format-date'
+import Link from 'next/link'
 
 const beltColors: Record<string, string> = {
   branca: 'bg-zinc-800 text-zinc-100 ring-1 ring-zinc-700',
@@ -10,18 +12,6 @@ const beltColors: Record<string, string> = {
   preta:  'bg-zinc-50 text-zinc-900 ring-1 ring-zinc-300',
 }
 
-function formatLocalDate(dateStr: string) {
-  if (!dateStr) return '—'
-  if (dateStr.includes('T') || dateStr.includes(':')) {
-    return new Date(dateStr).toLocaleDateString('pt-BR')
-  }
-  const parts = dateStr.split('-')
-  if (parts.length === 3) {
-    const [year, month, day] = parts
-    return `${day}/${month}/${year}`
-  }
-  return new Date(dateStr).toLocaleDateString('pt-BR')
-}
 
 interface RecentAttendance {
   id: string
@@ -43,12 +33,26 @@ export default async function AlunoFrequenciaPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, academy_id, belt, belt_updated_at, full_name')
+    .select('role, academy_id, belt, degree, belt_updated_at, full_name')
     .eq('id', user.id)
     .single()
 
   if (!profile?.academy_id) redirect('/onboarding')
   if (profile.role !== 'aluno') redirect('/dashboard')
+
+  // Buscar contratos pendentes de assinatura
+  const { data: pendingContracts } = await supabase
+    .from('contracts')
+    .select(`
+      id, title,
+      contract_signatures!left (student_id)
+    `)
+    .eq('academy_id', profile.academy_id)
+    .eq('is_active', true)
+
+  const unsigned = (pendingContracts ?? []).filter(c =>
+    !c.contract_signatures?.some((s: { student_id: string }) => s.student_id === user.id)
+  )
 
   // Treinos desde última faixa via view
   const { data: trainingSummary } = await supabase
@@ -84,6 +88,31 @@ export default async function AlunoFrequenciaPage() {
 
   return (
     <div className="space-y-6">
+      {unsigned.length > 0 && (
+        <div className="space-y-2">
+          {unsigned.map(contract => (
+            <div
+              key={contract.id}
+              className="flex items-center justify-between rounded-xl border border-amber-700/40 bg-amber-950/30 px-4 py-3"
+            >
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400" />
+                <div>
+                  <p className="text-sm font-medium text-amber-200">Contrato pendente</p>
+                  <p className="text-xs text-amber-400/80">{contract.title}</p>
+                </div>
+              </div>
+              <Link
+                href={`/aluno/contratos/${contract.id}`}
+                className="shrink-0 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-950 hover:bg-amber-400 transition-colors"
+              >
+                Assinar agora
+              </Link>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div>
         <h1 className="text-2xl font-bold text-zinc-100">Frequência</h1>
         <p className="text-sm text-zinc-500 mt-1">Seus treinos e presença</p>
@@ -91,10 +120,16 @@ export default async function AlunoFrequenciaPage() {
 
       {/* Card destaque: treinos desde última faixa */}
       <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-6 text-center space-y-3">
-        <div className="flex items-center justify-center">
-          <span className={`rounded-full px-4 py-1 text-sm font-semibold ${beltColorCls}`}>
+        <div className="flex flex-col items-center gap-1">
+          <span className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1 text-sm font-semibold ${beltColorCls}`}>
             Faixa {beltLabel}
+            {(profile.degree ?? 0) > 0 && (
+              <span className="tracking-tighter opacity-60">{'●'.repeat(profile.degree ?? 0)}</span>
+            )}
           </span>
+          {(profile.degree ?? 0) > 0 && (
+            <span className="text-xs text-zinc-500">{profile.degree}º grau</span>
+          )}
         </div>
         <div className="text-6xl font-black text-indigo-400">{trainingsSinceBelt}</div>
         <p className="text-sm text-zinc-400">treinos desde sua última graduação</p>

@@ -14,6 +14,7 @@ interface StudentViewRecord {
   student_id:           string
   full_name:            string
   belt:                 string | null
+  degree:               number | null
   trainings_since_belt: number | null
 }
 
@@ -34,7 +35,7 @@ export default async function ProfessorGraduacoesPage() {
 
   const { data: raw } = await supabase
     .from('v_trainings_since_belt')
-    .select('student_id, full_name, belt, trainings_since_belt')
+    .select('student_id, full_name, belt, degree, trainings_since_belt')
     .eq('academy_id', profile.academy_id)
     .order('trainings_since_belt', { ascending: false })
 
@@ -42,6 +43,7 @@ export default async function ProfessorGraduacoesPage() {
     id:                   s.student_id,
     full_name:            s.full_name,
     belt:                 s.belt || 'branca',
+    degree:               s.degree ?? 0,
     trainings_since_belt: s.trainings_since_belt ?? 0,
   }))
 
@@ -69,10 +71,13 @@ export default async function ProfessorGraduacoesPage() {
                 <tr key={s.id} className="border-b border-zinc-800/40 last:border-0">
                   <td className="px-4 py-3 font-medium text-zinc-200">{s.full_name}</td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
                       beltColors[s.belt.toLowerCase()] ?? 'bg-zinc-700 text-zinc-300'
                     }`}>
                       {s.belt.charAt(0).toUpperCase() + s.belt.slice(1)}
+                      {s.degree > 0 && (
+                        <span className="tracking-tighter opacity-60">{'●'.repeat(s.degree)}</span>
+                      )}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right font-bold text-indigo-400">

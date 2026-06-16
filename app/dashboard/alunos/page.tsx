@@ -38,7 +38,7 @@ export default async function AlunosPage({
 
   const { data: rawAlunos } = await supabase
     .from('profiles')
-    .select('id, full_name, phone, belt, photo_url, city, state, created_at')
+    .select('id, full_name, phone, belt, degree, photo_url, city, state, created_at')
     .eq('academy_id', profile.academy_id)
     .eq('role', 'aluno')
     .order('full_name', { ascending: true })
@@ -137,11 +137,14 @@ export default async function AlunosPage({
                   <td className="px-4 py-3">
                     {aluno.belt ? (
                       <span
-                        className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
                           beltColors[aluno.belt.toLowerCase()] ?? 'bg-zinc-700 text-zinc-300'
                         }`}
                       >
                         {aluno.belt.charAt(0).toUpperCase() + aluno.belt.slice(1)}
+                        {(aluno.degree ?? 0) > 0 && (
+                          <span className="tracking-tighter opacity-60">{'●'.repeat(aluno.degree ?? 0)}</span>
+                        )}
                       </span>
                     ) : (
                       <span className="text-zinc-500">—</span>
