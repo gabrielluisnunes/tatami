@@ -77,8 +77,8 @@ export default async function TurmasPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-100">Turmas</h1>
-          <p className="text-sm text-zinc-500">
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Turmas</h1>
+          <p className="text-sm text-gray-500">
             {classes.length} turma{classes.length !== 1 ? 's' : ''} cadastrada{classes.length !== 1 ? 's' : ''}
           </p>
         </div>
@@ -87,26 +87,26 @@ export default async function TurmasPage() {
 
       {/* Listagem */}
       {classes.length > 0 ? (
-        <div className="overflow-hidden rounded-xl border border-zinc-800/80">
+        <div className="overflow-hidden rounded-xl border border-gray-200">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-800/80 bg-zinc-900/40">
-                <th className="px-4 py-3 text-left font-medium text-zinc-400">Nome</th>
-                <th className="px-4 py-3 text-left font-medium text-zinc-400">Professor</th>
-                <th className="px-4 py-3 text-left font-medium text-zinc-400">Dias</th>
-                <th className="px-4 py-3 text-left font-medium text-zinc-400">Horário</th>
-                <th className="px-4 py-3 text-right font-medium text-zinc-400"></th>
+              <tr className="border-b border-gray-200 bg-gray-50">
+                <th className="px-4 py-3 text-left font-medium text-gray-500">Nome</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500">Professor</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500">Dias</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500">Horário</th>
+                <th className="px-4 py-3 text-right font-medium text-gray-500"></th>
               </tr>
             </thead>
             <tbody>
               {classes.map(cls => (
-                <tr key={cls.id} className="border-b border-zinc-800/40 last:border-0">
-                  <td className="px-4 py-3 font-medium text-zinc-200">{cls.name}</td>
-                  <td className="px-4 py-3 text-zinc-400">{cls.professor_name}</td>
-                  <td className="px-4 py-3 text-zinc-400">
+                <tr key={cls.id} className="border-b border-gray-100 last:border-0">
+                  <td className="px-4 py-3 font-medium text-gray-800">{cls.name}</td>
+                  <td className="px-4 py-3 text-gray-500">{cls.professor_name}</td>
+                  <td className="px-4 py-3 text-gray-500">
                     {cls.weekdays.length > 0 ? formatWeekdays(cls.weekdays) : '—'}
                   </td>
-                  <td className="px-4 py-3 text-zinc-400">
+                  <td className="px-4 py-3 text-gray-500">
                     {cls.start_time} – {cls.end_time}
                   </td>
                   <td className="px-4 py-3">
@@ -118,9 +118,9 @@ export default async function TurmasPage() {
           </table>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-800 py-16 text-center">
-          <Calendar className="h-8 w-8 mb-3 text-zinc-700" />
-          <p className="text-zinc-500 text-sm">Nenhuma turma cadastrada ainda.</p>
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 py-16 text-center">
+          <Calendar className="h-8 w-8 mb-3 text-gray-400" />
+          <p className="text-gray-400 text-sm">Nenhuma turma cadastrada ainda.</p>
         </div>
       )}
     </div>

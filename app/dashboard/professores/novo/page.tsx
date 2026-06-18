@@ -56,8 +56,8 @@ export default function NovoProfessorPage() {
     }
   }
 
-  const inputClass = "rounded-xl border-zinc-800/80 bg-zinc-950/60 py-5 text-white placeholder-zinc-600 focus-visible:ring-indigo-500"
-  const labelClass = "text-xs font-semibold text-zinc-400"
+  const inputClass = "rounded-xl border-gray-200 bg-white py-5 text-gray-900 placeholder-gray-400 focus-visible:ring-indigo-500"
+  const labelClass = "text-xs font-semibold text-gray-500"
 
   return (
     <div className="mx-auto max-w-xl space-y-6">
@@ -66,22 +66,22 @@ export default function NovoProfessorPage() {
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 rounded-xl border border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+            className="h-9 w-9 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-100">Cadastrar professor</h1>
-          <p className="text-sm text-zinc-500">A senha de acesso será enviada por email.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Cadastrar professor</h1>
+          <p className="text-sm text-gray-400">A senha de acesso será enviada por email.</p>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-8 shadow-2xl backdrop-blur-xl">
+      <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-2xl backdrop-blur-xl">
         <form onSubmit={handleSubmit} className="space-y-5">
 
           <div className="pt-1">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-600">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
               Dados do professor
             </p>
           </div>
@@ -116,7 +116,7 @@ export default function NovoProfessorPage() {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className={labelClass}>
-                Telefone <span className="font-normal text-zinc-600">(opcional)</span>
+                Telefone <span className="font-normal text-gray-400">(opcional)</span>
               </Label>
               <Input
                 type="tel"
@@ -129,7 +129,7 @@ export default function NovoProfessorPage() {
             </div>
             <div className="space-y-1.5">
               <Label className={labelClass}>
-                Emergência <span className="font-normal text-zinc-600">(opcional)</span>
+                Emergência <span className="font-normal text-gray-400">(opcional)</span>
               </Label>
               <Input
                 type="tel"
@@ -145,10 +145,10 @@ export default function NovoProfessorPage() {
           <div className="space-y-1.5">
             <Label className={labelClass}>Faixa</Label>
             <Select value={belt} onValueChange={v => v && setBelt(v)} disabled={loading}>
-              <SelectTrigger className="rounded-xl border-zinc-800/80 bg-zinc-950/60 py-5 text-white">
+              <SelectTrigger className="rounded-xl border-gray-200 bg-white py-5 text-gray-900">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-100">
+              <SelectContent className="border-gray-200 bg-white text-gray-900">
                 <SelectItem value="branca">Branca</SelectItem>
                 <SelectItem value="azul">Azul</SelectItem>
                 <SelectItem value="roxa">Roxa</SelectItem>
@@ -170,7 +170,7 @@ export default function NovoProfessorPage() {
                 type="button"
                 variant="outline"
                 disabled={loading}
-                className="w-full rounded-xl border-zinc-700 py-6 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                className="w-full rounded-xl border-gray-300 py-6 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
               >
                 Cancelar
               </Button>

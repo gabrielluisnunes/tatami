@@ -89,8 +89,8 @@ export default async function CheckinsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-100">Check-ins</h1>
-        <p className="text-sm text-zinc-500">Últimos 30 registros de presença</p>
+        <h1 className="text-2xl font-bold tracking-tight text-gray-900">Check-ins</h1>
+        <p className="text-sm text-gray-400">Últimos 30 registros de presença</p>
       </div>
       <CheckinsList checkins={checkins} />
     </div>

@@ -154,8 +154,8 @@ export default function NovoAlunoPage() {
 
   // ─── Classe reutilizável para inputs ─────────────────────────────────────────
 
-  const inputClass = "rounded-xl border-zinc-800/80 bg-zinc-950/60 py-5 text-white placeholder-zinc-600 focus-visible:ring-indigo-500"
-  const labelClass = "text-xs font-semibold text-zinc-400"
+  const inputClass = "rounded-xl border-gray-200 bg-white py-5 text-gray-900 placeholder-gray-400 focus-visible:ring-indigo-500"
+  const labelClass = "text-xs font-semibold text-gray-500"
 
   return (
     <div className="mx-auto max-w-xl space-y-6">
@@ -165,23 +165,23 @@ export default function NovoAlunoPage() {
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 rounded-xl border border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+            className="h-9 w-9 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-100">Cadastrar aluno</h1>
-          <p className="text-sm text-zinc-500">O aluno receberá a senha de acesso por email automaticamente.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Cadastrar aluno</h1>
+          <p className="text-sm text-gray-400">O aluno receberá a senha de acesso por email automaticamente.</p>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-8 shadow-2xl backdrop-blur-xl">
+      <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-2xl backdrop-blur-xl">
         <form onSubmit={handleSubmit} className="space-y-5">
 
           {/* ── Seção: Dados pessoais ── */}
           <div className="pt-2">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-600">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
               Dados pessoais
             </p>
           </div>
@@ -222,7 +222,7 @@ export default function NovoAlunoPage() {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="phone" className={labelClass}>
-                Telefone <span className="font-normal text-zinc-600">(opcional)</span>
+                Telefone <span className="font-normal text-gray-400">(opcional)</span>
               </Label>
               <Input
                 id="phone"
@@ -236,7 +236,7 @@ export default function NovoAlunoPage() {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="emergencyPhone" className={labelClass}>
-                Emergência <span className="font-normal text-zinc-600">(opcional)</span>
+                Emergência <span className="font-normal text-gray-400">(opcional)</span>
               </Label>
               <Input
                 id="emergencyPhone"
@@ -254,10 +254,10 @@ export default function NovoAlunoPage() {
           <div className="space-y-1.5">
             <Label htmlFor="belt" className={labelClass}>Faixa atual</Label>
             <Select value={belt} onValueChange={(v) => v && setBelt(v)} disabled={loading}>
-              <SelectTrigger id="belt" className="rounded-xl border-zinc-800/80 bg-zinc-950/60 py-5 text-white">
+              <SelectTrigger id="belt" className="rounded-xl border-gray-200 bg-white py-5 text-gray-900">
                 <SelectValue placeholder="Selecione a faixa" />
               </SelectTrigger>
-              <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-100">
+              <SelectContent className="border-gray-200 bg-white text-gray-900">
                 <SelectItem value="branca">Branca</SelectItem>
                 <SelectItem value="azul">Azul</SelectItem>
                 <SelectItem value="roxa">Roxa</SelectItem>
@@ -269,8 +269,8 @@ export default function NovoAlunoPage() {
 
           {/* ── Seção: Endereço ── */}
           <div className="pt-2">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-600">
-              Endereço <span className="font-normal normal-case tracking-normal text-zinc-700">(opcional)</span>
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
+              Endereço <span className="font-normal normal-case tracking-normal text-gray-400">(opcional)</span>
             </p>
           </div>
 
@@ -291,7 +291,7 @@ export default function NovoAlunoPage() {
               />
               {cepLoading && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <Loader2 className="h-4 w-4 animate-spin text-zinc-500" />
+                  <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
                 </div>
               )}
             </div>
@@ -393,7 +393,7 @@ export default function NovoAlunoPage() {
                 type="button"
                 variant="outline"
                 disabled={loading}
-                className="w-full rounded-xl border-zinc-700 py-6 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                className="w-full rounded-xl border-gray-300 py-6 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
               >
                 Cancelar
               </Button>

@@ -138,20 +138,20 @@ export default async function FinanceiroPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-100">Financeiro</h1>
-        <p className="text-sm text-zinc-500 capitalize">{monthName}</p>
+        <h1 className="text-2xl font-bold tracking-tight text-gray-900">Financeiro</h1>
+        <p className="text-sm text-gray-400 capitalize">{monthName}</p>
       </div>
 
       {/* Cards de métricas */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {metrics.map(m => (
-          <Card key={m.title} className="border-zinc-800/80 bg-zinc-900/60">
+          <Card key={m.title} className="border-gray-200 bg-white">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-zinc-400">{m.title}</CardTitle>
+              <CardTitle className="text-xs font-medium text-gray-500">{m.title}</CardTitle>
               <m.icon className={`h-4 w-4 ${m.color}`} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-zinc-100">{m.value}</div>
+              <div className="text-2xl font-bold text-gray-900">{m.value}</div>
             </CardContent>
           </Card>
         ))}
@@ -160,7 +160,7 @@ export default async function FinanceiroPage() {
       {/* Alunos em atraso */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold text-zinc-200">Alunos em atraso</h2>
+          <h2 className="text-lg font-semibold text-gray-800">Alunos em atraso</h2>
           {overdueCount > 0 && (
             <span className="rounded-full bg-red-950/50 px-2 py-0.5 text-xs font-medium text-red-400">
               {overdueCount}
@@ -172,7 +172,7 @@ export default async function FinanceiroPage() {
 
       {/* Mensalidades do mês */}
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-zinc-200">
+        <h2 className="text-lg font-semibold text-gray-800">
           Mensalidades — {now.toLocaleDateString('pt-BR', { month: 'long' })}
         </h2>
         <MonthlyTable records={monthlyRecords} />

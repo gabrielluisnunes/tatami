@@ -76,8 +76,8 @@ export default async function AlunosPage({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-100">Alunos</h1>
-          <p className="text-sm text-zinc-500">
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Alunos</h1>
+          <p className="text-sm text-gray-500">
             {alunos?.length ?? 0} aluno{(alunos?.length ?? 0) !== 1 ? 's' : ''} cadastrado{(alunos?.length ?? 0) !== 1 ? 's' : ''}
           </p>
         </div>
@@ -91,22 +91,22 @@ export default async function AlunosPage({
 
       {/* Table */}
       {alunos && alunos.length > 0 ? (
-        <div className="overflow-hidden rounded-xl border border-zinc-800/80">
+        <div className="overflow-hidden rounded-xl border border-gray-200">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-800/80 bg-zinc-900/40">
-                <th className="px-4 py-3 text-left font-medium text-zinc-400">Foto</th>
-                <th className="px-4 py-3 text-left font-medium text-zinc-400">Nome</th>
-                <th className="px-4 py-3 text-left font-medium text-zinc-400">Telefone</th>
-                <th className="px-4 py-3 text-left font-medium text-zinc-400">Localização</th>
-                <th className="px-4 py-3 text-left font-medium text-zinc-400">Faixa</th>
-                <th className="px-4 py-3 text-left font-medium text-zinc-400">Desde</th>
-                <th className="px-4 py-3 text-right font-medium text-zinc-400"></th>
+              <tr className="border-b border-gray-200 bg-gray-50">
+                <th className="px-4 py-3 text-left font-medium text-gray-500">Foto</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500">Nome</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500">Telefone</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500">Localização</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500">Faixa</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500">Desde</th>
+                <th className="px-4 py-3 text-right font-medium text-gray-500"></th>
               </tr>
             </thead>
             <tbody>
               {alunos.map((aluno) => (
-                <tr key={aluno.id} className="border-b border-zinc-800/40 last:border-0">
+                <tr key={aluno.id} className="border-b border-gray-100 last:border-0">
                   <td className="px-4 py-3">
                     {aluno.photo_url ? (
                       <Image
@@ -114,10 +114,10 @@ export default async function AlunosPage({
                         alt={aluno.full_name}
                         width={32}
                         height={32}
-                        className="h-8 w-8 rounded-full object-cover ring-1 ring-zinc-700"
+                        className="h-8 w-8 rounded-full object-cover ring-1 ring-gray-200"
                       />
                     ) : (
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-800 text-xs font-bold text-zinc-400 ring-1 ring-zinc-700">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-xs font-bold text-gray-500 ring-1 ring-gray-200">
                         {aluno.full_name
                           ?.split(' ')
                           .map((n: string) => n[0])
@@ -127,9 +127,9 @@ export default async function AlunosPage({
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-3 font-medium text-zinc-200">{aluno.full_name}</td>
-                  <td className="px-4 py-3 text-zinc-400">{aluno.phone || '—'}</td>
-                  <td className="px-4 py-3 text-zinc-400">
+                  <td className="px-4 py-3 font-medium text-gray-800">{aluno.full_name}</td>
+                  <td className="px-4 py-3 text-gray-500">{aluno.phone || '—'}</td>
+                  <td className="px-4 py-3 text-gray-500">
                     {aluno.city && aluno.state
                       ? `${aluno.city}/${aluno.state}`
                       : aluno.city || aluno.state || '—'}
@@ -138,7 +138,7 @@ export default async function AlunosPage({
                     {aluno.belt ? (
                       <span
                         className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          beltColors[aluno.belt.toLowerCase()] ?? 'bg-zinc-700 text-zinc-300'
+                          beltColors[aluno.belt.toLowerCase()] ?? 'bg-gray-200 text-gray-700'
                         }`}
                       >
                         {aluno.belt.charAt(0).toUpperCase() + aluno.belt.slice(1)}
@@ -147,10 +147,10 @@ export default async function AlunosPage({
                         )}
                       </span>
                     ) : (
-                      <span className="text-zinc-500">—</span>
+                      <span className="text-gray-400">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-zinc-400">
+                  <td className="px-4 py-3 text-gray-500">
                     {new Date(aluno.created_at).toLocaleDateString('pt-BR', {
                       day: '2-digit',
                       month: '2-digit',
@@ -166,10 +166,10 @@ export default async function AlunosPage({
           </table>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-800 py-16 text-center">
-          <p className="text-zinc-500">Nenhum aluno cadastrado ainda.</p>
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 py-16 text-center">
+          <p className="text-gray-400">Nenhum aluno cadastrado ainda.</p>
           <Link href="/dashboard/alunos/novo" className="mt-3">
-            <Button variant="outline" className="border-zinc-700 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-xl gap-2">
+            <Button variant="outline" className="border-gray-300 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-xl gap-2">
               <Plus className="h-4 w-4" />
               Cadastrar primeiro aluno
             </Button>

@@ -30,11 +30,11 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex min-h-screen bg-zinc-950 text-zinc-100">
+    <div className="flex min-h-screen bg-gray-50 text-gray-900">
       {/* Sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-zinc-800 bg-zinc-900">
+      <aside className="fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-gray-200 bg-white">
         {/* Logo */}
-        <div className="flex flex-col items-center justify-center border-b border-zinc-800 py-5 px-6">
+        <div className="flex flex-col items-center justify-center border-b border-gray-200 py-5 px-6">
           <Logo className="h-14 w-auto" variant="full" />
         </div>
 
@@ -44,7 +44,7 @@ export default function DashboardLayout({
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
             >
               <item.icon className="h-4 w-4" />
               {item.label}
@@ -53,7 +53,7 @@ export default function DashboardLayout({
         </nav>
 
         {/* Logout */}
-        <div className="border-t border-zinc-800 px-3 py-4">
+        <div className="border-t border-gray-200 px-3 py-4">
           <LogoutButton />
         </div>
       </aside>

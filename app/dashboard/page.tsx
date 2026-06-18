@@ -108,22 +108,22 @@ export default async function DashboardPage() {
     <div className="space-y-8">
       {/* Greeting */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-100">
+        <h1 className="text-2xl font-bold tracking-tight text-gray-900">
           Olá, {profile.full_name || 'Admin'}
         </h1>
-        <p className="text-sm text-zinc-500">{academy?.name ?? 'Sua academia'}</p>
+        <p className="text-sm text-gray-500">{academy?.name ?? 'Sua academia'}</p>
       </div>
 
       {/* Metric cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {metrics.map((m) => (
-          <Card key={m.title} className="bg-zinc-900/60 border-zinc-800/80">
+          <Card key={m.title} className="bg-white border-gray-200">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-zinc-400">{m.title}</CardTitle>
+              <CardTitle className="text-xs font-medium text-gray-500">{m.title}</CardTitle>
               <m.icon className={`h-4 w-4 ${m.color}`} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-zinc-100">{m.value}</div>
+              <div className="text-2xl font-bold text-gray-900">{m.value}</div>
             </CardContent>
           </Card>
         ))}
@@ -131,22 +131,22 @@ export default async function DashboardPage() {
 
       {/* Recent check-ins */}
       <div>
-        <h2 className="mb-4 text-lg font-semibold text-zinc-200">Últimos check-ins</h2>
+        <h2 className="mb-4 text-lg font-semibold text-gray-800">Últimos check-ins</h2>
         {recentCheckins && recentCheckins.length > 0 ? (
-          <div className="overflow-hidden rounded-xl border border-zinc-800/80">
+          <div className="overflow-hidden rounded-xl border border-gray-200">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-800/80 bg-zinc-900/40">
-                  <th className="px-4 py-3 text-left font-medium text-zinc-400">Data</th>
-                  <th className="px-4 py-3 text-left font-medium text-zinc-400">Turma</th>
-                  <th className="px-4 py-3 text-left font-medium text-zinc-400">Presentes</th>
-                  <th className="px-4 py-3 text-left font-medium text-zinc-400">Status</th>
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <th className="px-4 py-3 text-left font-medium text-gray-500">Data</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500">Turma</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500">Presentes</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {recentCheckins.map((checkin) => (
-                  <tr key={checkin.id} className="border-b border-zinc-800/40 last:border-0">
-                    <td className="px-4 py-3 text-zinc-300">
+                  <tr key={checkin.id} className="border-b border-gray-100 last:border-0">
+                    <td className="px-4 py-3 text-gray-700">
                       {new Date(checkin.checked_in_at).toLocaleDateString('pt-BR', {
                         day: '2-digit',
                         month: '2-digit',
@@ -155,10 +155,10 @@ export default async function DashboardPage() {
                         minute: '2-digit',
                       })}
                     </td>
-                    <td className="px-4 py-3 text-zinc-300">
+                    <td className="px-4 py-3 text-gray-700">
                       {classMap.get(checkin.class_id) ?? '—'}
                     </td>
-                    <td className="px-4 py-3 text-zinc-300">
+                    <td className="px-4 py-3 text-gray-700">
                       {attendanceMap.get(checkin.id) ?? 0}
                     </td>
                     <td className="px-4 py-3">
@@ -177,7 +177,7 @@ export default async function DashboardPage() {
             </table>
           </div>
         ) : (
-          <p className="text-sm text-zinc-500">Nenhum check-in registrado ainda.</p>
+          <p className="text-sm text-gray-400">Nenhum check-in registrado ainda.</p>
         )}
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { GraduationModal } from '@/components/dashboard/graduation-modal'
+import { GraduacoesClient } from '@/components/dashboard/graduacoes-client'
 import { Award } from 'lucide-react'
 
 interface StudentViewRecord {
@@ -44,18 +44,18 @@ export default async function GraduacoesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-100">Graduações</h1>
-        <p className="text-sm text-zinc-500">
+        <h1 className="text-2xl font-bold tracking-tight text-gray-900">Graduações</h1>
+        <p className="text-sm text-gray-400">
           {students.length} aluno{students.length !== 1 ? 's' : ''} cadastrado{students.length !== 1 ? 's' : ''}
         </p>
       </div>
 
       {students.length > 0 ? (
-        <GraduationModal students={students} />
+        <GraduacoesClient students={students} />
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-800 py-16 text-center">
-          <Award className="h-8 w-8 mb-3 text-zinc-700" />
-          <p className="text-zinc-500 text-sm">Nenhum aluno cadastrado ainda.</p>
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 py-16 text-center">
+          <Award className="h-8 w-8 mb-3 text-gray-400" />
+          <p className="text-gray-400 text-sm">Nenhum aluno cadastrado ainda.</p>
         </div>
       )}
     </div>

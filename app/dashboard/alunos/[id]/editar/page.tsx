@@ -42,18 +42,18 @@ export default async function EditarAlunoPage({
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 rounded-xl border border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+            className="h-9 w-9 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-100">Editar aluno</h1>
-          <p className="text-sm text-zinc-500">{aluno.full_name}</p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Editar aluno</h1>
+          <p className="text-sm text-gray-400">{aluno.full_name}</p>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-8 shadow-2xl backdrop-blur-xl">
+      <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-2xl backdrop-blur-xl">
         <EditAlunoForm studentId={params.id} initialData={aluno} />
       </div>
     </div>
