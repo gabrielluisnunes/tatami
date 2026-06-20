@@ -51,7 +51,7 @@ export default async function AlunoGraduacoesPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, academy_id, belt, degree, full_name, created_at')
+    .select('role, academy_id, belt, degree, full_name, created_at, belt_updated_at')
     .eq('id', user.id)
     .single()
 
@@ -63,6 +63,27 @@ export default async function AlunoGraduacoesPage() {
     .select('id, belt, degree, graded_at, notes, trainings_at_graduation, profiles!belt_history_graded_by_fkey(full_name)')
     .eq('student_id', user.id)
     .order('graded_at', { ascending: false })
+
+  const { data: attendanceData } = await supabase
+    .from('attendance')
+    .select('present_at')
+    .eq('student_id', user.id)
+    .order('present_at', { ascending: true })
+
+  const attendanceTimestamps = (attendanceData ?? []).map(a => new Date(a.present_at).getTime())
+
+  const historyTyped = (history as unknown as BeltHistoryItem[]) ?? []
+
+  const historyWithPeriod = historyTyped.map((item, idx) => {
+    const periodStart = new Date(item.graded_at).getTime()
+    const periodEnd   = idx === 0
+      ? Date.now()
+      : new Date(historyTyped[idx - 1].graded_at).getTime()
+    const trainings_in_period = attendanceTimestamps.filter(
+      t => t >= periodStart && t < periodEnd
+    ).length
+    return { ...item, trainings_in_period }
+  })
 
   const currentBeltCfg = getBeltConfig(profile.belt ?? 'branca')
 
@@ -94,7 +115,7 @@ export default async function AlunoGraduacoesPage() {
             </p>
           )}
           <p className="text-xs text-zinc-600 mt-0.5">
-            Desde {formatLocalDate(profile.created_at)}
+            Desde {formatLocalDate(profile.belt_updated_at ?? profile.created_at)}
           </p>
         </div>
       </div>
@@ -116,7 +137,7 @@ export default async function AlunoGraduacoesPage() {
             <div className="absolute left-[9px] top-2 bottom-2 w-px bg-zinc-800" />
 
             <div className="space-y-4">
-              {((history as unknown as BeltHistoryItem[]) ?? []).map((item) => {
+              {historyWithPeriod.map((item) => {
                 const cfg = getBeltConfig(item.belt)
                 return (
                   <div key={item.id} className="relative flex gap-4">
@@ -137,11 +158,9 @@ export default async function AlunoGraduacoesPage() {
                         </span>
                       </div>
 
-                      {item.trainings_at_graduation != null && (
-                        <p className="text-xs text-zinc-500">
-                          {item.trainings_at_graduation} treinos na graduação
-                        </p>
-                      )}
+                      <p className="text-xs text-zinc-500">
+                        {item.trainings_in_period} treino{item.trainings_in_period !== 1 ? 's' : ''} nesse período
+                      </p>
 
                       {item.degree > 0 && (
                         <p className="text-xs text-zinc-500">

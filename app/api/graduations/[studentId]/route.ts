@@ -70,15 +70,38 @@ export async function GET(
     .eq('academy_id', profile.academy_id)
     .order('graded_at', { ascending: false })
 
-  const history = (rawHistory as unknown as RawGraduationHistoryItem[] ?? []).map((item) => ({
-    id:                      item.id,
-    belt:                    item.belt ?? 'branca',
-    degree:                  item.degree ?? 0,
-    graded_at:               item.graded_at,
-    notes:                   item.notes,
-    trainings_at_graduation: item.trainings_at_graduation,
-    graded_by_name:          item.graders?.full_name ?? null,
-  }))
+  // Buscar todas as presenças confirmadas do aluno para calcular treinos por período
+  const { data: attendanceData } = await adminSupabase
+    .from('attendance')
+    .select('present_at')
+    .eq('student_id', params.studentId)
+    .order('present_at', { ascending: true })
+
+  const attendanceTimestamps = (attendanceData ?? []).map(a => new Date(a.present_at).getTime())
+
+  const rawHistoryArray = (rawHistory as unknown as RawGraduationHistoryItem[]) ?? []
+
+  const history = rawHistoryArray.map((item, idx) => {
+    const periodStart = new Date(item.graded_at).getTime()
+    const periodEnd   = idx === 0
+      ? Date.now()
+      : new Date(rawHistoryArray[idx - 1].graded_at).getTime()
+
+    const trainings_in_period = attendanceTimestamps.filter(
+      t => t >= periodStart && t < periodEnd
+    ).length
+
+    return {
+      id:                      item.id,
+      belt:                    item.belt ?? 'branca',
+      degree:                  item.degree ?? 0,
+      graded_at:               item.graded_at,
+      notes:                   item.notes,
+      trainings_at_graduation: item.trainings_at_graduation,
+      graded_by_name:          item.graders?.full_name ?? null,
+      trainings_in_period,
+    }
+  })
 
   return NextResponse.json({
     student: {

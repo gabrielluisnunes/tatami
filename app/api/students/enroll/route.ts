@@ -78,6 +78,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Erro ao criar usuário' }, { status: 500 })        
   }
 
+  // Registra faixa inicial em belt_history para garantir histórico completo desde o cadastro
+  await supabase.from('belt_history').insert({
+    student_id:              created.user.id,
+    academy_id:              adminProfile.academy_id,
+    belt:                    body.belt,
+    degree:                  0,
+    graded_at:               new Date().toISOString(),
+    graded_by:               user.id,
+    notes:                   'Faixa de cadastro inicial',
+    trainings_at_graduation: 0,
+  })
+
   const updates: Record<string, unknown> = {}
 
   if (body.phone)           updates.phone           = body.phone
