@@ -11,7 +11,7 @@ export async function sendWelcomeEmail(
   loginUrl: string
 ) {
   await resend.emails.send({
-    from: 'onboarding@resend.dev',
+    from: 'Tatami <noreply@gestaotatami.com.br>',
     to,
     subject: `Seu acesso ao Tatami — ${academyName}`,
     html: `
@@ -106,7 +106,7 @@ export async function sendOverdueAlert(
   dueDate: string
 ) {
   await resend.emails.send({
-    from: 'onboarding@resend.dev',
+    from: 'Tatami <noreply@gestaotatami.com.br>',
     to: email,
     subject: 'Mensalidade em atraso — Tatami',
     html: `
