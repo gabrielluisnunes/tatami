@@ -81,14 +81,23 @@ export async function middleware(request: NextRequest) {
   if (role === 'admin' && academyId && isDashboardRoute && pathname !== '/dashboard/assinatura') {
     const { data: academy } = await supabase
       .from('academies')
-      .select('subscription_status')
+      .select('subscription_status, plan, stripe_customer_id')
       .eq('id', academyId)
       .single()
 
     const status = academy?.subscription_status
-    if (status === 'past_due' || status === 'unpaid' || status === 'canceled') {
-      url.pathname = '/dashboard/assinatura'
-      return NextResponse.redirect(url)
+    const hasNeverCompletedCheckout = !academy?.plan || !academy?.stripe_customer_id
+
+    if (
+      status === 'past_due' ||
+      status === 'unpaid' ||
+      status === 'canceled' ||
+      (status === 'trial' && hasNeverCompletedCheckout)
+    ) {
+      if (!url.pathname.startsWith('/dashboard/assinatura') && !url.pathname.startsWith('/onboarding')) {
+        url.pathname = '/dashboard/assinatura'
+        return NextResponse.redirect(url)
+      }
     }
   }
   

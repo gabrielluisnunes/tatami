@@ -21,6 +21,50 @@ const PLAN_NAMES: Record<string, string> = {
   'multi-unit': 'Multi-unit (R$ 299/mês)',
 }
 
+const PLANS_LIST = [
+  {
+    id: 'price_1TkFdjJFm0PQ5umULNEvHO9t',
+    name: 'Starter',
+    price: '79',
+    period: '/mês',
+    description: 'Perfeito para academias em início de jornada.',
+    features: [
+      'Até 50 alunos ativos',
+      'Gestão de treinos e presenças',
+      'Histórico básico de faixas',
+      'Suporte prioritário por email',
+    ],
+  },
+  {
+    id: 'price_1TkFeqJFm0PQ5umUgGuwHsxK',
+    name: 'Pro',
+    price: '175',
+    period: '/mês',
+    description: 'Ideal para academias em pleno crescimento.',
+    features: [
+      'Alunos ilimitados',
+      'Controle financeiro avançado',
+      'Reconhecimento facial com IA',
+      'WhatsApp integrado para alertas',
+      'Suporte prioritário via WhatsApp',
+    ],
+    popular: true,
+  },
+  {
+    id: 'price_1TkFfOJFm0PQ5umUgHBYJDvM',
+    name: 'Multi-unit',
+    price: '299',
+    period: '/mês',
+    description: 'Para redes de academias e franquias.',
+    features: [
+      'Múltiplas filiais integradas',
+      'Relatórios avançados unificados',
+      'Todas as features Pro incluídas',
+      'Gerente de contas dedicado',
+    ],
+  },
+]
+
 export default function AssinaturaPage() {
   const [academy, setAcademy] = useState<AcademyData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -108,6 +152,42 @@ export default function AssinaturaPage() {
     }
   }
 
+  const handleSelectPlan = async (priceId: string) => {
+    if (!academy?.id) return
+
+    try {
+      setPortalLoading(true)
+      setError(null)
+
+      const response = await fetch('/api/stripe/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          priceId,
+          academyId: academy.id,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Erro ao iniciar checkout')
+      }
+
+      const data = await response.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        throw new Error('URL de checkout não retornada')
+      }
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Erro ao processar a assinatura. Tente novamente.'
+      setError(errMsg)
+      setPortalLoading(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex h-[50vh] w-full items-center justify-center">
@@ -129,6 +209,85 @@ export default function AssinaturaPage() {
       month: '2-digit',
       year: 'numeric',
     })
+  }
+
+  if (!academy?.plan) {
+    return (
+      <div className="space-y-8 max-w-5xl">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+            Ativação de Plano
+          </h1>
+          <p className="text-sm text-gray-500">
+            Sua academia ainda não possui um plano ativo. Escolha uma das opções abaixo para iniciar o trial de 5 dias e ativar o acesso ao dojo.
+          </p>
+        </div>
+
+        {error && (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-3 text-red-700 max-w-md">
+            <AlertOctagon className="h-5 w-5 shrink-0 text-red-600 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold">Ocorreu um problema</p>
+              <p className="text-xs text-red-600/90 mt-1">{error}</p>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch mt-8">
+          {PLANS_LIST.map((plan) => (
+            <div
+              key={plan.id}
+              className={`relative flex flex-col justify-between rounded-2xl bg-white border p-8 shadow-xl transition-all duration-300 ${
+                plan.popular
+                  ? 'border-indigo-500/80 ring-2 ring-indigo-500/20 md:-translate-y-2'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              {plan.popular && (
+                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-xxs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-md">
+                  Mais Popular
+                </span>
+              )}
+
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">{plan.name}</h2>
+                  <p className="text-xs text-gray-500 mt-2">{plan.description}</p>
+                </div>
+
+                <div className="flex items-baseline">
+                  <span className="text-4xl font-extrabold tracking-tight text-gray-900">R$ {plan.price}</span>
+                  <span className="text-sm font-semibold text-gray-500 ml-1">{plan.period}</span>
+                </div>
+
+                <ul className="space-y-3.5">
+                  {plan.features.map((feature, idx) => (
+                    <li key={idx} className="flex items-start text-sm text-gray-600">
+                      <CheckCircle2 className="h-5 w-5 text-indigo-500 shrink-0 mr-2" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="mt-8">
+                <Button
+                  onClick={() => handleSelectPlan(plan.id)}
+                  disabled={portalLoading}
+                  className={`w-full py-5 rounded-xl font-bold transition-all duration-200 ${
+                    plan.popular
+                      ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20'
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
+                  }`}
+                >
+                  {portalLoading ? 'Redirecionando...' : 'Iniciar teste gratuito'}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
   }
 
   return (
