@@ -76,6 +76,21 @@ export async function middleware(request: NextRequest) {
     url.pathname = '/onboarding'
     return NextResponse.redirect(url)
   } 
+
+  // 4.5 Bloqueio de inadimplência para admins no dashboard
+  if (role === 'admin' && academyId && isDashboardRoute && pathname !== '/dashboard/assinatura') {
+    const { data: academy } = await supabase
+      .from('academies')
+      .select('subscription_status')
+      .eq('id', academyId)
+      .single()
+
+    const status = academy?.subscription_status
+    if (status === 'past_due' || status === 'unpaid' || status === 'canceled') {
+      url.pathname = '/dashboard/assinatura'
+      return NextResponse.redirect(url)
+    }
+  }
   
   // 5. Professor/aluno NUNCA acessa onboarding
   if (isOnboardingRoute && role !== 'admin') {
