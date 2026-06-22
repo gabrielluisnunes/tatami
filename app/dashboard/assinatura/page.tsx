@@ -197,7 +197,7 @@ export default function AssinaturaPage() {
   }
 
   const status = academy?.subscription_status || 'trial'
-  const isPastDue = status === 'past_due' || status === 'unpaid'
+  const isPastDue = status === 'past_due' || status === 'unpaid' || status === 'incomplete' || status === 'incomplete_expired'
   const isCanceled = status === 'canceled'
   const isTrial = status === 'trial' || status === 'trialing'
   const isActive = status === 'active'

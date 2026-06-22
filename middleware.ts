@@ -86,13 +86,16 @@ export async function middleware(request: NextRequest) {
       .single()
 
     const status = academy?.subscription_status
+    const isTrialing = status === 'trial' || status === 'trialing'
     const hasNeverCompletedCheckout = !academy?.plan || !academy?.stripe_customer_id
 
     if (
       status === 'past_due' ||
       status === 'unpaid' ||
       status === 'canceled' ||
-      (status === 'trial' && hasNeverCompletedCheckout)
+      status === 'incomplete' ||
+      status === 'incomplete_expired' ||
+      (isTrialing && hasNeverCompletedCheckout)
     ) {
       if (!url.pathname.startsWith('/dashboard/assinatura') && !url.pathname.startsWith('/onboarding')) {
         url.pathname = '/dashboard/assinatura'
