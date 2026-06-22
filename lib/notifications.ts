@@ -96,6 +96,19 @@ export async function sendWelcomeEmail(
 </body>
 </html>
     `.trim(),
+    text: `Bem-vindo, ${studentName}!
+
+Seu acesso ao portal do aluno da ${academyName} foi criado.
+
+Suas credenciais:
+Email: ${to}
+Senha temporária: ${tempPassword}
+
+Acesse o portal em: ${loginUrl}
+
+Recomendamos que você altere sua senha após o primeiro acesso em Perfil > Alterar senha.
+
+Você recebeu este email porque foi cadastrado como aluno em ${academyName}.`,
   })
 }
 
@@ -114,5 +127,10 @@ export async function sendOverdueAlert(
       <p>Sua mensalidade de R$ ${amount.toFixed(2)} venceu em ${dueDate} e ainda está em aberto.</p>
       <p>Entre em contato com sua academia para regularizar.</p>
     `.trim(),
+    text: `Olá, ${studentName}.
+
+Sua mensalidade de R$ ${amount.toFixed(2)} venceu em ${dueDate} e ainda está em aberto.
+
+Entre em contato com sua academia para regularizar.`,
   })
 }
