@@ -150,14 +150,14 @@ export default function OnboardingPage() {
   ]
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-950 px-4 text-zinc-100 sm:px-6 lg:px-8 py-10">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4 text-gray-900 sm:px-6 lg:px-8 py-10">
       <div className="w-full max-w-5xl space-y-8">
         <div className="flex flex-col items-center space-y-2 text-center mb-6">
           <Logo className="h-14 w-14 text-indigo-600" />
-          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-500 via-indigo-400 to-zinc-50 bg-clip-text text-transparent mt-2">
+          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-indigo-800 to-gray-900 bg-clip-text text-transparent mt-2">
             {step === 1 ? 'Configure sua academia' : 'Escolha seu plano'}
           </h1>
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-gray-500">
             {step === 1 
               ? 'Insira os dados iniciais do seu dojo ou academia' 
               : 'Todos os planos iniciam com 5 dias grátis. Cancele quando quiser.'}
@@ -165,16 +165,16 @@ export default function OnboardingPage() {
         </div>
 
         {error && (
-          <div className="p-4 bg-red-950/40 border border-red-800/30 rounded-xl text-center max-w-md mx-auto">
-            <p className="text-sm font-medium text-red-400">{error}</p>
+          <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-center max-w-md mx-auto">
+            <p className="text-sm font-medium text-red-600">{error}</p>
           </div>
         )}
 
         {step === 1 ? (
-          <div className="max-w-lg mx-auto bg-zinc-900/60 backdrop-blur-xl border border-zinc-800/80 rounded-2xl p-8 shadow-2xl space-y-6">
+          <div className="max-w-lg mx-auto bg-white border border-gray-200 rounded-2xl p-8 shadow-xl space-y-6">
             <form onSubmit={handleSubmitStep1} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="full_name" className="text-xs font-semibold text-zinc-400">
+                <Label htmlFor="full_name" className="text-xs font-semibold text-gray-500">
                   Seu nome completo
                 </Label>
                 <Input
@@ -185,12 +185,12 @@ export default function OnboardingPage() {
                   onChange={(e) => setFullName(e.target.value)}
                   disabled={loading}
                   required
-                  className="bg-zinc-950/60 border-zinc-800/80 text-white placeholder-zinc-600 focus-visible:ring-indigo-500 rounded-xl py-5"
+                  className="bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus-visible:ring-indigo-500 rounded-xl py-5"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-xs font-semibold text-zinc-400">
+                <Label htmlFor="name" className="text-xs font-semibold text-gray-500">
                   Nome da academia
                 </Label>
                 <Input
@@ -201,19 +201,19 @@ export default function OnboardingPage() {
                   onChange={(e) => setName(e.target.value)}
                   disabled={loading}
                   required
-                  className="bg-zinc-950/60 border-zinc-800/80 text-white placeholder-zinc-600 focus-visible:ring-indigo-500 rounded-xl py-5"
+                  className="bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus-visible:ring-indigo-500 rounded-xl py-5"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="sport" className="text-xs font-semibold text-zinc-400">
+                <Label htmlFor="sport" className="text-xs font-semibold text-gray-500">
                   Modalidade principal
                 </Label>
                 <Select value={sport} onValueChange={(v) => v && setSport(v)} disabled={loading} required>
-                  <SelectTrigger id="sport" className="bg-zinc-950/60 border-zinc-800/80 text-white rounded-xl py-5">
+                  <SelectTrigger id="sport" className="bg-white border-gray-200 text-gray-900 rounded-xl py-5">
                     <SelectValue placeholder="Selecione a modalidade" />
                   </SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-zinc-800 text-zinc-100">
+                  <SelectContent className="bg-white border-gray-200 text-gray-900">
                     <SelectItem value="jiu-jitsu">Jiu-Jitsu</SelectItem>
                     <SelectItem value="muay thai">Muay Thai</SelectItem>
                     <SelectItem value="boxe">Boxe</SelectItem>
@@ -223,14 +223,14 @@ export default function OnboardingPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="due_day" className="text-xs font-semibold text-zinc-400">
+                <Label htmlFor="due_day" className="text-xs font-semibold text-gray-500">
                   Dia de vencimento da mensalidade
                 </Label>
                 <Select value={dueDay} onValueChange={(v) => v && setDueDay(v)} disabled={loading} required>
-                  <SelectTrigger id="due_day" className="bg-zinc-950/60 border-zinc-800/80 text-white rounded-xl py-5">
+                  <SelectTrigger id="due_day" className="bg-white border-gray-200 text-gray-900 rounded-xl py-5">
                     <SelectValue placeholder="Dia do vencimento" />
                   </SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-zinc-800 text-zinc-100 max-h-52">
+                  <SelectContent className="bg-white border-gray-200 text-gray-900 max-h-52">
                     {dueDays.map((day) => (
                       <SelectItem key={day} value={day}>
                         Dia {day}
@@ -241,7 +241,7 @@ export default function OnboardingPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="monthly_price" className="text-xs font-semibold text-zinc-400">
+                <Label htmlFor="monthly_price" className="text-xs font-semibold text-gray-500">
                   Valor padrão da mensalidade (R$)
                 </Label>
                 <Input
@@ -254,7 +254,7 @@ export default function OnboardingPage() {
                   onChange={(e) => setMonthlyPrice(e.target.value)}
                   disabled={loading}
                   required
-                  className="bg-zinc-950/60 border-zinc-800/80 text-white placeholder-zinc-600 focus-visible:ring-indigo-500 rounded-xl py-5"
+                  className="bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus-visible:ring-indigo-500 rounded-xl py-5"
                 />
               </div>
 
@@ -272,10 +272,10 @@ export default function OnboardingPage() {
             {plans.map((plan) => (
               <div
                 key={plan.id}
-                className={`relative flex flex-col justify-between rounded-2xl bg-zinc-900/60 backdrop-blur-xl border p-8 shadow-xl transition-all duration-300 ${
+                className={`relative flex flex-col justify-between rounded-2xl bg-white border p-8 shadow-xl transition-all duration-300 ${
                   plan.popular
                     ? 'border-indigo-500/80 ring-2 ring-indigo-500/20 md:-translate-y-2'
-                    : 'border-zinc-800/80 hover:border-zinc-700'
+                    : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
                 {plan.popular && (
@@ -286,18 +286,18 @@ export default function OnboardingPage() {
 
                 <div className="space-y-6">
                   <div>
-                    <h2 className="text-2xl font-bold text-white">{plan.name}</h2>
-                    <p className="text-xs text-zinc-400 mt-2">{plan.description}</p>
+                    <h2 className="text-2xl font-bold text-gray-900">{plan.name}</h2>
+                    <p className="text-xs text-gray-500 mt-2">{plan.description}</p>
                   </div>
 
                   <div className="flex items-baseline">
-                    <span className="text-4xl font-extrabold tracking-tight text-white">R$ {plan.price}</span>
-                    <span className="text-sm font-semibold text-zinc-400 ml-1">{plan.period}</span>
+                    <span className="text-4xl font-extrabold tracking-tight text-gray-900">R$ {plan.price}</span>
+                    <span className="text-sm font-semibold text-gray-500 ml-1">{plan.period}</span>
                   </div>
 
                   <ul className="space-y-3.5">
                     {plan.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-start text-sm text-zinc-300">
+                      <li key={idx} className="flex items-start text-sm text-gray-600">
                         <Check className="h-5 w-5 text-indigo-500 shrink-0 mr-2" />
                         <span>{feature}</span>
                       </li>
@@ -312,7 +312,7 @@ export default function OnboardingPage() {
                     className={`w-full py-5 rounded-xl font-bold transition-all duration-200 ${
                       plan.popular
                         ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20'
-                        : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200'
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
                     }`}
                   >
                     {loading ? 'Redirecionando...' : 'Iniciar teste gratuito'}
