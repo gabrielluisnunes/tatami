@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { CheckinsList } from '@/components/dashboard/checkins-list'
+import { CheckinsFilter } from '@/components/dashboard/checkins-filter'
 
 interface CheckinRecord {
   id: string
@@ -23,7 +24,13 @@ interface AttendanceRecord {
   } | null
 }
 
-export default async function CheckinsPage() {
+interface CheckinsPageProps {
+  searchParams: {
+    month?: string
+  }
+}
+
+export default async function CheckinsPage({ searchParams }: CheckinsPageProps) {
   const supabase = createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -39,9 +46,10 @@ export default async function CheckinsPage() {
   if (profile.role !== 'admin') redirect('/dashboard')
 
   const academyId = profile.academy_id
+  const selectedMonth = searchParams.month
 
-  // Últimos 30 checkins com joins
-  const { data: rawCheckins } = await supabase
+  // Constrói a consulta de checkins do Supabase com base no filtro
+  let query = supabase
     .from('checkins')
     .select(`
       id,
@@ -51,12 +59,29 @@ export default async function CheckinsPage() {
       profiles!checkins_professor_id_fkey ( full_name )
     `)
     .eq('academy_id', academyId)
+
+  if (selectedMonth && selectedMonth !== 'all') {
+    const startOfMonth = `${selectedMonth}-01T00:00:00.000Z`
+    const [year, month] = selectedMonth.split('-').map(Number)
+    const nextMonth = month === 12 ? 1 : month + 1
+    const nextYear = month === 12 ? year + 1 : year
+    const endOfMonth = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01T00:00:00.000Z`
+
+    query = query
+      .gte('checked_in_at', startOfMonth)
+      .lt('checked_in_at', endOfMonth)
+  }
+
+  // Se tem filtro de mês, aumentamos o limite para ver mais checkins do mês selecionado
+  const limit = selectedMonth && selectedMonth !== 'all' ? 100 : 30
+
+  const { data: rawCheckins } = await query
     .order('checked_in_at', { ascending: false })
-    .limit(30)
+    .limit(limit)
 
   const checkinIds = (rawCheckins ?? []).map((c) => c.id as string)
 
-  // Busca toda a attendance dos 30 checkins de uma vez (evita N+1)
+  // Busca toda a attendance dos checkins selecionados (evita N+1)
   const { data: rawAttendance } = checkinIds.length
     ? await supabase
         .from('attendance')
@@ -86,11 +111,30 @@ export default async function CheckinsPage() {
     attendance:     attendanceMap.get(c.id) ?? [],
   }))
 
+  const formatSelectedMonth = (monthString: string) => {
+    try {
+      const date = new Date(monthString + '-02')
+      const formatted = date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+      return formatted.charAt(0).toUpperCase() + formatted.slice(1)
+    } catch {
+      return monthString
+    }
+  }
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">Check-ins</h1>
-        <p className="text-sm text-gray-400">Últimos 30 registros de presença</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Check-ins</h1>
+          <p className="text-sm text-gray-500">
+            {selectedMonth && selectedMonth !== 'all'
+              ? `Registros de ${formatSelectedMonth(selectedMonth)}`
+              : 'Últimos 30 registros de presença'}
+          </p>
+        </div>
+        <div>
+          <CheckinsFilter />
+        </div>
       </div>
       <CheckinsList checkins={checkins} />
     </div>
