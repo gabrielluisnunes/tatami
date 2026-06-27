@@ -66,6 +66,8 @@ const PLANS_LIST = [
   },
 ]
 
+const PLANS_LIST_VISIBLE = PLANS_LIST.filter(p => p.id !== 'price_1TkFfOJFm0PQ5umUgHBYJDvM')
+
 export function SubscriptionSection({ academy }: SubscriptionSectionProps) {
   const [showPlans, setShowPlans] = useState(false)
   const [portalLoading, setPortalLoading] = useState(false)
@@ -216,8 +218,8 @@ export function SubscriptionSection({ academy }: SubscriptionSectionProps) {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch mt-8">
-          {PLANS_LIST.map((plan) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 max-w-3xl mx-auto gap-8 items-stretch mt-8">
+          {PLANS_LIST_VISIBLE.map((plan) => (
             <div
               key={plan.id}
               className={`relative flex flex-col justify-between rounded-2xl bg-white border p-8 shadow-xl transition-all duration-300 ${

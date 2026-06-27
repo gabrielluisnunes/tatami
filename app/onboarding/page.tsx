@@ -149,6 +149,8 @@ export default function OnboardingPage() {
     },
   ]
 
+  const plansVisible = plans.filter(p => p.id !== 'price_1TkFfOJFm0PQ5umUgHBYJDvM')
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4 text-gray-900 sm:px-6 lg:px-8 py-10">
       <div className="w-full max-w-5xl space-y-8">
@@ -268,8 +270,8 @@ export default function OnboardingPage() {
             </form>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-            {plans.map((plan) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 max-w-3xl mx-auto gap-8 items-stretch">
+            {plansVisible.map((plan) => (
               <div
                 key={plan.id}
                 className={`relative flex flex-col justify-between rounded-2xl bg-white border p-8 shadow-xl transition-all duration-300 ${

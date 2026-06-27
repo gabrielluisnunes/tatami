@@ -7,24 +7,24 @@ import { sendWelcomeEmail } from '@/lib/notifications'
 const PASSWORD_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789'
 
 function generateTempPassword(length = 10): string {
-  return Array.from(                
+  return Array.from(
     { length },
     () => PASSWORD_CHARS[Math.floor(Math.random() * PASSWORD_CHARS.length)]
   ).join('')
 }
 
 const enrollSchema = z.object({
-  full_name:       z.string().min(2),
-  email:           z.string().email(),
-  role:            z.enum(['aluno', 'professor']),
-  belt:            z.string().default('branca'),
-  phone:           z.string().optional(),
+  full_name: z.string().min(2),
+  email: z.string().email(),
+  role: z.enum(['aluno', 'professor']),
+  belt: z.string().default('branca'),
+  phone: z.string().optional(),
   emergency_phone: z.string().optional(),
-  cep:             z.string().optional(),
-  address:         z.string().optional(),
-  neighborhood:    z.string().optional(),
-  city:            z.string().optional(),
-  state:           z.string().optional(),
+  cep: z.string().optional(),
+  address: z.string().optional(),
+  neighborhood: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
 })
 
 export async function POST(request: Request) {
@@ -50,24 +50,46 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 })
   }
 
-  // Busca nome da academia para o email
+  // Busca nome e plano da academia para o email e validação
   const { data: academy } = await supabase
     .from('academies')
-    .select('name')                 
+    .select('name, plan')
     .eq('id', adminProfile.academy_id)
     .single()
+
+  if (body.role === 'aluno' && academy?.plan === 'starter') {
+    const { count, error: countError } = await supabase
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('academy_id', adminProfile.academy_id)
+      .eq('role', 'aluno')
+
+    if (countError) {
+      return NextResponse.json({ error: 'Erro ao verificar limite de alunos' }, { status: 500 })
+    }
+
+    if ((count ?? 0) >= 50) {
+      return NextResponse.json(
+        {
+          error: 'Limite de 50 alunos do plano Starter foi atingido. Faça upgrade para o plano Pro para cadastrar alunos ilimitados.',
+          code: 'PLAN_LIMIT_REACHED'
+        },
+        { status: 403 }
+      )
+    }
+  }
 
   const tempPassword = generateTempPassword()
 
   const { data: created, error: createError } = await supabase.auth.admin.createUser({
     email: body.email,
-    password: tempPassword,         
+    password: tempPassword,
     email_confirm: true,
     user_metadata: {
-      full_name:  body.full_name,
-      role:       body.role,
+      full_name: body.full_name,
+      role: body.role,
       academy_id: adminProfile.academy_id,
-      belt:       body.belt,
+      belt: body.belt,
     },
   })
 
@@ -75,42 +97,42 @@ export async function POST(request: Request) {
     if (createError?.message?.includes('already')) {
       return NextResponse.json({ error: 'Email já cadastrado' }, { status: 409 })
     }
-    return NextResponse.json({ error: 'Erro ao criar usuário' }, { status: 500 })        
+    return NextResponse.json({ error: 'Erro ao criar usuário' }, { status: 500 })
   }
 
   // Registra faixa inicial em belt_history para garantir histórico completo desde o cadastro
   await supabase.from('belt_history').insert({
-    student_id:              created.user.id,
-    academy_id:              adminProfile.academy_id,
-    belt:                    body.belt,
-    degree:                  0,
-    graded_at:               new Date().toISOString(),
-    graded_by:               user.id,
-    notes:                   'Faixa de cadastro inicial',
+    student_id: created.user.id,
+    academy_id: adminProfile.academy_id,
+    belt: body.belt,
+    degree: 0,
+    graded_at: new Date().toISOString(),
+    graded_by: user.id,
+    notes: 'Faixa de cadastro inicial',
     trainings_at_graduation: 0,
   })
 
   const updates: Record<string, unknown> = {}
 
-  if (body.phone)           updates.phone           = body.phone
+  if (body.phone) updates.phone = body.phone
   if (body.emergency_phone) updates.emergency_phone = body.emergency_phone
-  if (body.cep)             updates.cep             = body.cep
-  if (body.address)         updates.address         = body.address
-  if (body.neighborhood)    updates.neighborhood    = body.neighborhood
-  if (body.city)            updates.city            = body.city
-  if (body.state)           updates.state           = body.state
+  if (body.cep) updates.cep = body.cep
+  if (body.address) updates.address = body.address
+  if (body.neighborhood) updates.neighborhood = body.neighborhood
+  if (body.city) updates.city = body.city
+  if (body.state) updates.state = body.state
 
   if (Object.keys(updates).length > 0) {
     await supabase.from('profiles').update(updates).eq('id', created.user.id)
   }
 
   // Envia email com senha temporária (não bloqueia resposta em caso de falha)
-  const origin = request.headers.get('origin') ?? 'https://tatami.app'                
+  const origin = request.headers.get('origin') ?? 'https://tatami.app'
   sendWelcomeEmail(
     body.email,
     body.full_name,
     academy?.name ?? 'sua academia',
-    tempPassword,                   
+    tempPassword,
     `${origin}/auth/login`
   ).catch(err => console.error('Falha ao enviar email de boas-vindas:', err))
 

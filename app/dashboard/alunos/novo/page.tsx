@@ -142,11 +142,18 @@ export default function NovoAlunoPage() {
         return
       }
 
-      if (!response.ok) throw new Error('Erro ao cadastrar')
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        if (response.status === 403 && data.code === 'PLAN_LIMIT_REACHED') {
+          setError(data.error || 'Limite de 50 alunos do plano Starter foi atingido. Faça upgrade para o plano Pro para cadastrar alunos ilimitados.')
+          return
+        }
+        throw new Error(data.error || 'Erro ao cadastrar')
+      }
 
       router.push('/dashboard/alunos?success=true')
-    } catch {
-      setError('Erro ao cadastrar aluno. Tente novamente.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao cadastrar aluno. Tente novamente.')
     } finally {
       setLoading(false)
     }
