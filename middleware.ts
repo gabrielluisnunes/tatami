@@ -51,7 +51,7 @@ export async function middleware(request: NextRequest) {
   const { data: profile } = isAlunoRoute
     ? await supabase
         .from('profiles')
-        .select('role, academy_id, face_descriptor')
+        .select('role, academy_id, face_descriptor, payment_due_day')
         .eq('id', user.id)
         .single()
     : await supabase
@@ -63,6 +63,7 @@ export async function middleware(request: NextRequest) {
   const role           = profile?.role
   const academyId      = profile?.academy_id
   const faceDescriptor = (profile as { face_descriptor?: number[] | null } | null)?.face_descriptor
+  const paymentDueDay  = (profile as { payment_due_day?: number | null } | null)?.payment_due_day
 
   // 3. Usuário sem role (novo) → sempre onboarding
   if (!role) {
@@ -133,7 +134,7 @@ export async function middleware(request: NextRequest) {
   if (
     role === 'aluno' &&
     isAlunoRoute &&
-    !faceDescriptor &&
+    (!faceDescriptor || !paymentDueDay) &&
     pathname !== '/aluno/completar-perfil'
   ) {
     url.pathname = '/aluno/completar-perfil'

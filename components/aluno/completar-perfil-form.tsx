@@ -9,7 +9,7 @@ import {
 import { LiveCameraCapture } from '@/components/aluno/live-camera-capture'
 import { Button } from '@/components/ui/button'
 
-type FormStep = 'instructions' | 'camera' | 'saving' | 'saved'
+type FormStep = 'payment-day' | 'instructions' | 'camera' | 'saving' | 'saved'
 
 interface CompletarPerfilFormProps {
   firstName: string
@@ -26,7 +26,8 @@ const INSTRUCTIONS = [
 export function CompletarPerfilForm({ firstName }: CompletarPerfilFormProps) {
   const router = useRouter()
 
-  const [step, setStep] = useState<FormStep>('instructions')
+  const [step, setStep] = useState<FormStep>('payment-day')
+  const [paymentDay, setPaymentDay] = useState<number | null>(null)
   const [capturedB64, setCapturedB64] = useState<string | null>(null)
   const [descriptor, setDescriptor] = useState<number[] | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
@@ -49,6 +50,7 @@ export function CompletarPerfilForm({ firstName }: CompletarPerfilFormProps) {
         body:    JSON.stringify({
           photo_base64:    capturedB64,
           face_descriptor: descriptor,
+          payment_due_day: paymentDay,
         }),
       })
 
@@ -67,6 +69,46 @@ export function CompletarPerfilForm({ firstName }: CompletarPerfilFormProps) {
       setSaveError(err instanceof Error ? err.message : 'Erro ao salvar. Tente novamente.')
       setStep('camera')
     }
+  }
+
+  if (step === 'payment-day') {
+    return (
+      <div className="space-y-6 pb-4">
+        <div>
+          <h1 className="text-2xl font-bold text-zinc-100">Escolha seu dia de pagamento</h1>
+          <p className="mt-1 text-sm text-zinc-500">
+            Selecione o dia do mês em que sua mensalidade irá vencer.
+            Essa escolha é definitiva e não poderá ser alterada depois.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-7 gap-2">
+          {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+            <button
+              key={day}
+              type="button"
+              onClick={() => setPaymentDay(day)}
+              className={`aspect-square w-full rounded-xl font-semibold text-sm transition-colors ${
+                paymentDay === day
+                  ? 'bg-indigo-600 text-white ring-2 ring-indigo-400'
+                  : 'bg-zinc-800/60 text-zinc-300 hover:bg-zinc-700'
+              }`}
+            >
+              {day}
+            </button>
+          ))}
+        </div>
+
+        <Button
+          type="button"
+          disabled={paymentDay === null}
+          onClick={() => setStep('instructions')}
+          className="w-full rounded-xl bg-indigo-600 py-6 font-semibold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-500 disabled:opacity-50"
+        >
+          Confirmar e continuar
+        </Button>
+      </div>
+    )
   }
 
   if (step === 'saved') {

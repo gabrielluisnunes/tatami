@@ -5,6 +5,7 @@ import { z } from 'zod'
 const photoSchema = z.object({
   photo_base64:    z.string().min(1),
   face_descriptor: z.array(z.number()).length(128),
+  payment_due_day: z.number().int().min(1).max(31),
 })
 
 export async function PATCH(request: Request) {
@@ -64,6 +65,7 @@ export async function PATCH(request: Request) {
     .update({
       photo_url:       filePath,
       face_descriptor: body.face_descriptor,
+      payment_due_day: body.payment_due_day,
     })
     .eq('id', user.id)
 
