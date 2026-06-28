@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ created: 0 })
   }
 
-  const academyIds = [...new Set(students.map(s => s.academy_id).filter(Boolean))]
+  const academyIds = Array.from(new Set(students.map(s => s.academy_id).filter(Boolean)))
 
   const { data: academies } = await supabase
     .from('academies')

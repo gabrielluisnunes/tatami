@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Erro ao atualizar' }, { status: 500 })
   }
 
-  const academyIds = [...new Set(overdue.map(f => f.academy_id).filter(Boolean))]
+  const academyIds = Array.from(new Set(overdue.map(f => f.academy_id).filter(Boolean)))
 
   const { data: academiesData } = await supabase
     .from('academies')
@@ -54,7 +54,8 @@ export async function POST(request: Request) {
   const academyNameMap = new Map(academiesData?.map(a => [a.id, a.name]) ?? [])
 
   for (const record of overdue) {
-    const profile = record.profiles as { full_name: string; email: string } | null
+    const profileObj = Array.isArray(record.profiles) ? record.profiles[0] : record.profiles
+    const profile = profileObj as unknown as { full_name: string; email: string } | null
     if (!profile) continue
 
     const [y, m, d] = record.due_date.split('-')
