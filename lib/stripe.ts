@@ -13,12 +13,12 @@ export const stripe = new Stripe(env.STRIPE_SECRET_KEY || 'sk_test_placeholder',
 export const PLANS = {
   starter: {
     name: 'Starter',
-    priceId: 'price_1TkFdjJFm0PQ5umULNEvHO9t',
+    priceId: 'price_1TnTDWJbC64QkQGS8OwQNBJM',
     price: 79,
   },
   pro: {
     name: 'Pro',
-    priceId: 'price_1TkFeqJFm0PQ5umUgGuwHsxK',
+    priceId: 'price_1TnTDnJbC64QkQGSlGmIdkcC',
     price: 175,
   },
   'multi-unit': {

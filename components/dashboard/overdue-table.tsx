@@ -72,7 +72,7 @@ export function OverdueTable({ records }: OverdueTableProps) {
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-zinc-800/80">
+    <div className="overflow-x-auto rounded-xl border border-zinc-800/80">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-zinc-800/80 bg-zinc-900/40">

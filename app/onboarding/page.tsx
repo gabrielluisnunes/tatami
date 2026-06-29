@@ -107,7 +107,7 @@ export default function OnboardingPage() {
 
   const plans = [
     {
-      id: 'price_1TkFdjJFm0PQ5umULNEvHO9t',
+      id: 'price_1TnTDWJbC64QkQGS8OwQNBJM',
       name: 'Starter',
       price: '79',
       period: '/mês',
@@ -120,7 +120,7 @@ export default function OnboardingPage() {
       ],
     },
     {
-      id: 'price_1TkFeqJFm0PQ5umUgGuwHsxK',
+      id: 'price_1TnTDnJbC64QkQGSlGmIdkcC',
       name: 'Pro',
       price: '175',
       period: '/mês',

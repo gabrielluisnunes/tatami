@@ -76,7 +76,7 @@ export function MonthlyTable({ records }: MonthlyTableProps) {
       {filtered.length === 0 ? (
         <p className="py-8 text-center text-sm text-zinc-600">Nenhum registro encontrado.</p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-zinc-800/80">
+        <div className="overflow-x-auto rounded-xl border border-zinc-800/80">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-zinc-800/80 bg-zinc-900/40">

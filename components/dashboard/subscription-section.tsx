@@ -24,7 +24,7 @@ const PLAN_NAMES: Record<string, string> = {
 
 const PLANS_LIST = [
   {
-    id: 'price_1TkFdjJFm0PQ5umULNEvHO9t',
+    id: 'price_1TnTDWJbC64QkQGS8OwQNBJM',
     name: 'Starter',
     price: '79',
     period: '/mês',
@@ -37,7 +37,7 @@ const PLANS_LIST = [
     ],
   },
   {
-    id: 'price_1TkFeqJFm0PQ5umUgGuwHsxK',
+    id: 'price_1TnTDnJbC64QkQGSlGmIdkcC',
     name: 'Pro',
     price: '175',
     period: '/mês',
