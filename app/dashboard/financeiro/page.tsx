@@ -69,42 +69,44 @@ export default async function FinanceiroPage() {
   }))
 
   // ── Mensalidades do mês atual (Cálculo independente de fuso horário) ──────────
-  const now          = new Date()
-  const year         = now.getFullYear()
-  const month        = String(now.getMonth() + 1).padStart(2, '0')
-  const firstOfMonth = `${year}-${month}-01`
-  
-  const lastDay      = new Date(year, now.getMonth() + 1, 0).getDate()
-  const lastOfMonth  = `${year}-${month}-${String(lastDay).padStart(2, '0')}`
+  const now = new Date()
+  const year = now.getUTCFullYear()
+  const month = now.getUTCMonth() + 1
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const firstOfMonth = `${year}-${pad(month)}-01`
+  const lastOfMonth = `${year}-${pad(month)}-31`
 
-  const { data: monthlyRaw } = await supabase
+  // Buscar todos os alunos da academia
+  const { data: allStudents } = await supabase
+    .from('profiles')
+    .select('id, full_name, payment_due_day')
+    .eq('academy_id', profile.academy_id)
+    .eq('role', 'aluno')
+    .order('full_name', { ascending: true })
+
+  // Buscar cobranças do mês atual para essa academia
+  const { data: monthlyCharges } = await supabase
     .from('financials')
-    .select('id, amount, due_date, paid_at, status, profiles!inner(full_name)')
-    .eq('academy_id', academyId)
+    .select('id, student_id, amount, due_date, paid_at, status')
+    .eq('academy_id', profile.academy_id)
     .gte('due_date', firstOfMonth)
     .lte('due_date', lastOfMonth)
-    .order('status')
-    .order('due_date')
 
-  interface MonthlyRaw {
-    id: string
-    amount: number
-    due_date: string
-    paid_at: string | null
-    status: string
-    profiles: {
-      full_name: string
-    } | null
-  }
-
-  const monthlyRecords = ((monthlyRaw as unknown as MonthlyRaw[]) ?? []).map((f) => ({
-    id:        f.id,
-    full_name: f.profiles?.full_name || '—',
-    amount:    f.amount,
-    due_date:  f.due_date,
-    paid_at:   f.paid_at,
-    status:    f.status as 'pending' | 'paid' | 'overdue',
-  }))
+  // Combinar: para cada aluno, verificar se tem cobrança no mês
+  const monthlyRecords = (allStudents ?? []).map(student => {
+    const charge = (monthlyCharges ?? []).find(c => c.student_id === student.id)
+    return {
+      id: charge?.id ?? null,
+      student_id: student.id,
+      full_name: student.full_name,
+      payment_due_day: student.payment_due_day,
+      amount: charge?.amount ?? null,
+      due_date: charge?.due_date ?? null,
+      paid_at: charge?.paid_at ?? null,
+      status: charge?.status ?? 'pending',
+      has_charge: !!charge,
+    }
+  })
 
   const metrics = [
     {
