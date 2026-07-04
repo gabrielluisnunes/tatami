@@ -18,6 +18,7 @@ const enrollSchema = z.object({
   email: z.string().email(),
   role: z.enum(['aluno', 'professor']),
   belt: z.string().default('branca'),
+  degree: z.number().int().min(0).max(4).default(0),
   phone: z.string().optional(),
   emergency_phone: z.string().optional(),
   cep: z.string().optional(),
@@ -105,14 +106,16 @@ export async function POST(request: Request) {
     student_id: created.user.id,
     academy_id: adminProfile.academy_id,
     belt: body.belt,
-    degree: 0,
+    degree: body.degree,
     graded_at: new Date().toISOString(),
     graded_by: user.id,
     notes: 'Faixa de cadastro inicial',
     trainings_at_graduation: 0,
   })
 
-  const updates: Record<string, unknown> = {}
+  const updates: Record<string, unknown> = {
+    degree: body.degree,
+  }
 
   if (body.phone) updates.phone = body.phone
   if (body.emergency_phone) updates.emergency_phone = body.emergency_phone

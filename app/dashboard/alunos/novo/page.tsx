@@ -45,6 +45,7 @@ export default function NovoAlunoPage() {
   const [email, setEmail]           = useState('')
   const [phone, setPhone]           = useState('')
   const [belt, setBelt]             = useState('branca')
+  const [degree, setDegree]         = useState<number>(0)
 
   // Novos campos
   const [emergencyPhone, setEmergencyPhone] = useState('')
@@ -127,6 +128,7 @@ export default function NovoAlunoPage() {
           email,
           role: 'aluno',
           belt,
+          degree,
           phone: phone || undefined,
           emergency_phone: emergencyPhone || undefined,
           cep: hasCep ? cep : undefined,
@@ -257,21 +259,38 @@ export default function NovoAlunoPage() {
             </div>
           </div>
 
-          {/* Faixa */}
-          <div className="space-y-1.5">
-            <Label htmlFor="belt" className={labelClass}>Faixa atual</Label>
-            <Select value={belt} onValueChange={(v) => v && setBelt(v)} disabled={loading}>
-              <SelectTrigger id="belt" className="rounded-xl border-gray-200 bg-white py-5 text-gray-900">
-                <SelectValue placeholder="Selecione a faixa" />
-              </SelectTrigger>
-              <SelectContent className="border-gray-200 bg-white text-gray-900">
-                <SelectItem value="branca">Branca</SelectItem>
-                <SelectItem value="azul">Azul</SelectItem>
-                <SelectItem value="roxa">Roxa</SelectItem>
-                <SelectItem value="marrom">Marrom</SelectItem>
-                <SelectItem value="preta">Preta</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Faixa + Grau — grid 2 colunas */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="belt" className={labelClass}>Faixa atual</Label>
+              <Select value={belt} onValueChange={(v) => v && setBelt(v)} disabled={loading}>
+                <SelectTrigger id="belt" className="rounded-xl border-gray-200 bg-white py-5 text-gray-900">
+                  <SelectValue placeholder="Selecione a faixa" />
+                </SelectTrigger>
+                <SelectContent className="border-gray-200 bg-white text-gray-900">
+                  <SelectItem value="branca">Branca</SelectItem>
+                  <SelectItem value="azul">Azul</SelectItem>
+                  <SelectItem value="roxa">Roxa</SelectItem>
+                  <SelectItem value="marrom">Marrom</SelectItem>
+                  <SelectItem value="preta">Preta</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="degree" className={labelClass}>Grau</Label>
+              <Select value={String(degree)} onValueChange={(v) => v && setDegree(Number(v))} disabled={loading}>
+                <SelectTrigger id="degree" className="rounded-xl border-gray-200 bg-white py-5 text-gray-900">
+                  <SelectValue placeholder="Selecione o grau" />
+                </SelectTrigger>
+                <SelectContent className="border-gray-200 bg-white text-gray-900">
+                  <SelectItem value="0">Sem grau</SelectItem>
+                  <SelectItem value="1">1º grau</SelectItem>
+                  <SelectItem value="2">2º grau</SelectItem>
+                  <SelectItem value="3">3º grau</SelectItem>
+                  <SelectItem value="4">4º grau</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* ── Seção: Endereço ── */}
