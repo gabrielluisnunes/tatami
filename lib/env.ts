@@ -13,7 +13,7 @@ const envSchema = z.object({
   AWS_REKOGNITION_COLLECTION_PREFIX: z.string().default('tatami'),
 
   // Resend — opcional até implementar notificações
-  RESEND_API_KEY: z.string().optional(),
+  RESEND_API_KEY: z.string().min(1, 'RESEND_API_KEY é obrigatória'),
 
   // Stripe — opcional até implementar pagamentos
   STRIPE_SECRET_KEY: z.string().optional(),

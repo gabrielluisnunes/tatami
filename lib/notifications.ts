@@ -3,6 +3,10 @@ import { env } from './env'
 
 export const resend = new Resend(env.RESEND_API_KEY)
 
+if (!env.RESEND_API_KEY) {
+  console.error('[FATAL] RESEND_API_KEY não está definida — emails não serão enviados')
+}
+
 export async function sendWelcomeEmail(
   to: string,
   studentName: string,
