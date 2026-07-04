@@ -134,7 +134,10 @@ export async function POST(request: Request) {
     academy?.name ?? 'sua academia',
     tempPassword,
     `${origin}/auth/login`
-  ).catch(err => console.error('Falha ao enviar email de boas-vindas:', err))
+  ).catch(err => {
+    console.error('Falha ao enviar email de boas-vindas:', err?.message ?? err)
+    console.error('Detalhes:', JSON.stringify(err, null, 2))
+  })
 
   return NextResponse.json({ success: true, user_id: created.user.id })
 }

@@ -13,12 +13,12 @@ const envSchema = z.object({
   AWS_REKOGNITION_COLLECTION_PREFIX: z.string().default('tatami'),
 
   // Resend — opcional até implementar notificações
-  RESEND_API_KEY: z.string().min(1, 'RESEND_API_KEY é obrigatória'),
+  RESEND_API_KEY: z.string().min(1),
 
   // Stripe — opcional até implementar pagamentos
-  STRIPE_SECRET_KEY: z.string().optional(),
-  STRIPE_WEBHOOK_SECRET: z.string().optional(),
-  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
+  STRIPE_SECRET_KEY: z.string().min(1),
+  STRIPE_WEBHOOK_SECRET: z.string().min(1),
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().min(1),
 })
 
 const parsed = envSchema.safeParse(process.env)
