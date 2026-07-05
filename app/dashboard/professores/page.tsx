@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { Plus, ShieldCheck } from 'lucide-react'
 import { ProfessorActions } from '@/components/dashboard/professor-actions'
 
 const beltColors: Record<string, string> = {
@@ -35,28 +35,34 @@ export default async function ProfessoresPage({
 
   const { data: rawProfessores } = await supabase
     .from('profiles')
-    .select('id, full_name, phone, belt, photo_url, city, state, created_at')
+    .select('id, full_name, phone, belt, degree, photo_url, city, state, created_at, role')
     .eq('academy_id', profile.academy_id)
-    .eq('role', 'professor')
+    .in('role', ['professor', 'admin'])
     .order('full_name', { ascending: true })
 
-  const professores = rawProfessores
-    ? await Promise.all(
-        rawProfessores.map(async (prof) => {
-          if (
-            prof.photo_url &&
-            !prof.photo_url.startsWith('http') &&
-            !prof.photo_url.startsWith('data:')
-          ) {
-            const { data } = await supabase.storage
-              .from('student-photos')
-              .createSignedUrl(prof.photo_url, 3600)
-            return { ...prof, photo_url: data?.signedUrl || null }
-          }
-          return prof
-        })
-      )
-    : []
+  const { data: academy } = await supabase
+    .from('academies')
+    .select('owner_id')
+    .eq('id', profile.academy_id)
+    .single()
+
+  const rawFiltered = (rawProfessores ?? []).filter(p => p.id !== academy?.owner_id)
+
+  const professores = await Promise.all(
+    rawFiltered.map(async (prof) => {
+      if (
+        prof.photo_url &&
+        !prof.photo_url.startsWith('http') &&
+        !prof.photo_url.startsWith('data:')
+      ) {
+        const { data } = await supabase.storage
+          .from('student-photos')
+          .createSignedUrl(prof.photo_url, 3600)
+        return { ...prof, photo_url: data?.signedUrl || null }
+      }
+      return prof
+    })
+  )
 
   return (
     <div className="space-y-6">
@@ -125,7 +131,16 @@ export default async function ProfessoresPage({
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-3 font-medium text-gray-800">{prof.full_name}</td>
+                  <td className="px-4 py-3 font-medium text-gray-800">
+                    {prof.full_name}
+                    {prof.role === 'admin' && (
+                      <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-indigo-50 
+                        border border-indigo-200 px-2 py-0.5 text-[10px] font-semibold text-indigo-600">
+                        <ShieldCheck className="h-3 w-3" />
+                        Co-admin
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-gray-500">{prof.phone || '—'}</td>
                   <td className="px-4 py-3 text-gray-500">
                     {prof.city && prof.state
@@ -149,7 +164,7 @@ export default async function ProfessoresPage({
                     })}
                   </td>
                   <td className="px-4 py-3">
-                    <ProfessorActions professorId={prof.id} professorName={prof.full_name} />
+                    <ProfessorActions professorId={prof.id} professorName={prof.full_name} role={prof.role} />
                   </td>
                 </tr>
               ))}

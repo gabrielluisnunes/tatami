@@ -9,11 +9,12 @@ import { Button } from '@/components/ui/button'
 interface ProfessorActionsProps {
   professorId:   string
   professorName: string
+  role:          string
 }
 
 type Modal = 'none' | 'promote' | 'delete'
 
-export function ProfessorActions({ professorId, professorName }: ProfessorActionsProps) {
+export function ProfessorActions({ professorId, professorName, role }: ProfessorActionsProps) {
   const router = useRouter()
   const [modal,   setModal]   = useState<Modal>('none')
   const [loading, setLoading] = useState(false)
@@ -69,15 +70,17 @@ export function ProfessorActions({ professorId, professorName }: ProfessorAction
             <Pencil className="h-3.5 w-3.5" />
           </Button>
         </Link>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => setModal('promote')}
-          className="h-7 w-7 rounded-lg p-0 text-zinc-500 hover:bg-indigo-900/30 hover:text-indigo-400"
-          title="Promover a co-admin"
-        >
-          <ShieldCheck className="h-3.5 w-3.5" />
-        </Button>
+        {role !== 'admin' && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setModal('promote')}
+            className="h-7 w-7 rounded-lg p-0 text-zinc-500 hover:bg-indigo-900/30 hover:text-indigo-400"
+            title="Promover a co-admin"
+          >
+            <ShieldCheck className="h-3.5 w-3.5" />
+          </Button>
+        )}
         <Button
           size="sm"
           variant="ghost"

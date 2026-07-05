@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { ArrowLeft, Loader2, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -18,8 +18,12 @@ export default function NovoProfessorPage() {
   const [fullName,       setFullName]       = useState('')
   const [email,          setEmail]          = useState('')
   const [belt,           setBelt]           = useState('branca')
+  const [degree,         setDegree]         = useState<number>(0)
   const [phone,          setPhone]          = useState('')
   const [emergencyPhone, setEmergencyPhone] = useState('')
+
+  const [customPassword, setCustomPassword] = useState('')
+  const [showPassword,   setShowPassword]   = useState(false)
 
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState<string | null>(null)
@@ -38,8 +42,10 @@ export default function NovoProfessorPage() {
           email,
           role:            'professor',
           belt,
+          degree,
           phone:           phone           || undefined,
           emergency_phone: emergencyPhone  || undefined,
+          ...(customPassword.trim() ? { password: customPassword.trim() } : {}),
         }),
       })
 
@@ -113,6 +119,29 @@ export default function NovoProfessorPage() {
             />
           </div>
 
+          <div className="space-y-1.5">
+            <label className={labelClass}>
+              Senha de acesso
+              <span className="ml-1 text-gray-400 font-normal">(opcional — gerada automaticamente se vazio)</span>
+            </label>
+            <div className="relative">
+              <Input
+                type={showPassword ? 'text' : 'password'}
+                value={customPassword}
+                onChange={e => setCustomPassword(e.target.value)}
+                placeholder="Deixe vazio para gerar automaticamente"
+                className={inputClass}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(p => !p)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className={labelClass}>
@@ -156,6 +185,21 @@ export default function NovoProfessorPage() {
                 <SelectItem value="preta">Preta</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className={labelClass}>Grau</label>
+            <select
+              value={degree}
+              onChange={e => setDegree(Number(e.target.value))}
+              className={`${inputClass} w-full px-3`}
+            >
+              <option value={0}>Sem grau</option>
+              <option value={1}>1º grau</option>
+              <option value={2}>2º grau</option>
+              <option value={3}>3º grau</option>
+              <option value={4}>4º grau</option>
+            </select>
           </div>
 
           {error && (

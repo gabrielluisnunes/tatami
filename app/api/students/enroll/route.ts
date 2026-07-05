@@ -26,6 +26,7 @@ const enrollSchema = z.object({
   neighborhood: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
+  password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres').optional(),
 })
 
 export async function POST(request: Request) {
@@ -80,7 +81,7 @@ export async function POST(request: Request) {
     }
   }
 
-  const tempPassword = generateTempPassword()
+  const tempPassword = body.password?.trim() || generateTempPassword()
 
   const { data: created, error: createError } = await supabase.auth.admin.createUser({
     email: body.email,

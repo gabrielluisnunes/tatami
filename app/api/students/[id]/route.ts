@@ -7,6 +7,7 @@ const updateSchema = z.object({
   phone:           z.string().optional().nullable(),
   emergency_phone: z.string().optional().nullable(),
   belt:            z.string().optional(),
+  degree:          z.number().int().min(0).max(4).optional(),
   cep:             z.string().optional().nullable(),
   address:         z.string().optional().nullable(),
   neighborhood:    z.string().optional().nullable(),
@@ -39,7 +40,7 @@ export async function PATCH(
     .select('id')
     .eq('id', params.id)
     .eq('academy_id', adminProfile.academy_id)
-    .in('role', ['aluno', 'professor'])
+    .in('role', ['aluno', 'professor', 'admin'])
     .single()
 
   if (!student) return NextResponse.json({ error: 'Membro não encontrado' }, { status: 404 }) 
@@ -88,7 +89,7 @@ export async function DELETE(
     .select('id')
     .eq('id', params.id)
     .eq('academy_id', adminProfile.academy_id)
-    .in('role', ['aluno', 'professor'])
+    .in('role', ['aluno', 'professor', 'admin'])
     .single()
 
   if (!student) return NextResponse.json({ error: 'Membro não encontrado' }, { status: 404 })

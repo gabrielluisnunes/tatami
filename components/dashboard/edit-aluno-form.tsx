@@ -18,6 +18,7 @@ interface InitialData {
   phone: string | null
   emergency_phone: string | null
   belt: string
+  degree: number
   cep: string | null
   address: string | null
   neighborhood: string | null       
@@ -44,6 +45,7 @@ export function EditAlunoForm({ studentId, initialData, successRedirect = '/dash
   const [phone,          setPhone]          = useState(initialData.phone ?? '')
   const [emergencyPhone, setEmergencyPhone] = useState(initialData.emergency_phone ?? '')
   const [belt,           setBelt]           = useState(initialData.belt ?? 'branca')
+  const [degree,         setDegree]         = useState<number>(initialData.degree ?? 0)
   const [cep,            setCep]            = useState(initialData.cep ?? '')
   const [address,        setAddress]        = useState(initialData.address ?? '')
   const [neighborhood,   setNeighborhood]   = useState(initialData.neighborhood ?? '')
@@ -93,6 +95,7 @@ export function EditAlunoForm({ studentId, initialData, successRedirect = '/dash
           phone:           phone || null,
           emergency_phone: emergencyPhone || null,
           belt,
+          degree,
           cep:             cep || null,
           address:         address || null,
           neighborhood:    neighborhood || null,
@@ -167,20 +170,38 @@ export function EditAlunoForm({ studentId, initialData, successRedirect = '/dash
         </div>
       </div>
 
-      <div className="space-y-1.5">
-        <Label className={labelClass}>Faixa atual</Label>
-        <Select value={belt} onValueChange={v => v && setBelt(v)} disabled={loading}>
-          <SelectTrigger className="rounded-xl border-zinc-800/80 bg-zinc-950/60 py-5 text-white">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-100">
-            <SelectItem value="branca">Branca</SelectItem>
-            <SelectItem value="azul">Azul</SelectItem>
-            <SelectItem value="roxa">Roxa</SelectItem>
-            <SelectItem value="marrom">Marrom</SelectItem>
-            <SelectItem value="preta">Preta</SelectItem>
-          </SelectContent>
-        </Select>
+      {/* Faixa + Grau — grid 2 colunas */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label className={labelClass}>Faixa atual</Label>
+          <Select value={belt} onValueChange={v => v && setBelt(v)} disabled={loading}>
+            <SelectTrigger className="rounded-xl border-zinc-800/80 bg-zinc-950/60 py-5 text-white">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-100">
+              <SelectItem value="branca">Branca</SelectItem>
+              <SelectItem value="azul">Azul</SelectItem>
+              <SelectItem value="roxa">Roxa</SelectItem>
+              <SelectItem value="marrom">Marrom</SelectItem>
+              <SelectItem value="preta">Preta</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label className={labelClass}>Grau</Label>
+          <Select value={String(degree)} onValueChange={v => v && setDegree(Number(v))} disabled={loading}>
+            <SelectTrigger className="rounded-xl border-zinc-800/80 bg-zinc-950/60 py-5 text-white">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-100">
+              <SelectItem value="0">Sem grau</SelectItem>
+              <SelectItem value="1">1º grau</SelectItem>
+              <SelectItem value="2">2º grau</SelectItem>
+              <SelectItem value="3">3º grau</SelectItem>
+              <SelectItem value="4">4º grau</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="pt-1">

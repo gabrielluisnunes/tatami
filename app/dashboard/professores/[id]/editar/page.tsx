@@ -27,10 +27,10 @@ export default async function EditarProfessorPage({
 
   const { data: professor } = await supabase
     .from('profiles')
-    .select('id, full_name, phone, emergency_phone, belt, cep, address, neighborhood, city, state')
+    .select('id, full_name, phone, emergency_phone, belt, degree, cep, address, neighborhood, city, state')
     .eq('id', params.id)
     .eq('academy_id', adminProfile.academy_id)
-    .eq('role', 'professor')
+    .in('role', ['professor', 'admin'])
     .single()
 
   if (!professor) notFound()

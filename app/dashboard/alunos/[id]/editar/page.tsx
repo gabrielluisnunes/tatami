@@ -27,7 +27,7 @@ export default async function EditarAlunoPage({
 
   const { data: aluno } = await supabase
     .from('profiles')
-    .select('id, full_name, phone, emergency_phone, belt, cep, address, neighborhood, city, state')
+    .select('id, full_name, phone, emergency_phone, belt, degree, cep, address, neighborhood, city, state')
     .eq('id', params.id)
     .eq('academy_id', adminProfile.academy_id)
     .eq('role', 'aluno')
