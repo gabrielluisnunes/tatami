@@ -46,8 +46,17 @@ export async function POST(request: Request) {
     })
 
     return NextResponse.json({ url: session.url })
-  } catch (err) {
-    console.error('Erro ao criar sessão do portal de faturamento:', err)
+  } catch (err: unknown) {
+    const stripeErr = err as { message?: string; code?: string; type?: string }
+    console.error('Stripe portal error:', stripeErr?.message, stripeErr?.code, stripeErr?.type)
+
+    if (stripeErr?.code === 'resource_missing') {
+      return NextResponse.json(
+        { error: 'Assinatura não encontrada no ambiente atual. Por favor, faça uma nova assinatura.' },
+        { status: 400 }
+      )
+    }
+
     return NextResponse.json({ error: 'Erro ao abrir o painel de faturamento' }, { status: 500 })
   }
 }
