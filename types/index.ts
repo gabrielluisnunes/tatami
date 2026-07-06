@@ -23,7 +23,6 @@ export interface Academy {
   name: string;
   sport: string;
   monthly_price: number;
-  due_day: number;
   stripe_customer_id?: string | null;
   subscription_status?: string | null;
   created_at: string;

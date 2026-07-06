@@ -23,7 +23,6 @@ export default function OnboardingPage() {
   const [fullName, setFullName] = useState('')
   const [name, setName] = useState('')
   const [sport, setSport] = useState('')
-  const [dueDay, setDueDay] = useState('10')
   const [monthlyPrice, setMonthlyPrice] = useState('')
   
   const [error, setError] = useState<string | null>(null)
@@ -31,7 +30,7 @@ export default function OnboardingPage() {
 
   const handleSubmitStep1 = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!fullName || !name || !sport || !dueDay || !monthlyPrice) return
+    if (!fullName || !name || !sport || !monthlyPrice) return
 
     try {
       setLoading(true)
@@ -46,7 +45,6 @@ export default function OnboardingPage() {
           full_name: fullName,
           name,
           sport,
-          due_day: parseInt(dueDay, 10),
           monthly_price: parseFloat(monthlyPrice),
         }),
       })
@@ -103,7 +101,7 @@ export default function OnboardingPage() {
     }
   }
 
-  const dueDays = Array.from({ length: 28 }, (_, i) => String(i + 1))
+
 
   const plans = [
     {
@@ -224,23 +222,7 @@ export default function OnboardingPage() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="due_day" className="text-xs font-semibold text-gray-500">
-                  Dia de vencimento da mensalidade
-                </Label>
-                <Select value={dueDay} onValueChange={(v) => v && setDueDay(v)} disabled={loading} required>
-                  <SelectTrigger id="due_day" className="bg-white border-gray-200 text-gray-900 rounded-xl py-5">
-                    <SelectValue placeholder="Dia do vencimento" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white border-gray-200 text-gray-900 max-h-52">
-                    {dueDays.map((day) => (
-                      <SelectItem key={day} value={day}>
-                        Dia {day}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+
 
               <div className="space-y-2">
                 <Label htmlFor="monthly_price" className="text-xs font-semibold text-gray-500">

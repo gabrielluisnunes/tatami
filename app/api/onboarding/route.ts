@@ -6,7 +6,6 @@ const onboardingSchema = z.object({
   full_name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   sport: z.enum(['jiu-jitsu', 'muay thai', 'boxe', 'misto']),
-  due_day: z.number().int().min(1).max(28),
   monthly_price: z.number().min(0),
 })
 
@@ -49,7 +48,6 @@ export async function POST(request: Request) {
       owner_id: user.id,
       name: body.name,
       sport: body.sport,
-      due_day: body.due_day,
       monthly_price: body.monthly_price,
       subscription_status: 'trial',
     })
