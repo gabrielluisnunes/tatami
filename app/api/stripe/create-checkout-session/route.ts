@@ -1,6 +1,12 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { stripe, getPlanKeyByPriceId } from '@/lib/stripe'
+import { z } from 'zod'
+
+const checkoutSchema = z.object({
+  priceId: z.string().min(1),
+  academyId: z.string().uuid(),
+})
 
 export async function POST(request: Request) {
   const supabase = createClient()
@@ -21,17 +27,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Acesso negado' }, { status: 403 })
   }
 
-  let body: { priceId: string; academyId: string }
+  let body: z.infer<typeof checkoutSchema>
   try {
-    body = await request.json()
+    body = checkoutSchema.parse(await request.json())
   } catch {
     return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 })
   }
 
   const { priceId, academyId } = body
-  if (!priceId || !academyId) {
-    return NextResponse.json({ error: 'Falta priceId ou academyId' }, { status: 400 })
-  }
 
   // Garantir que o usuário administra esta academia
   if (profile.academy_id !== academyId) {

@@ -23,14 +23,14 @@ export async function GET() {
   }
 
   // Admin vê todas as turmas da academia, professor vê só as suas
-  const query = supabase
+  let query = supabase
     .from('classes')
     .select('id, name, start_time, end_time, weekdays')
     .eq('academy_id', profile.academy_id)
     .order('start_time', { ascending: true })
 
   if (profile.role === 'professor') {
-    query.eq('professor_id', user.id)
+    query = query.eq('professor_id', user.id)
   }
 
   const { data: classes, error } = await query
