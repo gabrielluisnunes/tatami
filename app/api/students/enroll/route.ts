@@ -130,18 +130,21 @@ export async function POST(request: Request) {
     await supabase.from('profiles').update(updates).eq('id', created.user.id)
   }
 
-  // Envia email com senha temporária (não bloqueia resposta em caso de falha)
+  // Envia email com senha temporária (aguarda envio; não bloqueia cadastro em caso de falha)
   const origin = request.headers.get('origin') ?? 'https://tatami.app'
-  sendWelcomeEmail(
-    body.email,
-    body.full_name,
-    academy?.name ?? 'sua academia',
-    tempPassword,
-    `${origin}/auth/login`
-  ).catch(err => {
-    console.error('Falha ao enviar email de boas-vindas:', err?.message ?? err)
-    console.error('Detalhes:', JSON.stringify(err, null, 2))
-  })
+  try {
+    await sendWelcomeEmail(
+      body.email,
+      body.full_name,
+      academy?.name ?? 'sua academia',
+      tempPassword,
+      `${origin}/auth/login`
+    )
+  } catch (err: unknown) {
+    const error = err as { message?: string }
+    console.error('Falha ao enviar email de boas-vindas:', error?.message ?? err)
+    // Não bloquear o cadastro se o email falhar — usuário já foi criado
+  }
 
   return NextResponse.json({ success: true, user_id: created.user.id })
 }
