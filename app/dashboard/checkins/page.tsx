@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import { Camera } from 'lucide-react'
 import { CheckinsList } from '@/components/dashboard/checkins-list'
 import { CheckinsFilter } from '@/components/dashboard/checkins-filter'
 
@@ -132,8 +134,15 @@ export default async function CheckinsPage({ searchParams }: CheckinsPageProps) 
               : 'Últimos 30 registros de presença'}
           </p>
         </div>
-        <div>
+        <div className="flex items-center gap-3">
           <CheckinsFilter />
+          <Link
+            href="/professor/checkin"
+            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors"
+          >
+            <Camera className="h-4 w-4" />
+            Fazer check-in
+          </Link>
         </div>
       </div>
       <CheckinsList checkins={checkins} />
