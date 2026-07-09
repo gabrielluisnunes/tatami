@@ -4,11 +4,13 @@ import { GraduacoesClient } from '@/components/dashboard/graduacoes-client'
 import { Award } from 'lucide-react'
 
 interface StudentViewRecord {
-  student_id:           string
-  full_name:            string
-  belt:                 string | null
-  degree:               number | null
-  trainings_since_belt: number | null
+  student_id:                string
+  full_name:                 string
+  belt:                      string | null
+  degree:                    number | null
+  trainings_since_belt:      number | null
+  attendance_rate:           number | null
+  total_classes_since_belt:  number | null
 }
 
 export default async function GraduacoesPage() {
@@ -29,16 +31,18 @@ export default async function GraduacoesPage() {
   // Busca alunos com treinos desde última faixa via view
   const { data: raw } = await supabase
     .from('v_trainings_since_belt')
-    .select('student_id, full_name, belt, degree, trainings_since_belt')
+    .select('student_id, full_name, belt, degree, trainings_since_belt, attendance_rate, total_classes_since_belt')
     .eq('academy_id', profile.academy_id)
     .order('full_name', { ascending: true })
 
   const students = ((raw as unknown as StudentViewRecord[]) ?? []).map(s => ({
-    id:                   s.student_id,
-    full_name:            s.full_name,
-    belt:                 s.belt || 'branca',
-    degree:               s.degree ?? 0,
-    trainings_since_belt: s.trainings_since_belt || 0,
+    id:                        s.student_id,
+    full_name:                 s.full_name,
+    belt:                      s.belt || 'branca',
+    degree:                    s.degree ?? 0,
+    trainings_since_belt:      s.trainings_since_belt || 0,
+    attendance_rate:           s.attendance_rate ?? 100,
+    total_classes_since_belt:  s.total_classes_since_belt ?? 0,
   }))
 
   return (

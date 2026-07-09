@@ -13,6 +13,8 @@ interface StudentRow {
   belt: string
   degree: number
   trainings_since_belt: number
+  attendance_rate: number
+  total_classes_since_belt: number
 }
 
 interface HistoryItem {
@@ -68,6 +70,12 @@ function formatDuration(fromIso: string, toIso?: string): string {
   const remMonths = months % 12
   if (remMonths === 0) return `${years} ano${years !== 1 ? 's' : ''}`
   return `${years} ano${years !== 1 ? 's' : ''} e ${remMonths} mês${remMonths !== 1 ? 'es' : ''}`
+}
+
+function attendanceColor(rate: number): string {
+  if (rate >= 80) return 'text-emerald-600 bg-emerald-50 border-emerald-200'
+  if (rate >= 60) return 'text-amber-600 bg-amber-50 border-amber-200'
+  return 'text-red-600 bg-red-50 border-red-200'
 }
 
 // ── Componente ───────────────────────────────────────────────────────────────
@@ -168,6 +176,7 @@ export function GraduacoesClient({ students }: GraduacoesClientProps) {
                   <th className="px-4 py-3 text-left font-medium text-gray-500">Aluno</th>
                   <th className="px-4 py-3 text-left font-medium text-gray-500">Faixa atual</th>
                   <th className="px-4 py-3 text-left font-medium text-gray-500">Treinos</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500">Frequência</th>
                   <th className="px-4 py-3 text-right font-medium text-gray-500"></th>
                 </tr>
               </thead>
@@ -187,6 +196,16 @@ export function GraduacoesClient({ students }: GraduacoesClientProps) {
                     </td>
                     <td className="px-4 py-3 text-gray-500">
                       {student.trainings_since_belt} treino{student.trainings_since_belt !== 1 ? 's' : ''}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${attendanceColor(student.attendance_rate)}`}>
+                        {student.attendance_rate.toFixed(1)}%
+                      </span>
+                      {student.attendance_rate < 80 && (
+                        <p className="text-[10px] text-gray-400 mt-0.5">
+                          Mínimo: 80%
+                        </p>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2">
@@ -270,10 +289,15 @@ export function GraduacoesClient({ students }: GraduacoesClientProps) {
                     {studentDetail.degree > 0 ? ` — ${studentDetail.degree}º grau` : ''}
                   </span>
                 </div>
-                <span className="text-xs text-gray-500 flex items-center gap-1.5">
-                  <Calendar className="h-3.5 w-3.5 shrink-0" />
-                  {currentStudentRow.trainings_since_belt} treino{currentStudentRow.trainings_since_belt !== 1 ? 's' : ''} desde a última graduação
-                </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs text-gray-500 flex items-center gap-1.5">
+                    <Calendar className="h-3.5 w-3.5 shrink-0" />
+                    {currentStudentRow.trainings_since_belt} treino{currentStudentRow.trainings_since_belt !== 1 ? 's' : ''} desde a última graduação
+                  </span>
+                  <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold ${attendanceColor(currentStudentRow.attendance_rate)}`}>
+                    {currentStudentRow.attendance_rate.toFixed(1)}% de frequência
+                  </span>
+                </div>
               </div>
             )}
 

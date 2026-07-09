@@ -11,11 +11,13 @@ const beltColors: Record<string, string> = {
 }
 
 interface StudentViewRecord {
-  student_id:           string
-  full_name:            string
-  belt:                 string | null
-  degree:               number | null
-  trainings_since_belt: number | null
+  student_id:                string
+  full_name:                 string
+  belt:                      string | null
+  degree:                    number | null
+  trainings_since_belt:      number | null
+  attendance_rate:           number | null
+  total_classes_since_belt:  number | null
 }
 
 export default async function ProfessorGraduacoesPage() {
@@ -35,16 +37,18 @@ export default async function ProfessorGraduacoesPage() {
 
   const { data: raw } = await supabase
     .from('v_trainings_since_belt')
-    .select('student_id, full_name, belt, degree, trainings_since_belt')
+    .select('student_id, full_name, belt, degree, trainings_since_belt, attendance_rate, total_classes_since_belt')
     .eq('academy_id', profile.academy_id)
     .order('trainings_since_belt', { ascending: false })
 
   const students = ((raw as unknown as StudentViewRecord[]) ?? []).map(s => ({
-    id:                   s.student_id,
-    full_name:            s.full_name,
-    belt:                 s.belt || 'branca',
-    degree:               s.degree ?? 0,
-    trainings_since_belt: s.trainings_since_belt ?? 0,
+    id:                        s.student_id,
+    full_name:                 s.full_name,
+    belt:                      s.belt || 'branca',
+    degree:                    s.degree ?? 0,
+    trainings_since_belt:      s.trainings_since_belt ?? 0,
+    attendance_rate:           s.attendance_rate ?? 100,
+    total_classes_since_belt:  s.total_classes_since_belt ?? 0,
   }))
 
   return (
@@ -64,6 +68,7 @@ export default async function ProfessorGraduacoesPage() {
                 <th className="px-4 py-3 text-left font-medium text-zinc-400">Nome</th>
                 <th className="px-4 py-3 text-left font-medium text-zinc-400">Faixa</th>
                 <th className="px-4 py-3 text-right font-medium text-zinc-400">Treinos na faixa</th>
+                <th className="px-4 py-3 text-left font-medium text-zinc-400">Frequência</th>
               </tr>
             </thead>
             <tbody>
@@ -82,6 +87,20 @@ export default async function ProfessorGraduacoesPage() {
                   </td>
                   <td className="px-4 py-3 text-right font-bold text-indigo-400">
                     {s.trainings_since_belt}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
+                      s.attendance_rate >= 80
+                        ? 'text-emerald-400 bg-emerald-950/40 border-emerald-800'
+                        : s.attendance_rate >= 60
+                        ? 'text-amber-400 bg-amber-950/40 border-amber-800'
+                        : 'text-red-400 bg-red-950/40 border-red-800'
+                    }`}>
+                      {s.attendance_rate.toFixed(1)}%
+                    </span>
+                    {s.attendance_rate < 80 && (
+                      <p className="text-[10px] text-zinc-600 mt-0.5">Mínimo: 80%</p>
+                    )}
                   </td>
                 </tr>
               ))}
