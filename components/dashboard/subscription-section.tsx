@@ -12,7 +12,7 @@ interface SubscriptionSectionProps {
     plan: string | null
     subscription_status: string | null
     trial_ends_at: string | null
-    stripe_customer_id: string | null
+    hasStripeAccount: boolean
   }
 }
 
@@ -74,7 +74,7 @@ export function SubscriptionSection({ academy }: SubscriptionSectionProps) {
   const [error, setError] = useState<string | null>(null)
 
   const handleOpenPortal = async () => {
-    if (!academy?.stripe_customer_id) {
+    if (!academy?.hasStripeAccount) {
       setError('Sua conta não possui uma assinatura Stripe ativa.')
       return
     }
@@ -398,7 +398,7 @@ export function SubscriptionSection({ academy }: SubscriptionSectionProps) {
           <div className="pt-6">
             <Button
               onClick={handleOpenPortal}
-              disabled={portalLoading || !academy?.stripe_customer_id}
+              disabled={portalLoading || !academy?.hasStripeAccount}
               className="w-full bg-white hover:bg-zinc-100 text-indigo-900 font-bold py-5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-md shadow-indigo-950/40"
             >
               {portalLoading ? (

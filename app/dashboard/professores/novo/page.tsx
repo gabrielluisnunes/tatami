@@ -127,6 +127,7 @@ export default function NovoProfessorPage() {
             <div className="relative">
               <Input
                 type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
                 value={customPassword}
                 onChange={e => setCustomPassword(e.target.value)}
                 placeholder="Deixe vazio para gerar automaticamente"

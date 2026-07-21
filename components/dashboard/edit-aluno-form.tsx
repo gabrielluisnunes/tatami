@@ -65,7 +65,7 @@ export function EditAlunoForm({ studentId, initialData, successRedirect = '/dash
     if (digits.length < 8) return
     setCepLoading(true)
     try {
-      const res  = await fetch(`https://viacep.com.br/ws/${digits}/json/`)
+      const res  = await fetch(`/api/viacep?cep=${digits}`)
       const data = await res.json()
       if (data.erro) {
         setCepError('CEP não encontrado.')

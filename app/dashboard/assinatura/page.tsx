@@ -11,7 +11,7 @@ interface AcademyData {
   plan: string | null
   subscription_status: string | null
   trial_ends_at: string | null
-  stripe_customer_id: string | null
+  hasStripeAccount: boolean
 }
 
 export default function AssinaturaPage() {
@@ -53,7 +53,14 @@ export default function AssinaturaPage() {
           throw new Error('Erro ao carregar dados da academia')
         }
 
-        setAcademy(academyData)
+        setAcademy({
+          id: academyData.id,
+          name: academyData.name,
+          plan: academyData.plan,
+          subscription_status: academyData.subscription_status,
+          trial_ends_at: academyData.trial_ends_at,
+          hasStripeAccount: !!academyData.stripe_customer_id,
+        })
       } catch (err: unknown) {
         const errMsg = err instanceof Error ? err.message : 'Erro inesperado'
         setError(errMsg)

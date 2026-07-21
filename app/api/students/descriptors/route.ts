@@ -1,6 +1,11 @@
 import { createClient, createStorageAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
+/**
+ * @deprecated Este endpoint foi descontinuado por motivos de segurança (LGPD Art. 11).
+ * Não exponha dados biométricos (face_descriptor) no cliente.
+ * Utilize POST /api/checkin/match para comparação server-side e GET /api/students/list para busca de alunos.
+ */
 export async function GET() {
   const supabase = createClient()
 

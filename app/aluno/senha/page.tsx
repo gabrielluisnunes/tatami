@@ -71,6 +71,7 @@ export default function AlteraSenhaPage() {
             <div className="relative">
               <Input
                 type={showNew ? 'text' : 'password'}
+                autoComplete="new-password"
                 placeholder="Mínimo 6 caracteres"
                 value={newPassword} 
                 onChange={e => setNewPassword(e.target.value)}
@@ -95,6 +96,7 @@ export default function AlteraSenhaPage() {
             <div className="relative">
               <Input
                 type={showConfirm ? 'text' : 'password'}
+                autoComplete="new-password"
                 placeholder="Repita a nova senha"
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}

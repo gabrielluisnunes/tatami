@@ -34,7 +34,7 @@ export async function POST(request: Request) {
   // Verifica que a turma pertence à academia
   const { data: classData } = await supabase
     .from('classes')
-    .select('id')
+    .select('id, name')
     .eq('id', body.class_id)
     .eq('academy_id', profile.academy_id)
     .single()
@@ -78,6 +78,7 @@ export async function POST(request: Request) {
     .insert({
       academy_id: profile.academy_id,
       class_id: body.class_id,
+      class_name: classData.name,
       professor_id: user.id,
       photo_url,
       status: 'pending',

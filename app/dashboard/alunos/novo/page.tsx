@@ -30,7 +30,7 @@ interface ViaCepResponse {
 
 async function fetchViaCep(cep: string): Promise<ViaCepResponse> {
   const digits = cep.replace(/\D/g, '')
-  const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`)
+  const res = await fetch(`/api/viacep?cep=${digits}`)
   if (!res.ok) throw new Error('Erro na requisição')
   return res.json()
 }

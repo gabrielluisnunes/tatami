@@ -9,6 +9,7 @@ interface CheckinRecord {
   id: string
   checked_in_at: string
   status: 'pending' | 'confirmed'
+  class_name: string | null
   classes: {
     name: string
   } | null
@@ -57,6 +58,7 @@ export default async function CheckinsPage({ searchParams }: CheckinsPageProps) 
       id,
       checked_in_at,
       status,
+      class_name,
       classes ( name ),
       profiles!checkins_professor_id_fkey ( full_name )
     `)
@@ -107,7 +109,9 @@ export default async function CheckinsPage({ searchParams }: CheckinsPageProps) 
   const checkins = ((rawCheckins as unknown as CheckinRecord[]) ?? []).map(c => ({
     id:             c.id,
     checked_in_at:  c.checked_in_at,
-    class_name:     c.classes?.name || '—',
+    class_name:     c.class_name
+                      || (c.classes as { name: string } | null)?.name
+                      || 'Turma excluída',
     professor_name: c.profiles?.full_name || '—',
     status:         c.status,
     attendance:     attendanceMap.get(c.id) ?? [],

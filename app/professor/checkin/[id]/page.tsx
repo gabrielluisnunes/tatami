@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Loader2, AlertCircle, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { AttendanceReview, type StudentMatch, type StudentDescriptor } from '@/components/attendance-review'
+import { AttendanceReview, type StudentMatch } from '@/components/attendance-review'
 
 export default function ReabrirCheckinPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -13,25 +13,17 @@ export default function ReabrirCheckinPage({ params }: { params: { id: string } 
   type Step = 'loading' | 'review' | 'submitting' | 'success' | 'error'
   const [step, setStep] = useState<Step>('loading')
   const [confirmed, setConfirmed] = useState<StudentMatch[]>([])
-  const [allStudents, setAllStudents] = useState<StudentDescriptor[]>([])
   const [error, setError] = useState<string | null>(null)
   const [totalPresent, setTotalPresent] = useState(0)
 
   useEffect(() => {
     const load = async () => {
       try {
-        const [studentsRes, attendanceRes] = await Promise.all([
-          fetch('/api/students/descriptors'),
-          fetch(`/api/checkin/${checkinId}/attendance`),
-        ])
-
-        if (!studentsRes.ok) throw new Error('Erro ao carregar alunos')
+        const attendanceRes = await fetch(`/api/checkin/${checkinId}/attendance`)
         if (!attendanceRes.ok) throw new Error('Erro ao carregar presenças')
 
-        const { students: allS } = await studentsRes.json()
         const { students: already } = await attendanceRes.json()
 
-        setAllStudents(allS)
         setConfirmed(already)
         setStep('review')
       } catch (err) {
@@ -169,7 +161,6 @@ export default function ReabrirCheckinPage({ params }: { params: { id: string } 
 
       <AttendanceReview
         confirmed={confirmed}
-        allStudents={allStudents}
         onRemove={handleRemove}
         onAdd={handleAdd}
       />

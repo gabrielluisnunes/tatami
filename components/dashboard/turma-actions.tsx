@@ -426,7 +426,9 @@ export function TurmaActions({ turma, professors }: TurmaActionsProps) {
               <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400 mt-0.5" />
               <p className="text-sm text-amber-200">
                 Tem certeza que deseja excluir a turma{' '}
-                <strong className="text-amber-100">&quot;{turma.name}&quot;</strong>? Esta ação não pode ser desfeita.
+                <strong className="text-amber-100">&quot;{turma.name}&quot;</strong>?
+                O histórico de check-ins realizados nessa turma será preservado.
+                Apenas a turma será removida do sistema.
               </p>
             </div>
 

@@ -15,7 +15,7 @@ interface AcademyData {
   plan: string | null
   subscription_status: string | null
   trial_ends_at: string | null
-  stripe_customer_id: string | null
+  hasStripeAccount: boolean
 }
 
 export default function PerfilPage() {
@@ -88,7 +88,14 @@ export default function PerfilPage() {
           .single()
 
         if (academyData) {
-          setAcademy(academyData)
+          setAcademy({
+            id: academyData.id,
+            name: academyData.name,
+            plan: academyData.plan,
+            subscription_status: academyData.subscription_status,
+            trial_ends_at: academyData.trial_ends_at,
+            hasStripeAccount: !!academyData.stripe_customer_id,
+          })
           setAcademyForm({
             name: academyData.name,
             sport: (academyData.sport || 'jiu-jitsu') as 'jiu-jitsu' | 'muay thai' | 'boxe' | 'misto',
@@ -404,6 +411,7 @@ export default function PerfilPage() {
             <Label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Nova Senha</Label>
             <Input
               type="password"
+              autoComplete="new-password"
               value={passwordForm.new_password}
               onChange={e => setPasswordForm({ ...passwordForm, new_password: e.target.value })}
             />
@@ -412,6 +420,7 @@ export default function PerfilPage() {
             <Label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Confirmar Nova Senha</Label>
             <Input
               type="password"
+              autoComplete="new-password"
               value={passwordForm.confirm_password}
               onChange={e => setPasswordForm({ ...passwordForm, confirm_password: e.target.value })}
             />

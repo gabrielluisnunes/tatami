@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { X, UserPlus, Search, Check, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,16 +13,14 @@ export interface StudentMatch {
   similarity?: number // 0-1, quanto menor melhor (distância euclidiana normalizada)
 }
 
-export interface StudentDescriptor {
+export interface StudentLookupItem {
   id: string
   full_name: string
   photo_url?: string | null
-  face_descriptor: number[]
 }
 
 interface AttendanceReviewProps {
   confirmed: StudentMatch[]
-  allStudents: StudentDescriptor[]
   onRemove: (studentId: string) => void
   onAdd: (student: StudentMatch) => void
 }
@@ -55,21 +53,29 @@ function StudentAvatar({ name, photoUrl }: { name: string; photoUrl?: string | n
   )
 }
 
-export function AttendanceReview({ confirmed, allStudents, onRemove, onAdd }: AttendanceReviewProps) {
+export function AttendanceReview({ confirmed, onRemove, onAdd }: AttendanceReviewProps) {
   const [search, setSearch] = useState('')
   const [showSearch, setShowSearch] = useState(false)
+  const [studentsList, setStudentsList] = useState<StudentLookupItem[]>([])
+
+  useEffect(() => {
+    fetch('/api/students/list')
+      .then(r => r.json())
+      .then(d => setStudentsList(d.students ?? []))
+      .catch(err => console.error('Erro ao carregar lista de alunos:', err))
+  }, [])
 
   const confirmedIds = useMemo(() => new Set(confirmed.map(s => s.student_id)), [confirmed])
 
   const searchResults = useMemo(() => {
     if (!search.trim()) return []
     const q = search.toLowerCase()
-    return allStudents
+    return studentsList
       .filter(s => !confirmedIds.has(s.id) && s.full_name.toLowerCase().includes(q))
       .slice(0, 6)
-  }, [search, allStudents, confirmedIds])
+  }, [search, studentsList, confirmedIds])
 
-  const handleAdd = (student: StudentDescriptor) => {
+  const handleAdd = (student: StudentLookupItem) => {
     onAdd({
       student_id: student.id,
       full_name: student.full_name,

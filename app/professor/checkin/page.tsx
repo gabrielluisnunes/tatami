@@ -1,11 +1,13 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
+import Link from 'next/link'
 import { CheckCircle, ChevronRight, Loader2, AlertCircle, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useFaceApi } from '@/hooks/use-face-api'
 import { GroupPhotoUpload } from '@/components/group-photo-upload'
-import { AttendanceReview, type StudentMatch, type StudentDescriptor } from '@/components/attendance-review'
+import { AttendanceReview, type StudentMatch } from '@/components/attendance-review'
+import { createClient } from '@/lib/supabase/client'
 
 // ─── Tipos internos ───────────────────────────────────────────────────────────
 
@@ -18,76 +20,13 @@ interface ClassOption {
 
 type Step = 'select-class' | 'upload-photo' | 'processing' | 'review' | 'success'
 
-// ─── Algoritmo de comparação (roda no browser) ────────────────────────────────
-
-function euclideanDistance(a: number[], b: number[]): number {
-  let sum = 0
-  for (let i = 0; i < a.length; i++) {
-    const diff = a[i] - b[i]
-    sum += diff * diff
-  }
-  return Math.sqrt(sum)
-}
-
-const MATCH_THRESHOLD = 0.6
-
-async function matchFacesInPhoto(
-  photoBase64: string,
-  students: StudentDescriptor[]
-): Promise<StudentMatch[]> {
-  const faceapi = await import('@vladmandic/face-api')
-
-  const img = new Image()
-  img.src = photoBase64
-  await new Promise<void>((resolve, reject) => {
-    img.onload = () => resolve()
-    img.onerror = () => reject(new Error('Falha ao carregar imagem'))
-  })
-
-  // Detecta TODOS os rostos na foto de grupo
-  const detections = await faceapi
-    .detectAllFaces(img, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.4 }))
-    .withFaceLandmarks()
-    .withFaceDescriptors()
-
-  if (!detections.length) return []
-
-  const matches: StudentMatch[] = []
-  const matchedStudentIds = new Set<string>()
-
-  for (const detection of detections) {
-    const detectedDescriptor = Array.from(detection.descriptor)
-
-    let bestMatch: { student: StudentDescriptor; distance: number } | null = null
-
-    for (const student of students) {
-      if (matchedStudentIds.has(student.id)) continue // evita duplicatas
-
-      const dist = euclideanDistance(detectedDescriptor, student.face_descriptor)
-      if (dist < MATCH_THRESHOLD && (!bestMatch || dist < bestMatch.distance)) {
-        bestMatch = { student, distance: dist }
-      }
-    }
-
-    if (bestMatch) {
-      matchedStudentIds.add(bestMatch.student.id)
-      matches.push({
-        student_id: bestMatch.student.id,
-        full_name: bestMatch.student.full_name,
-        photo_url: bestMatch.student.photo_url,
-        source: 'ai',
-        similarity: bestMatch.distance,
-      })
-    }
-  }
-
-  return matches
-}
-
 // ─── Componente principal ─────────────────────────────────────────────────────
 
 export default function ProfessorCheckinPage() {
   const faceApiStatus = useFaceApi()
+
+  const [userRole, setUserRole] = useState<string | null>(null)
+  const isAdmin = userRole === 'admin'
 
   const [step, setStep] = useState<Step>('select-class')
   const [classes, setClasses] = useState<ClassOption[]>([])
@@ -95,11 +34,26 @@ export default function ProfessorCheckinPage() {
   const [selectedClass, setSelectedClass] = useState<ClassOption | null>(null)
   const [checkinId, setCheckinId] = useState<string | null>(null)
   const [confirmed, setConfirmed] = useState<StudentMatch[]>([])
-  const [allStudents, setAllStudents] = useState<StudentDescriptor[]>([])
   const [processingMsg, setProcessingMsg] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [totalPresent, setTotalPresent] = useState(0)
+
+  // Busca perfil/role do usuário logado
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+        .then(({ data }) => {
+          if (data?.role) setUserRole(data.role)
+        })
+    })
+  }, [])
 
   // Carrega turmas ao montar
   useEffect(() => {
@@ -131,23 +85,44 @@ export default function ProfessorCheckinPage() {
       const { checkin_id } = await res.json()
       setCheckinId(checkin_id)
 
-      // 2. Busca descritores de todos os alunos da academia
-      setProcessingMsg('Carregando alunos...')
-      const studentsRes = await fetch('/api/students/descriptors')
-      if (!studentsRes.ok) throw new Error('Erro ao carregar alunos')
-      const { students } = await studentsRes.json()
-      setAllStudents(students)
+      // 2. Detecção de rostos na imagem (browser)
+      setProcessingMsg('Detectando rostos...')
+      const faceapi = await import('@vladmandic/face-api')
 
-      if (!students.length) {
-        // Nenhum aluno cadastrado com foto — vai direto para revisão vazia
+      const img = new Image()
+      img.src = base64
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve()
+        img.onerror = () => reject(new Error('Falha ao carregar imagem'))
+      })
+
+      const detections = await faceapi
+        .detectAllFaces(img, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.4 }))
+        .withFaceLandmarks()
+        .withFaceDescriptors()
+
+      if (!detections.length) {
         setConfirmed([])
         setStep('review')
         return
       }
 
-      // 3. Detecção e comparação no browser
-      setProcessingMsg('Identificando rostos...')
-      const matches = await matchFacesInPhoto(base64, students)
+      // 3. Comparação biométrica no servidor (LGPD compliance)
+      setProcessingMsg('Identificando alunos...')
+      const detectedDescriptors = detections.map(d => Array.from(d.descriptor))
+
+      const matchRes = await fetch('/api/checkin/match', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ detected_descriptors: detectedDescriptors }),
+      })
+
+      if (!matchRes.ok) {
+        const d = await matchRes.json().catch(() => ({}))
+        throw new Error(d.error ?? 'Erro ao identificar alunos')
+      }
+
+      const { matches } = await matchRes.json()
       setConfirmed(matches)
       setStep('review')
     } catch (err) {
@@ -203,9 +178,18 @@ export default function ProfessorCheckinPage() {
     setSelectedClass(null)
     setCheckinId(null)
     setConfirmed([])
-    setAllStudents([])
     setError(null)
   }
+
+  const backToDashboardButton = isAdmin ? (
+    <Link
+      href="/dashboard"
+      className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-200 transition-colors mb-4"
+    >
+      <ArrowLeft className="h-4 w-4" />
+      Voltar ao painel
+    </Link>
+  ) : null
 
   // ─── Renderização por etapa ────────────────────────────────────────────────
 
@@ -213,6 +197,7 @@ export default function ProfessorCheckinPage() {
   if (step === 'select-class') {
     return (
       <div className="space-y-6">
+        {backToDashboardButton}
         <div>
           <h1 className="text-2xl font-bold text-zinc-100">Check-in</h1>
           <p className="text-sm text-zinc-500 mt-1">Selecione a turma para registrar presenças.</p>
@@ -266,6 +251,7 @@ export default function ProfessorCheckinPage() {
   if (step === 'upload-photo') {
     return (
       <div className="space-y-6">
+        {backToDashboardButton}
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -305,6 +291,7 @@ export default function ProfessorCheckinPage() {
   if (step === 'processing') {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 text-center">
+        {backToDashboardButton}
         <div className="relative">
           <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-indigo-600/10 ring-1 ring-indigo-500/20">
             <Loader2 className="h-9 w-9 animate-spin text-indigo-500" />
@@ -315,7 +302,7 @@ export default function ProfessorCheckinPage() {
           <p className="text-sm text-zinc-500 mt-1">{processingMsg}</p>
         </div>
         <p className="text-xs text-zinc-700 max-w-[240px]">
-          O reconhecimento acontece no seu dispositivo, sem enviar dados biométricos para servidores externos.
+          Reconhecimento seguro: a comparação biométrica é realizada de forma protegida no servidor.
         </p>
       </div>
     )
@@ -325,6 +312,7 @@ export default function ProfessorCheckinPage() {
   if (step === 'review') {
     return (
       <div className="space-y-5">
+        {backToDashboardButton}
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -349,7 +337,6 @@ export default function ProfessorCheckinPage() {
 
         <AttendanceReview
           confirmed={confirmed}
-          allStudents={allStudents}
           onRemove={handleRemove}
           onAdd={handleAdd}
         />
@@ -392,12 +379,22 @@ export default function ProfessorCheckinPage() {
             {totalPresent} aluno{totalPresent !== 1 ? 's' : ''} registrado{totalPresent !== 1 ? 's' : ''} em <span className="text-zinc-300 font-medium">{selectedClass?.name}</span>
           </p>
         </div>
-        <Button
-          onClick={handleReset}
-          className="rounded-2xl bg-indigo-600 px-8 py-5 font-semibold text-white hover:bg-indigo-500"
-        >
-          Novo check-in
-        </Button>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Button
+            onClick={handleReset}
+            className="rounded-2xl bg-indigo-600 px-8 py-5 font-semibold text-white hover:bg-indigo-500"
+          >
+            Novo check-in
+          </Button>
+          {isAdmin && (
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 rounded-xl border border-zinc-700 px-5 py-3 text-sm font-medium text-zinc-300 hover:bg-zinc-800 transition-colors"
+            >
+              Voltar ao painel
+            </Link>
+          )}
+        </div>
       </div>
     )
   }
