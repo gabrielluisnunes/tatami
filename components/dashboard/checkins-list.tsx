@@ -194,10 +194,10 @@ export function CheckinsList({ checkins }: CheckinsListProps) {
                                       studentName: a.full_name,
                                     })
                                   }}
-                                  className="text-gray-400 hover:text-red-500 transition-colors text-xs ml-1"
+                                  className="text-gray-400 hover:text-red-500 transition-colors p-0.5 ml-0.5 rounded"
                                   title="Remover aluno"
                                 >
-                                  ×
+                                  <X className="h-3 w-3" />
                                 </button>
                               </span>
                             ))}
