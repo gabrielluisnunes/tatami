@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, X, Loader2, CheckCircle2 } from 'lucide-react'
+import { Search, X, Loader2, CheckCircle2, DollarSign } from 'lucide-react'
 
 interface MonthlyRecord {
   id: string | null
@@ -18,6 +18,7 @@ interface MonthlyRecord {
 
 interface MonthlyTableProps {
   records: MonthlyRecord[]
+  monthlyPrice: number
 }
 
 type Filter = 'all' | 'paid' | 'pending' | 'overdue' | 'waiting'
@@ -50,7 +51,7 @@ function formatLocalDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('pt-BR')
 }
 
-export function MonthlyTable({ records }: MonthlyTableProps) {
+export function MonthlyTable({ records, monthlyPrice }: MonthlyTableProps) {
   const router = useRouter()
   const [filter, setFilter] = useState<Filter>('all')
   const [search, setSearch] = useState('')
@@ -60,7 +61,19 @@ export function MonthlyTable({ records }: MonthlyTableProps) {
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [paidIds, setPaidIds] = useState<Set<string>>(new Set())
 
-  // Reset page to 1 whenever search or filter (activeTab) changes
+  // Estado do modal de pagamento manual
+  const [manualModalStudent, setManualModalStudent] = useState<{
+    student_id: string
+    full_name: string
+  } | null>(null)
+  const [manualAmount, setManualAmount] = useState<number>(monthlyPrice)
+  const [manualPaidAt, setManualPaidAt] = useState<string>(
+    new Date().toISOString().split('T')[0]
+  )
+  const [submittingManual, setSubmittingManual] = useState(false)
+  const [manualError, setManualError] = useState<string | null>(null)
+
+  // Reset page to 1 whenever search or filter changes
   useEffect(() => {
     setPage(1)
   }, [search, filter])
@@ -88,7 +101,51 @@ export function MonthlyTable({ records }: MonthlyTableProps) {
     }
   }
 
-  // Filtragem client-side: filtrar records pelo full_name contendo o termo buscado (case-insensitive)
+  const openManualModal = (studentId: string, fullName: string) => {
+    setManualModalStudent({ student_id: studentId, full_name: fullName })
+    setManualAmount(monthlyPrice)
+    setManualPaidAt(new Date().toISOString().split('T')[0])
+    setManualError(null)
+  }
+
+  const handleManualPaymentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!manualModalStudent) return
+
+    setSubmittingManual(true)
+    setManualError(null)
+
+    try {
+      const res = await fetch('/api/financials/manual-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_id: manualModalStudent.student_id,
+          amount: Number(manualAmount),
+          paid_at: new Date(manualPaidAt).toISOString(),
+        }),
+      })
+
+      if (!res.ok) {
+        const d = await res.json()
+        throw new Error(d.error || 'Erro ao registrar pagamento')
+      }
+
+      setPaidIds(prev => {
+        const next = new Set(prev)
+        next.add(manualModalStudent.student_id)
+        return next
+      })
+      setManualModalStudent(null)
+      router.refresh()
+    } catch (err) {
+      setManualError(err instanceof Error ? err.message : 'Erro ao registrar pagamento')
+    } finally {
+      setSubmittingManual(false)
+    }
+  }
+
+  // Filtragem client-side por nome
   const searchedRecords = records.filter(r =>
     r.full_name.toLowerCase().includes(search.toLowerCase())
   )
@@ -103,11 +160,11 @@ export function MonthlyTable({ records }: MonthlyTableProps) {
     if (filter === 'pending') return currentHasCharge && currentStatus === 'pending'
     if (filter === 'paid') return currentStatus === 'paid'
     if (filter === 'overdue') return currentStatus === 'overdue'
-    if (filter === 'waiting') return !currentHasCharge
+    if (filter === 'waiting') return !currentHasCharge && !isPaid
     return false
   })
 
-  // Fatiar: paginatedRecords = filteredRecords.slice((page-1)*10, page*10)
+  // Paginação
   const totalPages = Math.ceil(filteredRecords.length / ITEMS_PER_PAGE)
   const paginatedRecords = filteredRecords.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
 
@@ -152,7 +209,7 @@ export function MonthlyTable({ records }: MonthlyTableProps) {
             if (tab.key === 'pending') return currentHasCharge && currentStatus === 'pending'
             if (tab.key === 'paid') return currentStatus === 'paid'
             if (tab.key === 'overdue') return currentStatus === 'overdue'
-            if (tab.key === 'waiting') return !currentHasCharge
+            if (tab.key === 'waiting') return !currentHasCharge && !isPaid
             return false
           }).length
 
@@ -197,11 +254,13 @@ export function MonthlyTable({ records }: MonthlyTableProps) {
               {paginatedRecords.map(rec => {
                 const isPaidOptimistic = paidIds.has(rec.student_id)
                 const currentStatus = isPaidOptimistic ? 'paid' : rec.status
-                const currentHasCharge = rec.has_charge
+                const currentHasCharge = rec.has_charge && !isPaidOptimistic
                 const isLoading = loadingId === rec.id
 
                 let badgeCfg = statusConfig.waiting
-                if (currentHasCharge) {
+                if (isPaidOptimistic) {
+                  badgeCfg = statusConfig.paid
+                } else if (currentHasCharge) {
                   badgeCfg = statusConfig[currentStatus as keyof typeof statusConfig] || statusConfig.pending
                 }
 
@@ -225,7 +284,7 @@ export function MonthlyTable({ records }: MonthlyTableProps) {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      {rec.has_charge &&
+                      {currentHasCharge &&
                        rec.id !== null &&
                        (currentStatus === 'pending' || currentStatus === 'overdue') &&
                        !isPaidOptimistic && (
@@ -241,6 +300,17 @@ export function MonthlyTable({ records }: MonthlyTableProps) {
                             <CheckCircle2 className="h-3.5 w-3.5" />
                           )}
                           Pago
+                        </button>
+                      )}
+
+                      {!rec.has_charge && !isPaidOptimistic && (
+                        <button
+                          type="button"
+                          onClick={() => openManualModal(rec.student_id, rec.full_name)}
+                          className="inline-flex items-center gap-1 text-xs border border-gray-200 rounded-lg px-2.5 py-1 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 transition-colors"
+                        >
+                          <DollarSign className="h-3.5 w-3.5" />
+                          Registrar pagamento
                         </button>
                       )}
                     </td>
@@ -278,6 +348,90 @@ export function MonthlyTable({ records }: MonthlyTableProps) {
             >
               Próximo
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Registrar Pagamento Manual */}
+      {manualModalStudent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => !submittingManual && setManualModalStudent(null)}
+          />
+          <div className="relative z-10 w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-semibold text-gray-900">
+                Registrar pagamento
+              </h3>
+              <button
+                type="button"
+                onClick={() => !submittingManual && setManualModalStudent(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-500">
+              Aluno: <strong className="text-gray-800">{manualModalStudent.full_name}</strong>
+            </p>
+
+            <form onSubmit={handleManualPaymentSubmit} className="space-y-4 pt-1">
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-gray-700">Valor (R$)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={manualAmount}
+                  onChange={e => setManualAmount(Number(e.target.value))}
+                  required
+                  disabled={submittingManual}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-gray-700">Data do pagamento</label>
+                <input
+                  type="date"
+                  value={manualPaidAt}
+                  onChange={e => setManualPaidAt(e.target.value)}
+                  required
+                  disabled={submittingManual}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+
+              {manualError && (
+                <p className="text-xs text-red-600">{manualError}</p>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setManualModalStudent(null)}
+                  disabled={submittingManual}
+                  className="flex-1 rounded-xl border border-gray-200 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingManual || manualAmount <= 0}
+                  className="flex-1 rounded-xl bg-indigo-600 py-2 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {submittingManual ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" /> Registrando...
+                    </>
+                  ) : (
+                    'Confirmar'
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

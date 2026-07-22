@@ -29,7 +29,7 @@ export async function GET(request: Request) {
     .from('profiles')
     .select('id, full_name, academy_id, payment_due_day')
     .eq('role', 'aluno')
-    .eq('payment_due_day', todayDay)
+    .lte('payment_due_day', todayDay)
 
   if (studentsError) {
     console.error('Erro ao buscar alunos:', studentsError)

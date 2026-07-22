@@ -108,6 +108,15 @@ export default async function FinanceiroPage() {
     }
   })
 
+  // ── Dados da academia (monthly_price) ─────────────────────────────────────────
+  const { data: academyData } = await supabase
+    .from('academies')
+    .select('monthly_price')
+    .eq('id', profile.academy_id)
+    .single()
+
+  const monthlyPrice = academyData?.monthly_price ?? 0
+
   const metrics = [
     {
       title: 'Total recebido',
@@ -177,7 +186,7 @@ export default async function FinanceiroPage() {
         <h2 className="text-lg font-semibold text-gray-800">
           Mensalidades — {now.toLocaleDateString('pt-BR', { month: 'long' })}
         </h2>
-        <MonthlyTable records={monthlyRecords} />
+        <MonthlyTable records={monthlyRecords} monthlyPrice={monthlyPrice} />
       </div>
     </div>
   )
