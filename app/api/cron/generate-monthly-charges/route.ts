@@ -2,7 +2,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { sendDueTodayAlert } from '@/lib/notifications'
 
-export async function POST(request: Request) {
+export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization')
   const cronSecret = process.env.CRON_SECRET
   if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
@@ -11,10 +11,14 @@ export async function POST(request: Request) {
 
   const supabase = createAdminClient()
 
-  const today = new Date()
-  const todayDay   = today.getUTCDate()
-  const todayYear  = today.getUTCFullYear()
-  const todayMonth = today.getUTCMonth() + 1
+  const now = new Date()
+  const brasiliaOffset = -3 * 60 // -180 minutos
+  const brasiliaTime = new Date(now.getTime() + brasiliaOffset * 60 * 1000)
+  const todayDay = brasiliaTime.getUTCDate()
+  const todayMonth = brasiliaTime.getUTCMonth() + 1
+  const todayYear = brasiliaTime.getUTCFullYear()
+
+  console.log(`[generate-monthly-charges] Data Brasília: ${brasiliaTime.toISOString()}, Dia: ${todayDay}, Mês: ${todayMonth}, Ano: ${todayYear}`)
 
   const pad = (n: number) => String(n).padStart(2, '0')
   const dueDateStr  = `${todayYear}-${pad(todayMonth)}-${pad(todayDay)}`

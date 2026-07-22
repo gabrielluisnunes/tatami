@@ -2,11 +2,11 @@
   "crons": [
     {
       "path": "/api/cron/generate-monthly-charges",
-      "schedule": "0 9 * * *"
+      "schedule": "0 12 * * *"
     },
     {
       "path": "/api/cron/update-overdue",
-      "schedule": "0 10 * * *"
+      "schedule": "0 13 * * *"
     }
   ]
 }

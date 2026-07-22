@@ -2,7 +2,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { sendOverdueAlert } from '@/lib/notifications'
 
-export async function POST(request: Request) {
+export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization')
   const cronSecret = process.env.CRON_SECRET
   if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
@@ -11,18 +11,18 @@ export async function POST(request: Request) {
 
   const supabase = createAdminClient()
 
-  const today = new Date()
-  today.setUTCHours(0, 0, 0, 0)
-  const yesterday = new Date(today)
-  yesterday.setUTCDate(yesterday.getUTCDate() - 1)
-  const pad = (n: number) => String(n).padStart(2, '0')
-  const yesterdayStr = `${yesterday.getUTCFullYear()}-${pad(yesterday.getUTCMonth() + 1)}-${pad(yesterday.getUTCDate())}`
+  const now = new Date()
+  const brasiliaOffset = -3 * 60
+  const brasiliaTime = new Date(now.getTime() + brasiliaOffset * 60 * 1000)
+  const today = brasiliaTime.toISOString().split('T')[0]
+
+  console.log(`[update-overdue] Data Brasília: ${today}`)
 
   const { data: overdue, error: fetchError } = await supabase
     .from('financials')
     .select('id, student_id, academy_id, amount, due_date, profiles!inner(full_name, email)')
     .eq('status', 'pending')
-    .lte('due_date', yesterdayStr)
+    .lt('due_date', today)
 
   if (fetchError) {
     console.error('Erro ao buscar pendentes:', fetchError)
