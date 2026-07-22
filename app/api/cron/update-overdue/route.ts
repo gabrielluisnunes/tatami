@@ -20,7 +20,7 @@ export async function GET(request: Request) {
 
   const { data: overdue, error: fetchError } = await supabase
     .from('financials')
-    .select('id, student_id, academy_id, amount, due_date, profiles!inner(full_name, email)')
+    .select('id, student_id, academy_id, amount, due_date, profiles!inner(full_name)')
     .eq('status', 'pending')
     .lt('due_date', today)
 
@@ -45,6 +45,12 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Erro ao atualizar' }, { status: 500 })
   }
 
+  const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers()
+  if (usersError) {
+    console.error('Erro ao listar usuários auth:', usersError)
+  }
+  const emailMap = new Map(users?.map(u => [u.id, u.email]) ?? [])
+
   const academyIds = Array.from(new Set(overdue.map(f => f.academy_id).filter(Boolean)))
 
   const { data: academiesData } = await supabase
@@ -56,15 +62,21 @@ export async function GET(request: Request) {
 
   for (const record of overdue) {
     const profileObj = Array.isArray(record.profiles) ? record.profiles[0] : record.profiles
-    const profile = profileObj as unknown as { full_name: string; email: string } | null
+    const profile = profileObj as unknown as { full_name: string } | null
     if (!profile) continue
+
+    const studentEmail = emailMap.get(record.student_id)
+    if (!studentEmail) {
+      console.warn(`Email não encontrado para student_id: ${record.student_id}`)
+      continue
+    }
 
     const [y, m, d] = record.due_date.split('-')
     const formattedDate = `${d}/${m}/${y}`
     const academyName = academyNameMap.get(record.academy_id) ?? 'sua academia'
 
     sendOverdueAlert(
-      profile.email,
+      studentEmail,
       profile.full_name,
       record.amount,
       formattedDate,

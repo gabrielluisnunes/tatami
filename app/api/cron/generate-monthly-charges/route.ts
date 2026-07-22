@@ -27,7 +27,7 @@ export async function GET(request: Request) {
 
   const { data: students, error: studentsError } = await supabase
     .from('profiles')
-    .select('id, full_name, email, academy_id, payment_due_day')
+    .select('id, full_name, academy_id, payment_due_day')
     .eq('role', 'aluno')
     .eq('payment_due_day', todayDay)
 
@@ -39,6 +39,12 @@ export async function GET(request: Request) {
   if (!students || students.length === 0) {
     return NextResponse.json({ created: 0 })
   }
+
+  const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers()
+  if (usersError) {
+    console.error('Erro ao listar usuários auth:', usersError)
+  }
+  const emailMap = new Map(users?.map(u => [u.id, u.email]) ?? [])
 
   const academyIds = Array.from(new Set(students.map(s => s.academy_id).filter(Boolean)))
 
@@ -52,6 +58,12 @@ export async function GET(request: Request) {
   let created = 0
 
   for (const student of students) {
+    const studentEmail = emailMap.get(student.id)
+    if (!studentEmail) {
+      console.warn(`Email não encontrado para student_id: ${student.id}`)
+      continue
+    }
+
     const academy = academyMap.get(student.academy_id)
     if (!academy) continue
 
@@ -83,7 +95,7 @@ export async function GET(request: Request) {
     created++
 
     sendDueTodayAlert(
-      student.email,
+      studentEmail,
       student.full_name,
       academy.monthly_price,
       dueDateStr,
