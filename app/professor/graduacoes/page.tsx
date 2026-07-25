@@ -47,7 +47,7 @@ export default async function ProfessorGraduacoesPage() {
     belt:                      s.belt || 'branca',
     degree:                    s.degree ?? 0,
     trainings_since_belt:      s.trainings_since_belt ?? 0,
-    attendance_rate:           s.attendance_rate ?? 100,
+    attendance_rate:           s.attendance_rate ?? null,
     total_classes_since_belt:  s.total_classes_since_belt ?? 0,
   }))
 
@@ -90,15 +90,17 @@ export default async function ProfessorGraduacoesPage() {
                   </td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
-                      s.attendance_rate >= 80
-                        ? 'text-emerald-400 bg-emerald-950/40 border-emerald-800'
-                        : s.attendance_rate >= 60
-                        ? 'text-amber-400 bg-amber-950/40 border-amber-800'
-                        : 'text-red-400 bg-red-950/40 border-red-800'
+                      s.attendance_rate != null
+                        ? s.attendance_rate >= 80
+                          ? 'text-emerald-400 bg-emerald-950/40 border-emerald-800'
+                          : s.attendance_rate >= 60
+                          ? 'text-amber-400 bg-amber-950/40 border-amber-800'
+                          : 'text-red-400 bg-red-950/40 border-red-800'
+                        : 'text-gray-400 bg-gray-50 border-gray-200'
                     }`}>
-                      {s.attendance_rate.toFixed(1)}%
+                      {s.attendance_rate != null ? `${s.attendance_rate.toFixed(1)}%` : '—'}
                     </span>
-                    {s.attendance_rate < 80 && (
+                    {s.attendance_rate != null && s.attendance_rate < 80 && (
                       <p className="text-[10px] text-zinc-600 mt-0.5">Mínimo: 80%</p>
                     )}
                   </td>

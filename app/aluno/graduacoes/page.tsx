@@ -31,7 +31,8 @@ function formatLocalDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('pt-BR')
 }
 
-function attendanceColor(rate: number): string {
+function attendanceColor(rate: number | null): string {
+  if (rate == null) return 'text-gray-400 bg-gray-50 border-gray-200'
   if (rate >= 80) return 'text-emerald-400 bg-emerald-950/40 border-emerald-800'
   if (rate >= 60) return 'text-amber-400 bg-amber-950/40 border-amber-800'
   return 'text-red-400 bg-red-950/40 border-red-800'
@@ -91,9 +92,9 @@ export default async function AlunoGraduacoesPage() {
   const beltSinceMs = new Date(beltSince).getTime()
   const trainingsCount = attendanceTimestamps.filter(t => t >= beltSinceMs).length
 
-  // % de frequência: 100% se não houve aulas confirmadas ainda
+  // % de frequência: null se não houve aulas confirmadas ainda
   const attendanceRate = (totalClassesSinceBelt ?? 0) === 0
-    ? 100
+    ? null
     : Math.round((trainingsCount / (totalClassesSinceBelt ?? 1)) * 1000) / 10
 
   const historyTyped = (history as unknown as BeltHistoryItem[]) ?? []
@@ -142,10 +143,14 @@ export default async function AlunoGraduacoesPage() {
             Desde {formatLocalDate(profile.belt_updated_at ?? profile.created_at)}
           </p>
           <div className="flex items-center gap-2 mt-1">
-            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${attendanceColor(attendanceRate)}`}>
-              {attendanceRate.toFixed(1)}% de frequência
+            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
+              attendanceRate != null 
+                ? attendanceColor(attendanceRate) 
+                : 'text-gray-400 bg-gray-50 border-gray-200'
+            }`}>
+              {attendanceRate != null ? `${attendanceRate.toFixed(1)}%` : '—'} de frequência
             </span>
-            {attendanceRate < 80 && (
+            {attendanceRate != null && attendanceRate < 80 && (
               <span className="text-xs text-zinc-500">
                 (mínimo 80% para graduar)
               </span>

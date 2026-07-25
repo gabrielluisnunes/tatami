@@ -13,7 +13,7 @@ interface StudentRow {
   belt: string
   degree: number
   trainings_since_belt: number
-  attendance_rate: number
+  attendance_rate: number | null
   total_classes_since_belt: number
 }
 
@@ -72,7 +72,8 @@ function formatDuration(fromIso: string, toIso?: string): string {
   return `${years} ano${years !== 1 ? 's' : ''} e ${remMonths} mês${remMonths !== 1 ? 'es' : ''}`
 }
 
-function attendanceColor(rate: number): string {
+function attendanceColor(rate: number | null): string {
+  if (rate == null) return 'text-gray-400 bg-gray-50 border-gray-200'
   if (rate >= 80) return 'text-emerald-600 bg-emerald-50 border-emerald-200'
   if (rate >= 60) return 'text-amber-600 bg-amber-50 border-amber-200'
   return 'text-red-600 bg-red-50 border-red-200'
@@ -198,10 +199,14 @@ export function GraduacoesClient({ students }: GraduacoesClientProps) {
                       {student.trainings_since_belt} treino{student.trainings_since_belt !== 1 ? 's' : ''}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${attendanceColor(student.attendance_rate)}`}>
-                        {student.attendance_rate.toFixed(1)}%
+                      <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
+                        student.attendance_rate != null 
+                          ? attendanceColor(student.attendance_rate) 
+                          : 'text-gray-400 bg-gray-50 border-gray-200'
+                      }`}>
+                        {student.attendance_rate != null ? `${student.attendance_rate.toFixed(1)}%` : '—'}
                       </span>
-                      {student.attendance_rate < 80 && (
+                      {student.attendance_rate != null && student.attendance_rate < 80 && (
                         <p className="text-[10px] text-gray-400 mt-0.5">
                           Mínimo: 80%
                         </p>
@@ -294,8 +299,12 @@ export function GraduacoesClient({ students }: GraduacoesClientProps) {
                     <Calendar className="h-3.5 w-3.5 shrink-0" />
                     {currentStudentRow.trainings_since_belt} treino{currentStudentRow.trainings_since_belt !== 1 ? 's' : ''} desde a última graduação
                   </span>
-                  <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold ${attendanceColor(currentStudentRow.attendance_rate)}`}>
-                    {currentStudentRow.attendance_rate.toFixed(1)}% de frequência
+                  <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold ${
+                    currentStudentRow.attendance_rate != null 
+                      ? attendanceColor(currentStudentRow.attendance_rate) 
+                      : 'text-gray-400 bg-gray-50 border-gray-200'
+                  }`}>
+                    {currentStudentRow.attendance_rate != null ? `${currentStudentRow.attendance_rate.toFixed(1)}%` : '—'} de frequência
                   </span>
                 </div>
               </div>

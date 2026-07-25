@@ -41,7 +41,7 @@ export default async function GraduacoesPage() {
     belt:                      s.belt || 'branca',
     degree:                    s.degree ?? 0,
     trainings_since_belt:      s.trainings_since_belt || 0,
-    attendance_rate:           s.attendance_rate ?? 100,
+    attendance_rate:           s.attendance_rate ?? null,
     total_classes_since_belt:  s.total_classes_since_belt ?? 0,
   }))
 
