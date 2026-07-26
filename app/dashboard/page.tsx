@@ -92,6 +92,28 @@ export default async function DashboardPage() {
     attendanceMap.set(a.checkin_id, (attendanceMap.get(a.checkin_id) ?? 0) + 1)
   })
 
+  // Birthdays of current month
+  const currentMonth = new Date().getMonth() + 1
+
+  const { data: birthdaysRaw } = await supabase
+    .from('profiles')
+    .select('id, full_name, birth_date, photo_url, belt, degree')
+    .eq('academy_id', profile.academy_id)
+    .eq('role', 'aluno')
+    .not('birth_date', 'is', null)
+
+  const birthdays = (birthdaysRaw ?? [])
+    .filter(a => {
+      if (!a.birth_date) return false
+      const month = new Date(a.birth_date + 'T00:00:00').getMonth() + 1
+      return month === currentMonth
+    })
+    .sort((a, b) => {
+      const dayA = new Date(a.birth_date! + 'T00:00:00').getDate()
+      const dayB = new Date(b.birth_date! + 'T00:00:00').getDate()
+      return dayA - dayB
+    })
+
   const metrics = [
     { title: 'Total de alunos', value: totalAlunos ?? 0, icon: Users, color: 'text-indigo-400' },
     { title: 'Pagas no mês', value: pagasNoMes ?? 0, icon: DollarSign, color: 'text-emerald-400' },
@@ -128,6 +150,51 @@ export default async function DashboardPage() {
           </Card>
         ))}
       </div>
+
+      {/* Widget de aniversariantes */}
+      {birthdays.length > 0 && (
+        <div className="rounded-xl border border-gray-200 bg-white p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-xl">🎂</span>
+            <h2 className="text-base font-semibold text-gray-900">
+              Aniversariantes do mês
+            </h2>
+            <span className="ml-auto rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">
+              {birthdays.length} aluno{birthdays.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {birthdays.map(aluno => {
+              const day = new Date(aluno.birth_date! + 'T00:00:00').getDate()
+              const isToday = new Date(aluno.birth_date! + 'T00:00:00').getDate() === new Date().getDate()
+              return (
+                <div
+                  key={aluno.id}
+                  className={`flex items-center gap-2.5 rounded-xl border px-3 py-2 ${
+                    isToday 
+                      ? 'border-amber-200 bg-amber-50' 
+                      : 'border-gray-200 bg-gray-50'
+                  }`}
+                >
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white border border-gray-200 text-sm font-bold text-gray-700">
+                    {day}
+                  </div>
+                  <div>
+                    <p className={`text-sm font-medium ${
+                      isToday ? 'text-amber-800' : 'text-gray-800'
+                    }`}>
+                      {aluno.full_name.split(' ')[0]}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {isToday ? '🎉 Hoje!' : `dia ${day}`}
+                    </p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Recent check-ins */}
       <div>

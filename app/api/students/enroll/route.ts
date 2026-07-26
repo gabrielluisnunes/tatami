@@ -19,6 +19,7 @@ const enrollSchema = z.object({
   role: z.enum(['aluno', 'professor']),
   belt: z.string().default('branca'),
   degree: z.number().int().min(0).max(4).default(0),
+  birth_date: z.string().optional(),
   phone: z.string().optional(),
   emergency_phone: z.string().optional(),
   cep: z.string().optional(),
@@ -118,6 +119,7 @@ export async function POST(request: Request) {
     degree: body.degree,
   }
 
+  if (body.birth_date) updates.birth_date = body.birth_date
   if (body.phone) updates.phone = body.phone
   if (body.emergency_phone) updates.emergency_phone = body.emergency_phone
   if (body.cep) updates.cep = body.cep

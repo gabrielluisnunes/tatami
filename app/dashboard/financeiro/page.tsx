@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { DollarSign, AlertTriangle, TrendingDown, TrendingUp } from 'lucide-react'
+import { DollarSign, AlertTriangle, TrendingDown, TrendingUp, Download } from 'lucide-react'
 import { OverdueTable } from '@/components/dashboard/overdue-table'
 import { MonthlyTable } from '@/components/dashboard/monthly-table'
 
@@ -148,9 +148,19 @@ export default async function FinanceiroPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">Financeiro</h1>
-        <p className="text-sm text-gray-400 capitalize">{monthName}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Financeiro</h1>
+          <p className="text-sm text-gray-400 capitalize">{monthName}</p>
+        </div>
+        <a
+          href="/api/reports/inadimplencia"
+          download
+          className="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+        >
+          <Download className="h-4 w-4" />
+          Exportar inadimplentes
+        </a>
       </div>
 
       {/* Cards de métricas */}

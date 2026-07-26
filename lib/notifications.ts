@@ -304,3 +304,70 @@ O pagamento deve ser realizado diretamente na academia ${academyName}.
 Acesse: https://gestaotatami.com.br/aluno/financeiro`,
   })
 }
+
+export async function sendComunicado(
+  recipients: Array<{ email: string; name: string }>,
+  title: string,
+  message: string,
+  academyName: string,
+): Promise<{ sent: number; failed: number }> {
+  // Dividir em batches de 100 (limite do Resend)
+  const BATCH_SIZE = 100
+  let sent = 0
+  let failed = 0
+
+  for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
+    const batch = recipients.slice(i, i + BATCH_SIZE)
+    
+    try {
+      await resend.batch.send(
+        batch.map(r => ({
+          from: 'Tatami <noreply@gestaotatami.com.br>',
+          to: r.email,
+          subject: `${title} — ${academyName}`,
+          html: `<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#09090b;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#09090b;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:520px;background:#18181b;border-radius:16px;border:1px solid #27272a;overflow:hidden;">
+        <tr>
+          <td style="background:#18181b;padding:32px 32px 24px;border-bottom:1px solid #27272a;">
+            <p style="margin:0;font-size:20px;font-weight:700;color:#ffffff;">🥋 Tatami</p>
+            <p style="margin:6px 0 0;font-size:13px;color:#71717a;">${academyName}</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:32px;">
+            <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#ffffff;">
+              ${title}
+            </h1>
+            <div style="font-size:15px;color:#a1a1aa;line-height:1.7;white-space:pre-wrap;">
+              ${message.replace(/\n/g, '<br>')}
+            </div>
+            <hr style="border:none;border-top:1px solid #27272a;margin:28px 0;">
+            <p style="margin:0;font-size:12px;color:#52525b;">
+              Olá, ${r.name}! Este comunicado foi enviado pela academia ${academyName} 
+              através da plataforma Tatami.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`,
+          text: `${title}\n\n${message}\n\nEnviado por ${academyName} via Tatami.`,
+        }))
+      )
+      sent += batch.length
+    } catch (err) {
+      console.error(`Falha no batch ${i}-${i + BATCH_SIZE}:`, err)
+      failed += batch.length
+    }
+  }
+
+  return { sent, failed }
+}
+

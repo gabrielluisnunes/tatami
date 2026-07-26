@@ -43,6 +43,7 @@ export default function NovoAlunoPage() {
   // Campos originais
   const [fullName, setFullName]     = useState('')
   const [email, setEmail]           = useState('')
+  const [birthDate, setBirthDate]   = useState('')
   const [phone, setPhone]           = useState('')
   const [belt, setBelt]             = useState('branca')
   const [degree, setDegree]         = useState<number>(0)
@@ -129,6 +130,7 @@ export default function NovoAlunoPage() {
           role: 'aluno',
           belt,
           degree,
+          ...(birthDate ? { birth_date: birthDate } : {}),
           phone: phone || undefined,
           emergency_phone: emergencyPhone || undefined,
           cep: hasCep ? cep : undefined,
@@ -257,6 +259,21 @@ export default function NovoAlunoPage() {
                 className={inputClass}
               />
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="birthDate" className={labelClass}>
+              Data de nascimento <span className="font-normal text-gray-400">(opcional)</span>
+            </Label>
+            <Input
+              id="birthDate"
+              type="date"
+              value={birthDate}
+              onChange={(e) => setBirthDate(e.target.value)}
+              disabled={loading}
+              className={inputClass}
+              max={new Date().toISOString().split('T')[0]}
+            />
           </div>
 
           {/* Faixa + Grau — grid 2 colunas */}

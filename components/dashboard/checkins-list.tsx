@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { ChevronDown, ChevronRight, Trash2, X, Loader2 } from 'lucide-react'
 
 interface AttendanceRecord {
@@ -21,11 +22,30 @@ interface CheckinRow {
 
 interface CheckinsListProps {
   checkins: CheckinRow[]
+  page?: number
+  totalPages?: number
+  month?: string
+  status?: string
 }
 
-export function CheckinsList({ checkins }: CheckinsListProps) {
+export function CheckinsList({
+  checkins,
+  page = 1,
+  totalPages = 1,
+  month,
+  status,
+}: CheckinsListProps) {
   const router = useRouter()
   const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  // Helper function to build page link preserving existing parameters
+  const buildPageUrl = (newPage: number) => {
+    const params = new URLSearchParams()
+    if (month) params.set('month', month)
+    if (status) params.set('status', status)
+    params.set('page', String(newPage))
+    return `?${params.toString()}`
+  }
 
   // Modal de excluir check-in inteiro
   const [deleteCheckinId, setDeleteCheckinId] = useState<string | null>(null)
@@ -89,9 +109,11 @@ export function CheckinsList({ checkins }: CheckinsListProps) {
 
   if (checkins.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-gray-500">
-        Nenhum check-in registrado ainda.
-      </p>
+      <div className="rounded-xl border border-gray-200 bg-white shadow-sm p-8 text-center">
+        <p className="text-sm text-gray-500">
+          Nenhum check-in registrado ainda.
+        </p>
+      </div>
     )
   }
 
@@ -211,6 +233,33 @@ export function CheckinsList({ checkins }: CheckinsListProps) {
             })}
           </tbody>
         </table>
+
+        {/* Controles de paginação */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
+            <p className="text-sm text-gray-500">
+              Página {page} de {totalPages}
+            </p>
+            <div className="flex gap-2">
+              {page > 1 && (
+                <Link
+                  href={buildPageUrl(page - 1)}
+                  className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  ← Anterior
+                </Link>
+              )}
+              {page < totalPages && (
+                <Link
+                  href={buildPageUrl(page + 1)}
+                  className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  Próximo →
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* MODAL 1 — Excluir check-in inteiro */}
@@ -306,3 +355,4 @@ export function CheckinsList({ checkins }: CheckinsListProps) {
     </>
   )
 }
+

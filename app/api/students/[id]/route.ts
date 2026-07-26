@@ -4,6 +4,7 @@ import { z } from 'zod'
 
 const updateSchema = z.object({
   full_name:       z.string().min(2).optional(),
+  birth_date:      z.string().optional().nullable(),
   phone:           z.string().optional().nullable(),
   emergency_phone: z.string().optional().nullable(),
   belt:            z.string().optional(),

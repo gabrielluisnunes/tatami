@@ -43,11 +43,15 @@ function StudentAvatar({ name, photoUrl }: { name: string; photoUrl?: string | n
   if (photoUrl) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={photoUrl} alt={name} className="h-10 w-10 rounded-full object-cover border border-zinc-700 flex-shrink-0" />
+      <img
+        src={photoUrl}
+        alt={name}
+        className="h-10 w-10 rounded-full object-cover ring-2 ring-zinc-700 shrink-0"
+      />
     )
   }
   return (
-    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-zinc-800 border border-zinc-700 text-sm font-bold text-zinc-400">
+    <div className="h-10 w-10 rounded-full bg-zinc-800 ring-2 ring-zinc-700 shrink-0 flex items-center justify-center text-zinc-400 text-sm font-bold">
       {name.charAt(0).toUpperCase()}
     </div>
   )

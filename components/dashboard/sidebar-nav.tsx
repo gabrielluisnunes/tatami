@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Users, DollarSign, Camera,
-  Calendar, Award, GraduationCap, FileText, User,
+  Calendar, Award, GraduationCap, FileText, User, Megaphone,
 } from 'lucide-react'
 
 const navItems = [
@@ -16,6 +16,7 @@ const navItems = [
   { href: '/dashboard/turmas',      icon: Calendar,        label: 'Turmas' },
   { href: '/dashboard/graduacoes',  icon: Award,           label: 'Graduações' },
   { href: '/dashboard/contratos',   icon: FileText,        label: 'Contratos' },
+  { href: '/dashboard/comunicados', icon: Megaphone,       label: 'Comunicados' },
   { href: '/dashboard/perfil',      icon: User,            label: 'Perfil' },
 ]
 

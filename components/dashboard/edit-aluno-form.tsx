@@ -15,6 +15,7 @@ import Link from 'next/link'
 interface InitialData {
   id: string
   full_name: string
+  birth_date?: string | null
   phone: string | null
   emergency_phone: string | null
   belt: string
@@ -42,6 +43,7 @@ export function EditAlunoForm({ studentId, initialData, successRedirect = '/dash
   const router = useRouter()
 
   const [fullName,       setFullName]       = useState(initialData.full_name)
+  const [birthDate,      setBirthDate]      = useState(initialData.birth_date ?? '')
   const [phone,          setPhone]          = useState(initialData.phone ?? '')
   const [emergencyPhone, setEmergencyPhone] = useState(initialData.emergency_phone ?? '')
   const [belt,           setBelt]           = useState(initialData.belt ?? 'branca')
@@ -92,6 +94,7 @@ export function EditAlunoForm({ studentId, initialData, successRedirect = '/dash
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({      
           full_name:       fullName,
+          ...(birthDate ? { birth_date: birthDate } : {}),
           phone:           phone || null,
           emergency_phone: emergencyPhone || null,
           belt,
@@ -168,6 +171,21 @@ export function EditAlunoForm({ studentId, initialData, successRedirect = '/dash
             className={inputClass}
           />
         </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="editBirthDate" className={labelClass}>
+          Data de nascimento <span className="font-normal text-zinc-600">(opcional)</span>
+        </Label>
+        <Input
+          id="editBirthDate"
+          type="date"
+          value={birthDate}
+          onChange={(e) => setBirthDate(e.target.value)}
+          disabled={loading}
+          className={inputClass}
+          max={new Date().toISOString().split('T')[0]}
+        />
       </div>
 
       {/* Faixa + Grau — grid 2 colunas */}

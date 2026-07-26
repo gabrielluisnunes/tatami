@@ -2,10 +2,11 @@
 
 import Link from 'next/link'        
 import { usePathname } from 'next/navigation'
-import { Activity, Award, DollarSign, KeyRound, FileText } from 'lucide-react'
+import { Activity, Award, DollarSign, KeyRound, FileText, UserCircle } from 'lucide-react'
 
 const tabs = [
-  { href: '/aluno/frequencia',  icon: Activity,   label: 'Frequência'  },
+  { href: '/aluno/perfil',      icon: UserCircle,  label: 'Perfil'      },
+  { href: '/aluno/frequencia',  icon: Activity,    label: 'Frequência'  },
   { href: '/aluno/graduacoes',  icon: Award,       label: 'Graduações'  },
   { href: '/aluno/financeiro',  icon: DollarSign,  label: 'Financeiro'  },
   { href: '/aluno/contratos',   icon: FileText,    label: 'Contratos'   },

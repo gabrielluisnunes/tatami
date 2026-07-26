@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Camera } from 'lucide-react'
+import { Camera, Download } from 'lucide-react'
 import { CheckinsList } from '@/components/dashboard/checkins-list'
 import { CheckinsFilter } from '@/components/dashboard/checkins-filter'
 
@@ -30,8 +30,12 @@ interface AttendanceRecord {
 interface CheckinsPageProps {
   searchParams: {
     month?: string
+    status?: string
+    page?: string
   }
 }
+
+const ITEMS_PER_PAGE = 20
 
 export default async function CheckinsPage({ searchParams }: CheckinsPageProps) {
   const supabase = createClient()
@@ -50,8 +54,10 @@ export default async function CheckinsPage({ searchParams }: CheckinsPageProps) 
 
   const academyId = profile.academy_id
   const selectedMonth = searchParams.month
+  const status = searchParams.status ?? ''
+  const page = Math.max(1, parseInt(searchParams.page ?? '1', 10) || 1)
 
-  // Constrói a consulta de checkins do Supabase com base no filtro
+  // Constrói a consulta de checkins do Supabase com base nos filtros
   let query = supabase
     .from('checkins')
     .select(`
@@ -64,6 +70,11 @@ export default async function CheckinsPage({ searchParams }: CheckinsPageProps) 
     `)
     .eq('academy_id', academyId)
 
+  let countQuery = supabase
+    .from('checkins')
+    .select('id', { count: 'exact', head: true })
+    .eq('academy_id', academyId)
+
   if (selectedMonth && selectedMonth !== 'all') {
     const startOfMonth = `${selectedMonth}-01T00:00:00.000Z`
     const [year, month] = selectedMonth.split('-').map(Number)
@@ -74,14 +85,29 @@ export default async function CheckinsPage({ searchParams }: CheckinsPageProps) 
     query = query
       .gte('checked_in_at', startOfMonth)
       .lt('checked_in_at', endOfMonth)
+
+    countQuery = countQuery
+      .gte('checked_in_at', startOfMonth)
+      .lt('checked_in_at', endOfMonth)
   }
 
-  // Se tem filtro de mês, aumentamos o limite para ver mais checkins do mês selecionado
-  const limit = selectedMonth && selectedMonth !== 'all' ? 100 : 30
+  if (status) {
+    query = query.eq('status', status)
+    countQuery = countQuery.eq('status', status)
+  }
+
+  // Obter total de registros para cálculo das páginas
+  const { count } = await countQuery
+  const totalCount = count ?? 0
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE) || 1
+
+  // Aplica ordenação e paginação com .range()
+  const from = (page - 1) * ITEMS_PER_PAGE
+  const to = page * ITEMS_PER_PAGE - 1
 
   const { data: rawCheckins } = await query
     .order('checked_in_at', { ascending: false })
-    .limit(limit)
+    .range(from, to)
 
   const checkinIds = (rawCheckins ?? []).map((c) => c.id as string)
 
@@ -135,11 +161,19 @@ export default async function CheckinsPage({ searchParams }: CheckinsPageProps) 
           <p className="text-sm text-gray-500">
             {selectedMonth && selectedMonth !== 'all'
               ? `Registros de ${formatSelectedMonth(selectedMonth)}`
-              : 'Últimos 30 registros de presença'}
+              : 'Todos os registros de presença'}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <CheckinsFilter />
+          <a
+            href={`/api/reports/frequency${selectedMonth && selectedMonth !== 'all' ? `?month=${selectedMonth}` : ''}`}
+            download
+            className="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+          >
+            <Download className="h-4 w-4" />
+            Exportar frequência
+          </a>
           <Link
             href="/professor/checkin"
             className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors"
@@ -149,7 +183,14 @@ export default async function CheckinsPage({ searchParams }: CheckinsPageProps) 
           </Link>
         </div>
       </div>
-      <CheckinsList checkins={checkins} />
+      <CheckinsList
+        checkins={checkins}
+        page={page}
+        totalPages={totalPages}
+        month={selectedMonth}
+        status={status}
+      />
     </div>
   )
 }
+
