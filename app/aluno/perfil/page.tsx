@@ -2,9 +2,12 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Camera, Loader2, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react'
-import * as faceapi from '@vladmandic/face-api'
+import { useFaceApi } from '@/hooks/use-face-api'
 
 export default function PerfilPage() {
+  const faceApiStatus = useFaceApi()
+  const modelsLoaded = faceApiStatus === 'ready'
+
   // Estados
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
   const [fullName, setFullName] = useState('')
@@ -13,7 +16,6 @@ export default function PerfilPage() {
   const [capturedPreview, setCapturedPreview] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [modelsLoaded, setModelsLoaded] = useState(false)
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null)
 
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -36,17 +38,6 @@ export default function PerfilPage() {
       }
     }
     loadProfile()
-  }, [])
-
-  // Carregar modelos do face-api
-  useEffect(() => {
-    async function loadModels() {
-      await faceapi.nets.ssdMobilenetv1.loadFromUri('/models')
-      await faceapi.nets.faceLandmark68Net.loadFromUri('/models')
-      await faceapi.nets.faceRecognitionNet.loadFromUri('/models')
-      setModelsLoaded(true)
-    }
-    loadModels()
   }, [])
 
   // Iniciar câmera
