@@ -1,25 +1,7 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createStorageAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { CheckCircle, AlertCircle } from 'lucide-react'
-
-const statusConfig = {
-  paid:    { label: 'Pago',      cls: 'bg-emerald-950/50 text-emerald-400 border-emerald-800/30' },
-  pending: { label: 'Pendente',  cls: 'bg-zinc-800/80 text-zinc-400 border-zinc-700/30' },
-  overdue: { label: 'Em atraso', cls: 'bg-red-950/50 text-red-400 border-red-800/30' },
-}
-
-function formatLocalDate(dateStr: string) {
-  if (!dateStr) return '—'
-  if (dateStr.includes('T') || dateStr.includes(':')) {
-    return new Date(dateStr).toLocaleDateString('pt-BR')
-  }
-  const parts = dateStr.split('-')
-  if (parts.length === 3) {
-    const [year, month, day] = parts
-    return `${day}/${month}/${year}`
-  }
-  return new Date(dateStr).toLocaleDateString('pt-BR')
-}
+import FinanceiroClient from '@/components/aluno/financeiro-client'
 
 export default async function AlunoFinanceiroPage() {
   const supabase = createClient()
@@ -35,6 +17,14 @@ export default async function AlunoFinanceiroPage() {
 
   if (!profile?.academy_id) redirect('/onboarding')
   if (profile.role !== 'aluno') redirect('/dashboard')
+
+  // Buscar se a academia tem chave PIX configurada
+  const adminSupabase = createStorageAdminClient()
+  const { data: academy } = await adminSupabase
+    .from('academies')
+    .select('pix_key, pix_key_type')
+    .eq('id', profile.academy_id)
+    .single()
 
   // Todos os registros financeiros do aluno, mais recentes primeiro
   const { data: financials } = await supabase
@@ -97,31 +87,7 @@ export default async function AlunoFinanceiroPage() {
             <p className="text-sm">Nenhum registro financeiro encontrado.</p>
           </div>
         ) : (
-          <div className="space-y-2">
-            {financials.map(f => {
-              const cfg = statusConfig[f.status as keyof typeof statusConfig]
-                ?? statusConfig.pending
-              return (
-                <div
-                  key={f.id}
-                  className="flex items-center justify-between rounded-xl border border-zinc-800/60 bg-zinc-900/40 px-4 py-3"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-zinc-200">
-                      {f.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                    </p>
-                    <p className="text-xs text-zinc-500 mt-0.5">
-                      Venc. {formatLocalDate(f.due_date)}
-                      {f.paid_at && ` · Pago em ${formatLocalDate(f.paid_at)}`}
-                    </p>
-                  </div>
-                  <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-medium ${cfg.cls}`}>
-                    {cfg.label}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
+          <FinanceiroClient financials={financials} hasPix={!!academy?.pix_key} />
         )}
       </div>
     </div>

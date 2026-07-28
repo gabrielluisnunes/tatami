@@ -10,21 +10,26 @@ export default async function CompletarPerfilPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, full_name, face_descriptor')
+    .select('role, full_name, face_descriptor, payment_due_day')
     .eq('id', user.id)
     .single()
 
   if (!profile) redirect('/auth/login')
   if (profile.role !== 'aluno') redirect('/dashboard')
 
-  // Já tem foto → pula para o portal
-  if (profile.face_descriptor) redirect('/aluno/frequencia')
+  const hasFaceDescriptor = !!profile?.face_descriptor
+  const hasPaymentDueDay = !!profile?.payment_due_day
+
+  // Se já tem tudo completo, redirecionar para frequencia
+  if (hasFaceDescriptor && hasPaymentDueDay) {
+    redirect('/aluno/frequencia')
+  }
 
   const firstName = profile.full_name?.split(' ')[0] ?? 'aluno'
 
   return (
     <div className="mx-auto max-w-md">
-      <CompletarPerfilForm firstName={firstName} />
+      <CompletarPerfilForm firstName={firstName} hasFaceDescriptor={hasFaceDescriptor} />
     </div>
   )
 }

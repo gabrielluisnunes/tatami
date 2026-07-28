@@ -28,6 +28,7 @@ const statusConfig = {
   pending: { label: 'Pendente',    cls: 'bg-amber-50 text-amber-700 border-amber-200' },
   overdue: { label: 'Atrasado',    cls: 'bg-red-50 text-red-700 border-red-200' },
   waiting: { label: 'Aguardando',  cls: 'bg-zinc-100 text-zinc-600 border-zinc-200' },
+  aguardando_confirmacao: { label: 'Aguard. confirmação', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
 }
 
 const tabs: { key: Filter; label: string }[] = [
@@ -157,7 +158,7 @@ export function MonthlyTable({ records, monthlyPrice }: MonthlyTableProps) {
     const currentHasCharge = r.has_charge
 
     if (filter === 'all') return true
-    if (filter === 'pending') return currentHasCharge && currentStatus === 'pending'
+    if (filter === 'pending') return currentHasCharge && (currentStatus === 'pending' || currentStatus === 'aguardando_confirmacao')
     if (filter === 'paid') return currentStatus === 'paid'
     if (filter === 'overdue') return currentStatus === 'overdue'
     if (filter === 'waiting') return !currentHasCharge && !isPaid
@@ -206,7 +207,7 @@ export function MonthlyTable({ records, monthlyPrice }: MonthlyTableProps) {
             const currentHasCharge = r.has_charge
 
             if (tab.key === 'all') return true
-            if (tab.key === 'pending') return currentHasCharge && currentStatus === 'pending'
+            if (tab.key === 'pending') return currentHasCharge && (currentStatus === 'pending' || currentStatus === 'aguardando_confirmacao')
             if (tab.key === 'paid') return currentStatus === 'paid'
             if (tab.key === 'overdue') return currentStatus === 'overdue'
             if (tab.key === 'waiting') return !currentHasCharge && !isPaid
@@ -286,20 +287,24 @@ export function MonthlyTable({ records, monthlyPrice }: MonthlyTableProps) {
                     <td className="px-4 py-3 text-right">
                       {currentHasCharge &&
                        rec.id !== null &&
-                       (currentStatus === 'pending' || currentStatus === 'overdue') &&
+                       ['pending', 'overdue', 'aguardando_confirmacao'].includes(currentStatus) &&
                        !isPaidOptimistic && (
                         <button
                           type="button"
                           disabled={isLoading}
                           onClick={() => handleMarkPaid(rec.id!, rec.student_id)}
-                          className="inline-flex items-center gap-1 text-xs border border-gray-200 rounded-lg px-2.5 py-1 text-gray-500 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-colors disabled:opacity-50"
+                          className={`inline-flex items-center gap-1 text-xs border rounded-lg px-2.5 py-1 transition-colors disabled:opacity-50 ${
+                            currentStatus === 'aguardando_confirmacao'
+                              ? 'border-indigo-200 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 hover:text-indigo-700 hover:border-indigo-300'
+                              : 'border-gray-200 text-gray-500 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200'
+                          }`}
                         >
                           {isLoading ? (
                             <Loader2 className="h-3 w-3 animate-spin" />
                           ) : (
                             <CheckCircle2 className="h-3.5 w-3.5" />
                           )}
-                          Pago
+                          {currentStatus === 'aguardando_confirmacao' ? 'Confirmar pagamento' : 'Pago'}
                         </button>
                       )}
 

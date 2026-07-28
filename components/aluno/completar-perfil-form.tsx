@@ -8,11 +8,13 @@ import {
 } from 'lucide-react'
 import { LiveCameraCapture } from '@/components/aluno/live-camera-capture'
 import { Button } from '@/components/ui/button'
+import { createClient } from '@/lib/supabase/client'
 
 type FormStep = 'payment-day' | 'instructions' | 'camera' | 'saving' | 'saved'
 
 interface CompletarPerfilFormProps {
   firstName: string
+  hasFaceDescriptor?: boolean
 }
 
 const INSTRUCTIONS = [
@@ -23,7 +25,7 @@ const INSTRUCTIONS = [
   { icon: Camera,     text: 'Use apenas a câmera — upload de arquivo não é permitido' },
 ]
 
-export function CompletarPerfilForm({ firstName }: CompletarPerfilFormProps) {
+export function CompletarPerfilForm({ firstName, hasFaceDescriptor = false }: CompletarPerfilFormProps) {
   const router = useRouter()
 
   const [step, setStep] = useState<FormStep>('payment-day')
@@ -31,10 +33,36 @@ export function CompletarPerfilForm({ firstName }: CompletarPerfilFormProps) {
   const [capturedB64, setCapturedB64] = useState<string | null>(null)
   const [descriptor, setDescriptor] = useState<number[] | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [isSavingPayment, setIsSavingPayment] = useState(false)
 
   const handleCapture = (base64: string, desc: number[]) => {
     setCapturedB64(base64)
     setDescriptor(desc)
+  }
+
+  const handleSavePaymentDayOnly = async () => {
+    if (paymentDay === null) return
+    setIsSavingPayment(true)
+    setSaveError(null)
+
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Usuário não autenticado')
+
+      const { error: dbError } = await supabase
+        .from('profiles')
+        .update({ payment_due_day: paymentDay })
+        .eq('id', user.id)
+
+      if (dbError) throw dbError
+
+      router.push('/aluno/frequencia')
+      router.refresh()
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Erro ao salvar o dia de pagamento.')
+      setIsSavingPayment(false)
+    }
   }
 
   const handleSave = async () => {
@@ -57,6 +85,17 @@ export function CompletarPerfilForm({ firstName }: CompletarPerfilFormProps) {
       if (!res.ok) {
         const d = await res.json().catch(() => ({}))
         throw new Error(d.error ?? 'Erro ao salvar foto')
+      }
+
+      // Salva payment_due_day via Supabase client após o sucesso do upload
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user && paymentDay !== null) {
+        const { error: dbError } = await supabase
+          .from('profiles')
+          .update({ payment_due_day: paymentDay })
+          .eq('id', user.id)
+        if (dbError) throw dbError
       }
 
       setStep('saved')
@@ -99,13 +138,26 @@ export function CompletarPerfilForm({ firstName }: CompletarPerfilFormProps) {
           ))}
         </div>
 
+        {saveError && (
+          <div className="rounded-xl border border-red-800/30 bg-red-950/30 px-4 py-3">
+            <p className="text-xs font-medium text-red-400">{saveError}</p>
+          </div>
+        )}
+
         <Button
           type="button"
-          disabled={paymentDay === null}
-          onClick={() => setStep('instructions')}
+          disabled={paymentDay === null || isSavingPayment}
+          onClick={hasFaceDescriptor ? handleSavePaymentDayOnly : () => setStep('instructions')}
           className="w-full rounded-xl bg-indigo-600 py-6 font-semibold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-500 disabled:opacity-50"
         >
-          Confirmar e continuar
+          {isSavingPayment ? (
+            <span className="flex items-center justify-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Salvando...
+            </span>
+          ) : (
+            'Confirmar e continuar'
+          )}
         </Button>
       </div>
     )

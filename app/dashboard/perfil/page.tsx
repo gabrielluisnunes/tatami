@@ -16,6 +16,9 @@ interface AcademyData {
   subscription_status: string | null
   trial_ends_at: string | null
   hasStripeAccount: boolean
+  pix_key: string | null
+  pix_key_type: string | null
+  monthly_price?: number | null
 }
 
 export default function PerfilPage() {
@@ -42,6 +45,11 @@ export default function PerfilPage() {
   const [savingPassword, setSavingPassword] = useState(false)
   const [passwordError, setPasswordError] = useState<string | null>(null)
   const [passwordSuccess, setPasswordSuccess] = useState(false)
+
+  const [pixKey, setPixKey] = useState<string>(academy?.pix_key ?? '')
+  const [pixKeyType, setPixKeyType] = useState<string>(academy?.pix_key_type ?? '')
+  const [savingPix, setSavingPix] = useState(false)
+  const [pixSaved, setPixSaved] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -83,7 +91,7 @@ export default function PerfilPage() {
 
         const { data: academyData } = await supabase
           .from('academies')
-          .select('id, name, sport, plan, subscription_status, trial_ends_at, stripe_customer_id')
+          .select('id, name, sport, plan, subscription_status, trial_ends_at, stripe_customer_id, monthly_price, pix_key, pix_key_type')
           .eq('id', profileData.academy_id)
           .single()
 
@@ -95,11 +103,15 @@ export default function PerfilPage() {
             subscription_status: academyData.subscription_status,
             trial_ends_at: academyData.trial_ends_at,
             hasStripeAccount: !!academyData.stripe_customer_id,
+            pix_key: academyData.pix_key,
+            pix_key_type: academyData.pix_key_type,
           })
           setAcademyForm({
             name: academyData.name,
             sport: (academyData.sport || 'jiu-jitsu') as 'jiu-jitsu' | 'muay thai' | 'boxe' | 'misto',
           })
+          setPixKey(academyData.pix_key || '')
+          setPixKeyType(academyData.pix_key_type || '')
         }
       } catch (err) {
         console.error('Erro ao carregar dados do perfil:', err)
@@ -151,7 +163,7 @@ export default function PerfilPage() {
         const { data: signedData } = await supabase.storage
           .from('admin-photos')
           .createSignedUrl(data.photo_url, 3600)
-        
+
         setProfile(prev => prev ? {
           ...prev,
           photo_url: signedData?.signedUrl || null,
@@ -192,6 +204,30 @@ export default function PerfilPage() {
       setAcademyError(err instanceof Error ? err.message : 'Erro inesperado')
     } finally {
       setSavingAcademy(false)
+    }
+  }
+
+  async function handleSavePix() {
+    setSavingPix(true)
+    setPixSaved(false)
+    try {
+      const res = await fetch('/api/academy', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pix_key: pixKey.trim(),
+          pix_key_type: pixKeyType,
+        }),
+      })
+      if (res.ok) {
+        setPixSaved(true)
+        setAcademy(prev => prev ? { ...prev, pix_key: pixKey.trim(), pix_key_type: pixKeyType } : null)
+        setTimeout(() => setPixSaved(false), 3000)
+      }
+    } catch (err) {
+      console.error('Erro ao salvar PIX:', err)
+    } finally {
+      setSavingPix(false)
     }
   }
 
@@ -396,6 +432,101 @@ export default function PerfilPage() {
           </Button>
         </div>
       </section>
+
+      <hr className="border-gray-200" />
+
+      {/* Seção PIX */}
+      <div className="rounded-xl border border-gray-200 bg-white p-6 space-y-4">
+        <div className="flex items-center gap-2 mb-1">
+          <h2 className="text-base font-semibold text-gray-900">Chave PIX</h2>
+        </div>
+        <p className="text-sm text-gray-500">
+          Configure sua chave PIX para que os alunos possam pagar
+          as mensalidades pelo portal.
+        </p>
+
+        {/* Tipo de chave */}
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-gray-700">Tipo de chave</label>
+          <select
+            value={pixKeyType}
+            onChange={e => {
+              setPixKeyType(e.target.value)
+              setPixKey('')
+            }}
+            className="w-full rounded-xl border border-gray-200 bg-white px-4 
+              py-2.5 text-sm text-gray-900 outline-none focus:border-indigo-500 
+              focus:ring-1 focus:ring-indigo-500"
+          >
+            <option value="">Selecione o tipo</option>
+            <option value="celular">Celular</option>
+            <option value="email">Email</option>
+            <option value="cpf">CPF</option>
+            <option value="cnpj">CNPJ</option>
+            <option value="aleatoria">Chave aleatória</option>
+          </select>
+        </div>
+
+        {/* Chave PIX */}
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-gray-700">Chave PIX</label>
+          <input
+            type="text"
+            value={pixKey}
+            onChange={e => setPixKey(e.target.value)}
+            disabled={!pixKeyType}
+            placeholder={
+              pixKeyType === 'celular' ? '+5511999999999' :
+                pixKeyType === 'email' ? 'seu@email.com' :
+                  pixKeyType === 'cpf' ? '000.000.000-00' :
+                    pixKeyType === 'cnpj' ? '00.000.000/0000-00' :
+                      pixKeyType === 'aleatoria' ? 'Cole aqui sua chave aleatória' :
+                        'Selecione o tipo primeiro'
+            }
+            className="w-full rounded-xl border border-gray-200 bg-white px-4 
+              py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none 
+              focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 
+              disabled:bg-gray-50 disabled:text-gray-400"
+          />
+        </div>
+
+        {/* Status e botão */}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleSavePix}
+            disabled={savingPix || !pixKey.trim() || !pixKeyType}
+            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 
+              py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 
+              transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {savingPix ? (
+              <><Loader2 className="h-4 w-4 animate-spin" /> Salvando...</>
+            ) : (
+              'Salvar chave PIX'
+            )}
+          </button>
+          {pixSaved && (
+            <span className="text-sm text-emerald-600 flex items-center gap-1.5">
+              <CheckCircle2 className="h-4 w-4" />
+              Salvo com sucesso!
+            </span>
+          )}
+        </div>
+
+        {/* Chave atual */}
+        {academy?.pix_key && (
+          <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+            <p className="text-xs text-gray-500">Chave atual:</p>
+            <p className="text-sm font-medium text-gray-800 mt-0.5">
+              {academy.pix_key}
+              <span className="ml-2 text-xs text-gray-400">
+                ({academy.pix_key_type})
+              </span>
+            </p>
+          </div>
+        )}
+      </div>
 
       <hr className="border-gray-200" />
 

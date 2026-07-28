@@ -135,7 +135,8 @@ export async function middleware(request: NextRequest) {
     role === 'aluno' &&
     isAlunoRoute &&
     (!faceDescriptor || !paymentDueDay) &&
-    pathname !== '/aluno/completar-perfil'
+    pathname !== '/aluno/completar-perfil' &&
+    pathname !== '/aluno/perfil'
   ) {
     url.pathname = '/aluno/completar-perfil'
     return NextResponse.redirect(url)

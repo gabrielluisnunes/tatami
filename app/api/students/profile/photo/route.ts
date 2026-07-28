@@ -31,6 +31,11 @@ export async function PATCH(request: Request) {
   let mimeType: string
   let ext: string
   let faceDescriptor: number[] | null = null
+  let body = {
+    photo_base64: '',
+    face_descriptor: [] as number[],
+    payment_due_day: 1
+  }
 
   const contentType = request.headers.get('content-type') || ''
 
@@ -45,13 +50,17 @@ export async function PATCH(request: Request) {
       buffer = Buffer.from(arrayBuffer)
       mimeType = file.type || 'image/jpeg'
       ext = mimeType.includes('png') ? 'png' : mimeType.includes('webp') ? 'webp' : 'jpeg'
+      const rawPaymentDueDay = formData.get('payment_due_day')
+      if (rawPaymentDueDay) {
+        body.payment_due_day = parseInt(rawPaymentDueDay as string, 10)
+      }
     } catch {
       return NextResponse.json({ error: 'Dados inválidos (FormData)' }, { status: 400 })
     }
   } else {
     try {
       const bodyJson = await request.json()
-      const body = photoSchema.parse(bodyJson)
+      body = photoSchema.parse(bodyJson)
       faceDescriptor = body.face_descriptor
 
       const matches = body.photo_base64.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,(.+)$/)
@@ -80,6 +89,7 @@ export async function PATCH(request: Request) {
 
   const updateData: Record<string, unknown> = {
     photo_url: filePath,
+    payment_due_day: body.payment_due_day,
   }
   if (faceDescriptor) {
     updateData.face_descriptor = faceDescriptor
