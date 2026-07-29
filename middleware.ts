@@ -45,25 +45,50 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   } 
   
-  // 2. Busca profile
+  // 2. Busca profile + academy em uma única query (JOIN via FK)
   // Inclui face_descriptor somente para rotas /aluno/ para não inflar requests
   // de admin/professor com um array de 128 floats desnecessariamente
-  const { data: profile } = isAlunoRoute
+  const { data: profileData } = isAlunoRoute
     ? await supabase
         .from('profiles')
-        .select('role, academy_id, face_descriptor, payment_due_day')
+        .select(`
+          role,
+          academy_id,
+          face_descriptor,
+          payment_due_day,
+          academies (
+            subscription_status,
+            plan,
+            stripe_customer_id
+          )
+        `)
         .eq('id', user.id)
         .single()
     : await supabase
         .from('profiles')
-        .select('role, academy_id')
+        .select(`
+          role,
+          academy_id,
+          academies (
+            subscription_status,
+            plan,
+            stripe_customer_id
+          )
+        `)
         .eq('id', user.id)
         .single()
-    
-  const role           = profile?.role
-  const academyId      = profile?.academy_id
-  const faceDescriptor = (profile as { face_descriptor?: number[] | null } | null)?.face_descriptor
-  const paymentDueDay  = (profile as { payment_due_day?: number | null } | null)?.payment_due_day
+
+  const role           = profileData?.role
+  const academyId      = profileData?.academy_id
+  const faceDescriptor = (profileData as { face_descriptor?: number[] | null } | null)?.face_descriptor
+  const paymentDueDay  = (profileData as { payment_due_day?: number | null } | null)?.payment_due_day
+
+  const academyRaw = profileData?.academies
+  const academy = (Array.isArray(academyRaw) ? academyRaw[0] : academyRaw) as {
+    subscription_status: string | null
+    plan: string | null
+    stripe_customer_id: string | null
+  } | null
 
   // 3. Usuário sem role (novo) → sempre onboarding
   if (!role) {
@@ -80,12 +105,6 @@ export async function middleware(request: NextRequest) {
 
   // 4.5 Bloqueio de inadimplência para admins no dashboard
   if (role === 'admin' && academyId && isDashboardRoute && pathname !== '/dashboard/assinatura') {
-    const { data: academy } = await supabase
-      .from('academies')
-      .select('subscription_status, plan, stripe_customer_id')
-      .eq('id', academyId)
-      .single()
-
     const status = academy?.subscription_status
     const isTrialing = status === 'trial' || status === 'trialing'
     const hasNeverCompletedCheckout = !academy?.plan || !academy?.stripe_customer_id

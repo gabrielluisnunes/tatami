@@ -4,12 +4,31 @@ import { Activity, AlertTriangle } from 'lucide-react'
 import { formatLocalDate } from '@/lib/format-date'
 import Link from 'next/link'
 
+const BELT_LABELS: Record<string, string> = {
+  // Jiu-Jitsu
+  branca: 'Branca', azul: 'Azul', roxa: 'Roxa', marrom: 'Marrom', preta: 'Preta',
+  // Muay Thai
+  branco: 'Branco', laranja: 'Laranja', 'azul-mt': 'Azul',
+  vermelho: 'Vermelho', amarelo: 'Amarelo', verde: 'Verde',
+  'marrom-mt': 'Marrom', 'preto-mt': 'Preto',
+}
+
 const beltColors: Record<string, string> = {
+  // Jiu-Jitsu
   branca: 'bg-zinc-800 text-zinc-100 ring-1 ring-zinc-700',
   azul:   'bg-blue-100 text-blue-800 ring-1 ring-blue-200',
   roxa:   'bg-purple-100 text-purple-800 ring-1 ring-purple-200',
   marrom: 'bg-amber-950 text-amber-200 ring-1 ring-amber-800',
   preta:  'bg-zinc-50 text-zinc-900 ring-1 ring-zinc-300',
+  // Muay Thai
+  branco: 'bg-zinc-800 text-zinc-100 ring-1 ring-zinc-700',
+  laranja: 'bg-orange-500 text-white ring-1 ring-orange-400',
+  'azul-mt': 'bg-blue-100 text-blue-800 ring-1 ring-blue-200',
+  vermelho: 'bg-red-600 text-white ring-1 ring-red-400',
+  amarelo: 'bg-yellow-400 text-gray-900 ring-1 ring-yellow-300',
+  verde: 'bg-green-600 text-white ring-1 ring-green-400',
+  'marrom-mt': 'bg-amber-950 text-amber-200 ring-1 ring-amber-800',
+  'preto-mt': 'bg-zinc-50 text-zinc-900 ring-1 ring-zinc-300',
 }
 
 
@@ -33,7 +52,7 @@ export default async function AlunoFrequenciaPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, academy_id, belt, degree, belt_updated_at, full_name')
+    .select('role, academy_id, belt, degree, belt_updated_at, full_name, sport')
     .eq('id', user.id)
     .single()
 
@@ -79,9 +98,9 @@ export default async function AlunoFrequenciaPage() {
     .order('present_at', { ascending: false })
     .limit(20)
 
-  const beltLabel = profile.belt
+  const beltLabel = BELT_LABELS[profile.belt?.toLowerCase() ?? 'branca'] ?? (profile.belt
     ? profile.belt.charAt(0).toUpperCase() + profile.belt.slice(1)
-    : 'Branca'
+    : 'Branca')
 
   const beltColorCls = beltColors[profile.belt?.toLowerCase() ?? 'branca']
     ?? 'bg-zinc-700 text-zinc-200'
@@ -122,12 +141,12 @@ export default async function AlunoFrequenciaPage() {
       <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-6 text-center space-y-3">
         <div className="flex flex-col items-center gap-1">
           <span className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1 text-sm font-semibold ${beltColorCls}`}>
-            Faixa {beltLabel}
-            {(profile.degree ?? 0) > 0 && (
+            {profile.sport === 'muay-thai' ? 'Prajied' : 'Faixa'} {beltLabel}
+            {profile.sport === 'jiu-jitsu' && (profile.degree ?? 0) > 0 && (
               <span className="tracking-tighter opacity-60">{'●'.repeat(profile.degree ?? 0)}</span>
             )}
           </span>
-          {(profile.degree ?? 0) > 0 && (
+          {profile.sport === 'jiu-jitsu' && (profile.degree ?? 0) > 0 && (
             <span className="text-xs text-zinc-500">{profile.degree}º grau</span>
           )}
         </div>

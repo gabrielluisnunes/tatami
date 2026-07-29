@@ -38,7 +38,7 @@ export default async function AlunosPage({
 
   const { data: rawAlunos } = await supabase
     .from('profiles')
-    .select('id, full_name, phone, belt, degree, photo_url, city, state, created_at, birth_date')
+    .select('id, full_name, phone, belt, degree, photo_url, city, state, created_at, birth_date, sport')
     .eq('academy_id', profile.academy_id)
     .eq('role', 'aluno')
     .order('full_name', { ascending: true })

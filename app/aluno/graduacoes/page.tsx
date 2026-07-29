@@ -8,6 +8,15 @@ const beltConfig: Record<string, { dot: string; badge: string; label: string }> 
   roxa:   { dot: 'bg-purple-700',  badge: 'bg-purple-100 text-purple-800 ring-1 ring-purple-200', label: 'Roxa'    },
   marrom: { dot: 'bg-amber-800',   badge: 'bg-amber-950 text-amber-200 ring-1 ring-amber-800', label: 'Marrom'  },
   preta:  { dot: 'bg-zinc-50',    badge: 'bg-zinc-50 text-zinc-900 ring-1 ring-zinc-300', label: 'Preta' },
+  // Muay Thai
+  branco:     { dot: 'bg-zinc-700',    badge: 'bg-zinc-800 text-zinc-100 ring-1 ring-zinc-700', label: 'Branco'    },
+  laranja:    { dot: 'bg-orange-600',  badge: 'bg-orange-500 text-white ring-1 ring-orange-400', label: 'Laranja'   },
+  'azul-mt':  { dot: 'bg-blue-600',    badge: 'bg-blue-100 text-blue-800 ring-1 ring-blue-200', label: 'Azul'      },
+  vermelho:   { dot: 'bg-red-600',     badge: 'bg-red-600 text-white ring-1 ring-red-400', label: 'Vermelho'  },
+  amarelo:    { dot: 'bg-yellow-500',  badge: 'bg-yellow-400 text-gray-900 ring-1 ring-yellow-300', label: 'Amarelo'   },
+  verde:      { dot: 'bg-green-600',   badge: 'bg-green-600 text-white ring-1 ring-green-400', label: 'Verde'     },
+  'marrom-mt':{ dot: 'bg-amber-800',   badge: 'bg-amber-950 text-amber-200 ring-1 ring-amber-800', label: 'Marrom'    },
+  'preto-mt': { dot: 'bg-zinc-50',    badge: 'bg-zinc-50 text-zinc-900 ring-1 ring-zinc-300', label: 'Preto'     },
 }
 
 function getBeltConfig(belt: string) {
@@ -58,12 +67,13 @@ export default async function AlunoGraduacoesPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, academy_id, belt, degree, full_name, created_at, belt_updated_at')
+    .select('role, academy_id, belt, degree, full_name, created_at, belt_updated_at, sport')
     .eq('id', user.id)
     .single()
 
   if (!profile?.academy_id) redirect('/onboarding')
   if (profile.role !== 'aluno') redirect('/dashboard')
+  if (profile.sport === 'boxe') redirect('/aluno/frequencia')
 
   const { data: history } = await supabase
     .from('belt_history')
@@ -125,16 +135,18 @@ export default async function AlunoGraduacoesPage() {
           <Award className="h-8 w-8" />
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Faixa atual</p>
+           <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+            {profile.sport === 'muay-thai' ? 'Prajied atual' : 'Faixa atual'}
+          </p>
           <p className="text-2xl font-black text-zinc-100 mt-0.5">
             {currentBeltCfg.label}
-            {(profile.degree ?? 0) > 0 && (
+            {profile.sport === 'jiu-jitsu' && (profile.degree ?? 0) > 0 && (
               <span className="ml-2 text-lg font-bold tracking-tighter opacity-50">
                 {'●'.repeat(profile.degree ?? 0)}
               </span>
             )}
           </p>
-          {(profile.degree ?? 0) > 0 && (
+          {profile.sport === 'jiu-jitsu' && (profile.degree ?? 0) > 0 && (
             <p className="text-xs text-zinc-500 mt-0.5">
               {profile.degree}º grau
             </p>
@@ -187,8 +199,8 @@ export default async function AlunoGraduacoesPage() {
                     <div className="flex-1 rounded-xl border border-zinc-800/60 bg-zinc-900/40 p-4 space-y-2">
                       <div className="flex items-center justify-between gap-2">
                         <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${cfg.badge}`}>
-                          Faixa {cfg.label}
-                          {item.degree > 0 && (
+                          {profile.sport === 'muay-thai' ? 'Prajied' : 'Faixa'} {cfg.label}
+                          {profile.sport === 'jiu-jitsu' && item.degree > 0 && (
                             <span className="tracking-tighter opacity-60">{'●'.repeat(item.degree)}</span>
                           )}
                         </span>
@@ -201,7 +213,7 @@ export default async function AlunoGraduacoesPage() {
                         {item.trainings_in_period} treino{item.trainings_in_period !== 1 ? 's' : ''} nesse período
                       </p>
 
-                      {item.degree > 0 && (
+                      {profile.sport === 'jiu-jitsu' && item.degree > 0 && (
                         <p className="text-xs text-zinc-500">
                           {item.degree}º grau
                         </p>

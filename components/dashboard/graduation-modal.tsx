@@ -14,11 +14,23 @@ const BELTS = [
   { value: 'preta',  label: 'Preta'  },
 ]
 
+const MT_BELTS = [
+  { value: 'branco',    label: 'Branco'   },
+  { value: 'laranja',   label: 'Laranja'  },
+  { value: 'azul-mt',   label: 'Azul'     },
+  { value: 'vermelho',  label: 'Vermelho' },
+  { value: 'amarelo',   label: 'Amarelo'  },
+  { value: 'verde',     label: 'Verde'    },
+  { value: 'marrom-mt', label: 'Marrom'   },
+  { value: 'preto-mt',  label: 'Preto'    },
+]
+
 interface StudentRow {
   id: string
   full_name: string
   belt: string
   degree: number
+  sport: string
   trainings_since_belt: number
 }
 
@@ -43,13 +55,18 @@ export function GraduationModal({ students, inlineButton = false }: GraduationMo
     setNotes('')
     setError(null)
 
-    const idx = BELTS.findIndex(b => b.value === student.belt)
-    const nextBelt = BELTS[Math.min(idx + 1, BELTS.length - 1)].value
+    const beltList = student.sport === 'muay-thai' ? MT_BELTS : BELTS
+    const idx = beltList.findIndex(b => b.value === student.belt)
+    const nextBelt = beltList[Math.min(idx + 1, beltList.length - 1)].value
     setBelt(nextBelt)
 
-    // Grau sugerido: 0 se nova faixa, degree+1 se mesma faixa (nunca passa de 4)
-    if (nextBelt === student.belt) {
-      setDegree(Math.min((student.degree ?? 0) + 1, 4))
+    // Grau sugerido: apenas para jiu-jitsu
+    if (student.sport === 'jiu-jitsu') {
+      if (nextBelt === student.belt) {
+        setDegree(Math.min((student.degree ?? 0) + 1, 4))
+      } else {
+        setDegree(0)
+      }
     } else {
       setDegree(0)
     }
@@ -79,7 +96,7 @@ export function GraduationModal({ students, inlineButton = false }: GraduationMo
         body: JSON.stringify({
           student_id:              selectedStudent.id,
           belt,
-          degree,
+          degree: selectedStudent.sport === 'jiu-jitsu' ? degree : 0,
           notes:                   notes || undefined,
           trainings_at_graduation: trainings,
         }),
@@ -136,28 +153,34 @@ export function GraduationModal({ students, inlineButton = false }: GraduationMo
 
               <div className="space-y-4">
                 {/* Nova faixa */}
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-zinc-400">Nova faixa</Label>
+                  <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-zinc-400">
+                    {selectedStudent.sport === 'muay-thai' ? 'Novo prajied' : 'Nova faixa'}
+                  </Label>
                   <select
                     value={belt}
                     onChange={e => {
                       const newBelt = e.target.value
                       setBelt(newBelt)
-                      if (selectedStudent && newBelt === selectedStudent.belt) {
-                        setDegree(Math.min((selectedStudent.degree ?? 0) + 1, 4))
+                      if (selectedStudent.sport === 'jiu-jitsu') {
+                        if (selectedStudent && newBelt === selectedStudent.belt) {
+                          setDegree(Math.min((selectedStudent.degree ?? 0) + 1, 4))
+                        } else {
+                          setDegree(0)
+                        }
                       } else {
                         setDegree(0)
                       }
                     }}
                     className="w-full rounded-xl border border-zinc-800/80 bg-zinc-950/60 px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
-                    {BELTS.map(b => (
+                    {(selectedStudent.sport === 'muay-thai' ? MT_BELTS : BELTS).map(b => (
                       <option key={b.value} value={b.value}>{b.label}</option>
                     ))}
                   </select>
                 </div>
 
-                {/* Grau */}
+                {selectedStudent.sport === 'jiu-jitsu' && (
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold text-zinc-400">Grau</Label>
                   <select
@@ -178,6 +201,7 @@ export function GraduationModal({ students, inlineButton = false }: GraduationMo
                     </p>
                   )}
                 </div>
+                )}
 
                 {/* Treinos acumulados */}
                 <div className="space-y-1.5">
@@ -304,27 +328,33 @@ export function GraduationModal({ students, inlineButton = false }: GraduationMo
             <div className="space-y-4">
               {/* Nova faixa */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-zinc-400">Nova faixa</Label>
+                <Label className="text-xs font-semibold text-zinc-400">
+                  {selectedStudent.sport === 'muay-thai' ? 'Novo prajied' : 'Nova faixa'}
+                </Label>
                 <select
                   value={belt}
                   onChange={e => {
                     const newBelt = e.target.value
                     setBelt(newBelt)
-                    if (selectedStudent && newBelt === selectedStudent.belt) {
-                      setDegree(Math.min((selectedStudent.degree ?? 0) + 1, 4))
+                    if (selectedStudent.sport === 'jiu-jitsu') {
+                      if (selectedStudent && newBelt === selectedStudent.belt) {
+                        setDegree(Math.min((selectedStudent.degree ?? 0) + 1, 4))
+                      } else {
+                        setDegree(0)
+                      }
                     } else {
                       setDegree(0)
                     }
                   }}
                   className="w-full rounded-xl border border-zinc-800/80 bg-zinc-950/60 px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
-                  {BELTS.map(b => (
+                  {(selectedStudent.sport === 'muay-thai' ? MT_BELTS : BELTS).map(b => (
                     <option key={b.value} value={b.value}>{b.label}</option>
                   ))}
                 </select>
               </div>
 
-              {/* Grau */}
+              {selectedStudent.sport === 'jiu-jitsu' && (
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-zinc-400">Grau</Label>
                 <select
@@ -345,6 +375,7 @@ export function GraduationModal({ students, inlineButton = false }: GraduationMo
                   </p>
                 )}
               </div>
+              )}
 
               {/* Treinos acumulados */}
               <div className="space-y-1.5">

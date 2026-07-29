@@ -35,11 +35,21 @@ export default async function GraduacoesPage() {
     .eq('academy_id', profile.academy_id)
     .order('full_name', { ascending: true })
 
+  // Busca sport de profiles (a view não possui esse campo)
+  const { data: sportsData } = await supabase
+    .from('profiles')
+    .select('id, sport')
+    .eq('academy_id', profile.academy_id)
+    .eq('role', 'aluno')
+
+  const sportMap = new Map(sportsData?.map(s => [s.id, s.sport]) ?? [])
+
   const students = ((raw as unknown as StudentViewRecord[]) ?? []).map(s => ({
     id:                        s.student_id,
     full_name:                 s.full_name,
     belt:                      s.belt || 'branca',
     degree:                    s.degree ?? 0,
+    sport:                     (sportMap.get(s.student_id) as string) ?? 'jiu-jitsu',
     trainings_since_belt:      s.trainings_since_belt || 0,
     attendance_rate:           s.attendance_rate ?? null,
     total_classes_since_belt:  s.total_classes_since_belt ?? 0,

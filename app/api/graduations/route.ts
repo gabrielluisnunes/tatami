@@ -2,7 +2,10 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
-const BELTS = ['branca', 'azul', 'roxa', 'marrom', 'preta'] as const
+const BELTS = [
+  'branca', 'azul', 'roxa', 'marrom', 'preta',
+  'branco', 'laranja', 'azul-mt', 'vermelho', 'amarelo', 'verde', 'marrom-mt', 'preto-mt',
+] as const
 
 const graduationSchema = z.object({
   student_id:              z.string().uuid(),
@@ -38,7 +41,7 @@ export async function POST(request: Request) {
   // Verifica que o aluno pertence à academia
   const { data: student } = await supabase
     .from('profiles')
-    .select('id, belt, degree')
+    .select('id, belt, degree, sport')
     .eq('id', body.student_id)
     .eq('academy_id', profile.academy_id)
     .eq('role', 'aluno')
@@ -47,6 +50,8 @@ export async function POST(request: Request) {
   if (!student) {
     return NextResponse.json({ error: 'Aluno não encontrado' }, { status: 404 })
   }
+
+  const sport = (student.sport as string) ?? 'jiu-jitsu'
 
   if (body.belt === student.belt && body.degree <= (student.degree ?? 0)) {
     return NextResponse.json(
@@ -64,7 +69,8 @@ export async function POST(request: Request) {
       student_id:              body.student_id,
       academy_id:              profile.academy_id,
       belt:                    body.belt,
-      degree:                  body.degree,
+      degree:                  sport === 'jiu-jitsu' ? body.degree : 0,
+      sport:                   sport,
       graded_at:               now,
       graded_by:               user.id,
       notes:                   body.notes ?? null,
@@ -78,7 +84,7 @@ export async function POST(request: Request) {
   // UPDATE em profiles
   const { error: profileError } = await supabase
     .from('profiles')
-    .update({ belt: body.belt, degree: body.degree, belt_updated_at: now })
+    .update({ belt: body.belt, degree: sport === 'jiu-jitsu' ? body.degree : 0, belt_updated_at: now })
     .eq('id', body.student_id)
 
   if (profileError) {

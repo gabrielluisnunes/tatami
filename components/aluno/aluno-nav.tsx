@@ -13,13 +13,17 @@ const tabs = [
   { href: '/aluno/senha',       icon: KeyRound,    label: 'Senha'       },
 ]
 
-export function AlunoNav() {
+export function AlunoNav({ sport }: { sport?: string | null }) {
   const pathname = usePathname()
+
+  const visibleTabs = sport === 'boxe'
+    ? tabs.filter(t => t.href !== '/aluno/graduacoes')
+    : tabs
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-10 border-t border-zinc-800 bg-zinc-900/95 backdrop-blur-xl">
       <div className="mx-auto flex max-w-lg">
-        {tabs.map(tab => {
+        {visibleTabs.map(tab => {
           const active = pathname.startsWith(tab.href)
           return (
             <Link                   

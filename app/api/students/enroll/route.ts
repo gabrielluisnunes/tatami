@@ -17,7 +17,8 @@ const enrollSchema = z.object({
   full_name: z.string().min(2),
   email: z.string().email(),
   role: z.enum(['aluno', 'professor']),
-  belt: z.string().default('branca'),
+  sport: z.enum(['jiu-jitsu', 'muay-thai', 'boxe']).default('jiu-jitsu'),
+  belt: z.string().nullable().default('branca'),
   degree: z.number().int().min(0).max(4).default(0),
   birth_date: z.string().optional(),
   phone: z.string().optional(),
@@ -104,19 +105,24 @@ export async function POST(request: Request) {
   }
 
   // Registra faixa inicial em belt_history para garantir histórico completo desde o cadastro
-  await supabase.from('belt_history').insert({
-    student_id: created.user.id,
-    academy_id: adminProfile.academy_id,
-    belt: body.belt,
-    degree: body.degree,
-    graded_at: new Date().toISOString(),
-    graded_by: user.id,
-    notes: 'Faixa de cadastro inicial',
-    trainings_at_graduation: 0,
-  })
+  // Boxe não tem graduação — não inserir em belt_history
+  if (body.sport !== 'boxe') {
+    await supabase.from('belt_history').insert({
+      student_id: created.user.id,
+      academy_id: adminProfile.academy_id,
+      belt: body.belt ?? 'branca',
+      degree: body.sport === 'jiu-jitsu' ? (body.degree ?? 0) : 0,
+      sport: body.sport,
+      graded_at: new Date().toISOString(),
+      graded_by: user.id,
+      notes: 'Graduação de cadastro inicial',
+      trainings_at_graduation: 0,
+    })
+  }
 
   const updates: Record<string, unknown> = {
     degree: body.degree,
+    sport: body.sport,
   }
 
   if (body.birth_date) updates.birth_date = body.birth_date

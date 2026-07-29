@@ -20,6 +20,7 @@ interface InitialData {
   emergency_phone: string | null
   belt: string
   degree: number
+  sport?: string | null
   cep: string | null
   address: string | null
   neighborhood: string | null       
@@ -48,6 +49,7 @@ export function EditAlunoForm({ studentId, initialData, successRedirect = '/dash
   const [emergencyPhone, setEmergencyPhone] = useState(initialData.emergency_phone ?? '')
   const [belt,           setBelt]           = useState(initialData.belt ?? 'branca')
   const [degree,         setDegree]         = useState<number>(initialData.degree ?? 0)
+  const [sport,          setSport]          = useState<string>(initialData.sport ?? 'jiu-jitsu')
   const [cep,            setCep]            = useState(initialData.cep ?? '')
   const [address,        setAddress]        = useState(initialData.address ?? '')
   const [neighborhood,   setNeighborhood]   = useState(initialData.neighborhood ?? '')
@@ -97,8 +99,8 @@ export function EditAlunoForm({ studentId, initialData, successRedirect = '/dash
           ...(birthDate ? { birth_date: birthDate } : {}),
           phone:           phone || null,
           emergency_phone: emergencyPhone || null,
-          belt,
-          degree,
+          sport,
+          ...(sport === 'boxe' ? { belt: null, degree: 0 } : { belt, degree }),
           cep:             cep || null,
           address:         address || null,
           neighborhood:    neighborhood || null,
@@ -188,39 +190,76 @@ export function EditAlunoForm({ studentId, initialData, successRedirect = '/dash
         />
       </div>
 
-      {/* Faixa + Grau — grid 2 colunas */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <Label className={labelClass}>Faixa atual</Label>
-          <Select value={belt} onValueChange={v => v && setBelt(v)} disabled={loading}>
-            <SelectTrigger className="rounded-xl border-zinc-800/80 bg-zinc-950/60 py-5 text-white">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-100">
-              <SelectItem value="branca">Branca</SelectItem>
-              <SelectItem value="azul">Azul</SelectItem>
-              <SelectItem value="roxa">Roxa</SelectItem>
-              <SelectItem value="marrom">Marrom</SelectItem>
-              <SelectItem value="preta">Preta</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1.5">
-          <Label className={labelClass}>Grau</Label>
-          <Select value={String(degree)} onValueChange={v => v && setDegree(Number(v))} disabled={loading}>
-            <SelectTrigger className="rounded-xl border-zinc-800/80 bg-zinc-950/60 py-5 text-white">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-100">
-              <SelectItem value="0">Sem grau</SelectItem>
-              <SelectItem value="1">1º grau</SelectItem>
-              <SelectItem value="2">2º grau</SelectItem>
-              <SelectItem value="3">3º grau</SelectItem>
-              <SelectItem value="4">4º grau</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      {/* Esporte */}
+      <div className="space-y-1.5">
+        <Label className={labelClass}>Esporte</Label>
+        <Select value={sport} onValueChange={(v) => { if (v) { setSport(v); setBelt(''); setDegree(0) } }} disabled={loading}>
+          <SelectTrigger className="rounded-xl border-zinc-800/80 bg-zinc-950/60 py-5 text-white">
+            <SelectValue placeholder="Selecione o esporte" />
+          </SelectTrigger>
+          <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-100">
+            <SelectItem value="jiu-jitsu">Jiu-Jitsu</SelectItem>
+            <SelectItem value="muay-thai">Muay Thai</SelectItem>
+            <SelectItem value="boxe">Boxe</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
+
+      {/* Faixa + Grau — condicional por esporte */}
+      {sport !== 'boxe' && (
+        <div className={`grid ${sport === 'jiu-jitsu' ? 'grid-cols-2' : 'grid-cols-1'} gap-3`}>
+          <div className="space-y-1.5">
+            <Label className={labelClass}>
+              {sport === 'muay-thai' ? 'Prajied (graduação)' : 'Faixa atual'}
+            </Label>
+            <Select value={belt} onValueChange={v => v && setBelt(v)} disabled={loading}>
+              <SelectTrigger className="rounded-xl border-zinc-800/80 bg-zinc-950/60 py-5 text-white">
+                <SelectValue placeholder={sport === 'muay-thai' ? 'Selecione o prajied' : 'Selecione a faixa'} />
+              </SelectTrigger>
+              <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-100">
+                {sport === 'jiu-jitsu' && (
+                  <>
+                    <SelectItem value="branca">Branca</SelectItem>
+                    <SelectItem value="azul">Azul</SelectItem>
+                    <SelectItem value="roxa">Roxa</SelectItem>
+                    <SelectItem value="marrom">Marrom</SelectItem>
+                    <SelectItem value="preta">Preta</SelectItem>
+                  </>
+                )}
+                {sport === 'muay-thai' && (
+                  <>
+                    <SelectItem value="branco">Branco</SelectItem>
+                    <SelectItem value="laranja">Laranja</SelectItem>
+                    <SelectItem value="azul-mt">Azul</SelectItem>
+                    <SelectItem value="vermelho">Vermelho</SelectItem>
+                    <SelectItem value="amarelo">Amarelo</SelectItem>
+                    <SelectItem value="verde">Verde</SelectItem>
+                    <SelectItem value="marrom-mt">Marrom</SelectItem>
+                    <SelectItem value="preto-mt">Preto</SelectItem>
+                  </>
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+          {sport === 'jiu-jitsu' && (
+            <div className="space-y-1.5">
+              <Label className={labelClass}>Grau</Label>
+              <Select value={String(degree)} onValueChange={v => v && setDegree(Number(v))} disabled={loading}>
+                <SelectTrigger className="rounded-xl border-zinc-800/80 bg-zinc-950/60 py-5 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-100">
+                  <SelectItem value="0">Sem grau</SelectItem>
+                  <SelectItem value="1">1º grau</SelectItem>
+                  <SelectItem value="2">2º grau</SelectItem>
+                  <SelectItem value="3">3º grau</SelectItem>
+                  <SelectItem value="4">4º grau</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="pt-1">
         <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-600">

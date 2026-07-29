@@ -12,6 +12,7 @@ interface StudentRow {
   full_name: string
   belt: string
   degree: number
+  sport: string
   trainings_since_belt: number
   attendance_rate: number | null
   total_classes_since_belt: number
@@ -43,12 +44,31 @@ interface GraduacoesClientProps {
 
 // ── Constantes ───────────────────────────────────────────────────────────────
 
+const BELT_LABELS: Record<string, string> = {
+  // Jiu-Jitsu
+  branca: 'Branca', azul: 'Azul', roxa: 'Roxa', marrom: 'Marrom', preta: 'Preta',
+  // Muay Thai
+  branco: 'Branco', laranja: 'Laranja', 'azul-mt': 'Azul',
+  vermelho: 'Vermelho', amarelo: 'Amarelo', verde: 'Verde',
+  'marrom-mt': 'Marrom', 'preto-mt': 'Preto',
+}
+
 const beltColors: Record<string, string> = {
+  // Jiu-Jitsu
   branca: 'bg-gray-100 text-gray-900 border border-gray-300',
   azul:   'bg-blue-600 text-white',
   roxa:   'bg-purple-700 text-white',
   marrom: 'bg-amber-800 text-white',
   preta:  'bg-gray-900 text-white',
+  // Muay Thai
+  branco: 'bg-gray-100 text-gray-900 border border-gray-300',
+  laranja: 'bg-orange-500 text-white',
+  'azul-mt': 'bg-blue-600 text-white',
+  vermelho: 'bg-red-600 text-white',
+  amarelo: 'bg-yellow-400 text-gray-900',
+  verde: 'bg-green-600 text-white',
+  'marrom-mt': 'bg-amber-800 text-white',
+  'preto-mt': 'bg-gray-900 text-white',
 }
 
 const beltDotColors: Record<string, string> = {
@@ -57,6 +77,15 @@ const beltDotColors: Record<string, string> = {
   roxa:   'bg-purple-400',
   marrom: 'bg-amber-600',
   preta:  'bg-gray-900',
+  // Muay Thai
+  branco: 'bg-gray-300',
+  laranja: 'bg-orange-400',
+  'azul-mt': 'bg-blue-400',
+  vermelho: 'bg-red-400',
+  amarelo: 'bg-yellow-400',
+  verde: 'bg-green-400',
+  'marrom-mt': 'bg-amber-600',
+  'preto-mt': 'bg-gray-900',
 }
 
 function formatDuration(fromIso: string, toIso?: string): string {
@@ -175,7 +204,7 @@ export function GraduacoesClient({ students }: GraduacoesClientProps) {
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="px-4 py-3 text-left font-medium text-gray-500">Aluno</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-500">Faixa atual</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500">Graduação</th>
                   <th className="px-4 py-3 text-left font-medium text-gray-500">Treinos</th>
                   <th className="px-4 py-3 text-left font-medium text-gray-500">Frequência</th>
                   <th className="px-4 py-3 text-right font-medium text-gray-500"></th>
@@ -186,14 +215,20 @@ export function GraduacoesClient({ students }: GraduacoesClientProps) {
                   <tr key={student.id} className="border-b border-gray-100 last:border-0">
                     <td className="px-4 py-3 font-medium text-gray-800">{student.full_name}</td>
                     <td className="px-4 py-3">
-                      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                        beltColors[student.belt.toLowerCase()] ?? 'bg-gray-200 text-gray-700'
-                      }`}>
-                        {student.belt.charAt(0).toUpperCase() + student.belt.slice(1)}
-                        {student.degree > 0 && (
-                          <span className="tracking-tighter opacity-60">{'●'.repeat(student.degree)}</span>
-                        )}
-                      </span>
+                      {student.sport === 'boxe' ? (
+                        <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-gray-100 text-gray-500 border border-gray-200">
+                          Sem graduação
+                        </span>
+                      ) : (
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                          beltColors[student.belt.toLowerCase()] ?? 'bg-gray-200 text-gray-700'
+                        }`}>
+                          {BELT_LABELS[student.belt.toLowerCase()] ?? student.belt}
+                          {student.sport === 'jiu-jitsu' && student.degree > 0 && (
+                            <span className="tracking-tighter opacity-60">{'●'.repeat(student.degree)}</span>
+                          )}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-gray-500">
                       {student.trainings_since_belt} treino{student.trainings_since_belt !== 1 ? 's' : ''}
@@ -227,7 +262,9 @@ export function GraduacoesClient({ students }: GraduacoesClientProps) {
                           }
                           Histórico
                         </Button>
-                        <GraduationModal students={[student]} inlineButton />
+                        {student.sport !== 'boxe' && (
+                          <GraduationModal students={[student]} inlineButton />
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -267,12 +304,14 @@ export function GraduacoesClient({ students }: GraduacoesClientProps) {
                   <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
                     beltColors[studentDetail.belt.toLowerCase()] ?? 'bg-gray-200 text-gray-700'
                   }`}>
-                    {studentDetail.belt.charAt(0).toUpperCase() + studentDetail.belt.slice(1)}
-                    {studentDetail.degree > 0 && (
+                    {BELT_LABELS[studentDetail.belt.toLowerCase()] ?? studentDetail.belt}
+                    {currentStudentRow?.sport === 'jiu-jitsu' && studentDetail.degree > 0 && (
                       <span className="tracking-tighter opacity-60">{'●'.repeat(studentDetail.degree)}</span>
                     )}
                   </span>
-                  <span className="text-xs text-gray-400">faixa atual</span>
+                  <span className="text-xs text-gray-400">
+                    {currentStudentRow?.sport === 'muay-thai' ? 'prajied atual' : 'faixa atual'}
+                  </span>
                 </div>
               </div>
               <button
@@ -290,8 +329,8 @@ export function GraduacoesClient({ students }: GraduacoesClientProps) {
                 <div className="flex items-center gap-2">
                   <Award className="h-4 w-4 text-indigo-500 shrink-0" />
                   <span className="text-sm font-medium text-gray-700">
-                    {studentDetail.belt.charAt(0).toUpperCase() + studentDetail.belt.slice(1)}
-                    {studentDetail.degree > 0 ? ` — ${studentDetail.degree}º grau` : ''}
+                    {BELT_LABELS[studentDetail.belt.toLowerCase()] ?? studentDetail.belt}
+                    {currentStudentRow?.sport === 'jiu-jitsu' && studentDetail.degree > 0 ? ` — ${studentDetail.degree}º grau` : ''}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -318,8 +357,8 @@ export function GraduacoesClient({ students }: GraduacoesClientProps) {
                   <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold ${
                     beltColors[studentDetail.belt.toLowerCase()] ?? 'bg-gray-100 text-gray-700'
                   }`}>
-                    {studentDetail.belt.charAt(0).toUpperCase() + studentDetail.belt.slice(1)}
-                    {studentDetail.degree > 0 && (
+                    {BELT_LABELS[studentDetail.belt.toLowerCase()] ?? studentDetail.belt}
+                    {currentStudentRow?.sport === 'jiu-jitsu' && studentDetail.degree > 0 && (
                       <span className="tracking-tighter opacity-60">{'●'.repeat(studentDetail.degree)}</span>
                     )}
                   </span>
@@ -365,8 +404,8 @@ export function GraduacoesClient({ students }: GraduacoesClientProps) {
                           }`}>
                             <div className="flex items-center justify-between gap-2 flex-wrap">
                               <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${badgeColor}`}>
-                                {item.belt.charAt(0).toUpperCase() + item.belt.slice(1)}
-                                {item.degree > 0 && (
+                                {BELT_LABELS[item.belt.toLowerCase()] ?? item.belt}
+                                {currentStudentRow?.sport === 'jiu-jitsu' && item.degree > 0 && (
                                   <span className="tracking-tighter opacity-60">{'●'.repeat(item.degree)}</span>
                                 )}
                               </span>
@@ -382,7 +421,7 @@ export function GraduacoesClient({ students }: GraduacoesClientProps) {
                               </span>
                             </div>
 
-                            {item.degree > 0 && (
+                            {currentStudentRow?.sport === 'jiu-jitsu' && item.degree > 0 && (
                               <p className="text-xs text-gray-500">{item.degree}º grau</p>
                             )}
 

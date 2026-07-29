@@ -2,8 +2,22 @@ import React from 'react'
 import { LogoutButton } from '@/components/dashboard/logout-button'
 import { AlunoNav } from '@/components/aluno/aluno-nav'
 import { Logo } from '@/components/logo'
+import { createClient } from '@/lib/supabase/server'
 
-export default function AlunoLayout({ children }: { children: React.ReactNode }) {
+export default async function AlunoLayout({ children }: { children: React.ReactNode }) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  let sport: string | null = null
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('sport')
+      .eq('id', user.id)
+      .single()
+    sport = profile?.sport ?? null
+  }
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
       {/* Header */}
@@ -23,7 +37,7 @@ export default function AlunoLayout({ children }: { children: React.ReactNode })
       </main>
 
       {/* Bottom nav */}
-      <AlunoNav />
+      <AlunoNav sport={sport} />
     </div>
   )
 }
