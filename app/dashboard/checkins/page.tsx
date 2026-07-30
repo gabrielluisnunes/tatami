@@ -154,10 +154,10 @@ export default async function CheckinsPage({ searchParams }: CheckinsPageProps) 
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-zinc-900">Check-ins</h1>
+          <h1 className="text-lg lg:text-xl font-semibold text-zinc-900">Check-ins</h1>
           <p className="text-sm text-gray-500">
             {selectedMonth && selectedMonth !== 'all'
               ? `Registros de ${formatSelectedMonth(selectedMonth)}`

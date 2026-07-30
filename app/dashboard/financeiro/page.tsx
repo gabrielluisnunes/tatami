@@ -141,10 +141,10 @@ export default async function FinanceiroPage() {
   const monthName = now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-zinc-900">Financeiro</h1>
+          <h1 className="text-lg lg:text-xl font-semibold text-zinc-900">Financeiro</h1>
           <p className="text-sm text-zinc-500 mt-0.5 capitalize">{monthName}</p>
         </div>
         <a
@@ -162,13 +162,13 @@ export default async function FinanceiroPage() {
         {metrics.map(m => (
           <div
             key={m.title}
-            className={`bg-white rounded-xl border border-zinc-200 border-l-[3px] ${m.accentColor} p-4`}
+            className={`bg-white rounded-xl border border-zinc-200 border-l-[3px] ${m.accentColor} p-3 lg:p-4`}
           >
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-2 lg:mb-3">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">{m.title}</p>
               <m.icon className={`h-4 w-4 ${m.iconColor}`} />
             </div>
-            <p className="text-2xl font-bold text-zinc-900 tabular-nums">{m.value}</p>
+            <p className="text-xl lg:text-2xl font-bold text-zinc-900 tabular-nums">{m.value}</p>
           </div>
         ))}
       </div>

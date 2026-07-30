@@ -199,8 +199,8 @@ export function GraduacoesClient({ students }: GraduacoesClientProps) {
             </p>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-gray-200">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto rounded-xl border border-gray-200">
+            <table className="w-full min-w-[560px] text-sm">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="px-4 py-3 text-left font-medium text-gray-500">Aluno</th>

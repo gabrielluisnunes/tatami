@@ -56,9 +56,9 @@ export default async function GraduacoesPage() {
   }))
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-zinc-900">Graduações</h1>
+        <h1 className="text-lg lg:text-xl font-semibold text-zinc-900">Graduações</h1>
         <p className="text-sm text-gray-400">
           {students.length} aluno{students.length !== 1 ? 's' : ''} cadastrado{students.length !== 1 ? 's' : ''}
         </p>
