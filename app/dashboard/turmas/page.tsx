@@ -73,11 +73,11 @@ export default async function TurmasPage() {
   }))
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-zinc-900">Turmas</h1>
+          <h1 className="text-lg lg:text-xl font-semibold text-zinc-900">Turmas</h1>
           <p className="text-sm text-gray-500">
             {classes.length} turma{classes.length !== 1 ? 's' : ''} cadastrada{classes.length !== 1 ? 's' : ''}
           </p>
@@ -88,7 +88,7 @@ export default async function TurmasPage() {
       {/* Listagem */}
       {classes.length > 0 ? (
         <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[520px] text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
                 <th className="px-4 py-3 text-left font-medium text-gray-500">Nome</th>

@@ -61,7 +61,7 @@ export default async function AlunosPage({
     : []
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
       {(searchParams.success === 'true' || searchParams.updated === 'true') && (
         <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
           <svg className="h-4 w-4 shrink-0 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -74,9 +74,9 @@ export default async function AlunosPage({
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-zinc-900">Alunos</h1>
+          <h1 className="text-lg lg:text-xl font-semibold text-zinc-900">Alunos</h1>
           <p className="text-sm text-gray-500">
             {alunos?.length ?? 0} aluno{(alunos?.length ?? 0) !== 1 ? 's' : ''} cadastrado{(alunos?.length ?? 0) !== 1 ? 's' : ''}
           </p>
@@ -92,7 +92,7 @@ export default async function AlunosPage({
       {/* Table */}
       {alunos && alunos.length > 0 ? (
         <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[600px] text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
                 <th className="px-4 py-3 text-left font-medium text-gray-500">Foto</th>

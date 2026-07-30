@@ -213,7 +213,7 @@ export function DashboardShell({ children, academyName, adminName }: DashboardSh
         </header>
 
         {/* Header Mobile */}
-        <header className="lg:hidden fixed top-0 inset-x-0 h-12 bg-white border-b border-zinc-200 flex items-center justify-between px-4 z-30">
+        <header className="lg:hidden fixed top-0 inset-x-0 h-14 bg-white border-b border-zinc-200 flex items-center justify-between px-4 z-30">
           <Logo className="h-7 w-auto" variant="full" />
           <button
             type="button"
@@ -226,7 +226,7 @@ export function DashboardShell({ children, academyName, adminName }: DashboardSh
         </header>
 
         {/* Conteúdo */}
-        <main className="flex-1 lg:p-0 pt-12 lg:pt-0 pb-20 lg:pb-0">
+        <main className="flex-1 lg:p-0 pt-14 lg:pt-0 pb-20 lg:pb-0">
           {children}
         </main>
       </div>
