@@ -19,12 +19,17 @@ export async function GET() {
   }
 
   // Buscar cobranças em atraso
-  const { data: overdue } = await supabase
+  const { data: overdue, error: overdueError } = await supabase
     .from('financials')
     .select('id, student_id, amount, due_date, status')
     .eq('academy_id', profile.academy_id)
     .eq('status', 'overdue')
     .order('due_date', { ascending: true })
+
+  if (overdueError) {
+    console.error('Erro ao buscar financials overdue:', overdueError)
+    return NextResponse.json({ error: overdueError.message }, { status: 500 })
+  }
 
   if (!overdue || overdue.length === 0) {
     // Retornar Excel vazio com mensagem
@@ -44,15 +49,25 @@ export async function GET() {
   }
 
   // Buscar nomes dos alunos separadamente
-  const studentIds = Array.from(new Set((overdue ?? []).map(f => f.student_id)))
+  const studentIds = Array.from(new Set(overdue.map(f => f.student_id).filter(Boolean)))
 
-  const { data: studentsData } = await supabase
-    .from('profiles')
-    .select('id, full_name')
-    .in('id', studentIds)
+  let studentsData: { id: string; full_name: string | null }[] = []
+
+  if (studentIds.length > 0) {
+    const { data, error: studentsError } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .in('id', studentIds)
+
+    if (studentsError) {
+      console.error('Erro ao buscar profiles:', studentsError)
+      return NextResponse.json({ error: studentsError.message }, { status: 500 })
+    }
+    studentsData = data || []
+  }
 
   const studentNameMap = new Map(
-    (studentsData ?? []).map(s => [s.id, s.full_name])
+    studentsData.map(s => [s.id, s.full_name])
   )
 
   const today = new Date()
@@ -85,7 +100,7 @@ export async function GET() {
     { wch: 12 }, // Status
   ]
 
-  const dateLabel = today.toLocaleDateString('pt-BR')
+  const dateLabel = today.toLocaleDateString('pt-BR').replace(/\//g, '-')
   XLSX.utils.book_append_sheet(wb, ws, `Inadimplência ${dateLabel}`)
 
   const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })
