@@ -135,10 +135,10 @@ export default async function DashboardPage() {
   ]
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
       {/* Greeting */}
       <div>
-        <h1 className="text-xl font-semibold text-zinc-900">
+        <h1 className="text-lg lg:text-xl font-semibold text-zinc-900">
           Olá, {profile.full_name || 'Admin'}
         </h1>
         <p className="text-sm text-zinc-500 mt-0.5">{academy?.name ?? 'Sua academia'}</p>
@@ -149,13 +149,13 @@ export default async function DashboardPage() {
         {metrics.map((m) => (
           <div
             key={m.title}
-            className={`bg-white rounded-xl border border-zinc-200 border-l-[3px] ${m.accentColor} p-4`}
+            className={`bg-white rounded-xl border border-zinc-200 border-l-[3px] ${m.accentColor} p-3 lg:p-4`}
           >
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-2 lg:mb-3">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">{m.title}</p>
               <m.icon className={`h-4 w-4 ${m.iconColor}`} />
             </div>
-            <p className="text-2xl font-bold text-zinc-900 tabular-nums">{m.value}</p>
+            <p className="text-xl lg:text-2xl font-bold text-zinc-900 tabular-nums">{m.value}</p>
           </div>
         ))}
       </div>
@@ -207,8 +207,8 @@ export default async function DashboardPage() {
       <div>
         <h2 className="mb-4 text-sm font-semibold text-zinc-900">Últimos check-ins</h2>
         {recentCheckins && recentCheckins.length > 0 ? (
-          <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
+            <table className="w-full min-w-[520px] text-sm">
               <thead>
                 <tr className="border-b border-zinc-200 bg-zinc-50">
                   <th className="px-4 py-3 text-left font-medium text-zinc-500">Data</th>

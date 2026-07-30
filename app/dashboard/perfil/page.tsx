@@ -265,7 +265,8 @@ export default function PerfilPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-12">
+    <div className="p-4 lg:p-6">
+    <div className="max-w-4xl mx-auto space-y-8 lg:space-y-12">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-gray-900">Configurações de Perfil</h1>
         <p className="text-sm text-gray-500">Gerencie suas credenciais, dados da academia e assinatura.</p>
@@ -598,6 +599,7 @@ export default function PerfilPage() {
 
         {academy && <SubscriptionSection academy={academy} />}
       </section>
+    </div>
     </div>
   )
 }
