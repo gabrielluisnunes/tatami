@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DollarSign, AlertTriangle, TrendingDown, TrendingUp, Download } from 'lucide-react'
 import { OverdueTable } from '@/components/dashboard/overdue-table'
 import { MonthlyTable } from '@/components/dashboard/monthly-table'
@@ -22,7 +21,6 @@ export default async function FinanceiroPage() {
 
   const academyId = profile.academy_id
 
-  // ── Totais via view ──────────────────────────────────────────────────────────
   const { data: summary } = await supabase
     .from('v_financial_dashboard')
     .select('paid_total, overdue_total, overdue_count, pending_count')
@@ -47,12 +45,9 @@ export default async function FinanceiroPage() {
     amount: number
     due_date: string
     student_id: string
-    profiles: {
-      full_name: string
-    } | null
+    profiles: { full_name: string } | null
   }
 
-  // ── Alunos em atraso ─────────────────────────────────────────────────────────
   const { data: overdueRaw } = await supabase
     .from('financials')
     .select('id, amount, due_date, student_id, profiles!inner(full_name)')
@@ -68,15 +63,13 @@ export default async function FinanceiroPage() {
     due_date:   f.due_date,
   }))
 
-  // ── Mensalidades do mês atual (Cálculo independente de fuso horário) ──────────
   const now = new Date()
   const year = now.getUTCFullYear()
   const month = now.getUTCMonth() + 1
   const pad = (n: number) => String(n).padStart(2, '0')
   const firstOfMonth = `${year}-${pad(month)}-01`
-  const lastOfMonth = `${year}-${pad(month)}-31`
+  const lastOfMonth  = `${year}-${pad(month)}-31`
 
-  // Buscar todos os alunos da academia
   const { data: allStudents } = await supabase
     .from('profiles')
     .select('id, full_name, payment_due_day')
@@ -84,7 +77,6 @@ export default async function FinanceiroPage() {
     .eq('role', 'aluno')
     .order('full_name', { ascending: true })
 
-  // Buscar cobranças do mês atual para essa academia
   const { data: monthlyCharges } = await supabase
     .from('financials')
     .select('id, student_id, amount, due_date, paid_at, status')
@@ -92,23 +84,21 @@ export default async function FinanceiroPage() {
     .gte('due_date', firstOfMonth)
     .lte('due_date', lastOfMonth)
 
-  // Combinar: para cada aluno, verificar se tem cobrança no mês
   const monthlyRecords = (allStudents ?? []).map(student => {
     const charge = (monthlyCharges ?? []).find(c => c.student_id === student.id)
     return {
-      id: charge?.id ?? null,
-      student_id: student.id,
-      full_name: student.full_name,
+      id:              charge?.id ?? null,
+      student_id:      student.id,
+      full_name:       student.full_name,
       payment_due_day: student.payment_due_day,
-      amount: charge?.amount ?? null,
-      due_date: charge?.due_date ?? null,
-      paid_at: charge?.paid_at ?? null,
-      status: charge?.status ?? 'pending',
-      has_charge: !!charge,
+      amount:          charge?.amount ?? null,
+      due_date:        charge?.due_date ?? null,
+      paid_at:         charge?.paid_at ?? null,
+      status:          charge?.status ?? 'pending',
+      has_charge:      !!charge,
     }
   })
 
-  // ── Dados da academia (monthly_price) ─────────────────────────────────────────
   const { data: academyData } = await supabase
     .from('academies')
     .select('monthly_price')
@@ -119,44 +109,48 @@ export default async function FinanceiroPage() {
 
   const metrics = [
     {
-      title: 'Total recebido',
+      title: 'TOTAL RECEBIDO',
       value: paidTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-      icon:  TrendingUp,
-      color: 'text-emerald-400',
+      icon: TrendingUp,
+      iconColor: 'text-emerald-500',
+      accentColor: 'border-l-emerald-500',
     },
     {
-      title: 'Total em atraso',
+      title: 'TOTAL EM ATRASO',
       value: overdueTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-      icon:  TrendingDown,
-      color: 'text-red-400',
+      icon: TrendingDown,
+      iconColor: 'text-red-500',
+      accentColor: 'border-l-red-500',
     },
     {
-      title: 'Inadimplentes',
+      title: 'INADIMPLENTES',
       value: `${overdueCount} aluno${overdueCount !== 1 ? 's' : ''}`,
-      icon:  AlertTriangle,
-      color: 'text-amber-400',
+      icon: AlertTriangle,
+      iconColor: 'text-amber-500',
+      accentColor: 'border-l-amber-500',
     },
     {
-      title: '% Inadimplência',
+      title: '% INADIMPLÊNCIA',
       value: `${inadimplencia}%`,
-      icon:  DollarSign,
-      color: inadimplencia === '0.0' ? 'text-emerald-400' : 'text-amber-400',
+      icon: DollarSign,
+      iconColor: inadimplencia === '0.0' ? 'text-emerald-500' : 'text-amber-500',
+      accentColor: inadimplencia === '0.0' ? 'border-l-emerald-500' : 'border-l-amber-500',
     },
   ]
 
   const monthName = now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
 
   return (
-    <div className="space-y-8">
+    <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Financeiro</h1>
-          <p className="text-sm text-gray-400 capitalize">{monthName}</p>
+          <h1 className="text-xl font-semibold text-zinc-900">Financeiro</h1>
+          <p className="text-sm text-zinc-500 mt-0.5 capitalize">{monthName}</p>
         </div>
         <a
           href="/api/reports/inadimplencia"
           download
-          className="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+          className="flex items-center gap-2 rounded-lg border border-zinc-200 px-3 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition-colors"
         >
           <Download className="h-4 w-4" />
           Exportar inadimplentes
@@ -164,26 +158,27 @@ export default async function FinanceiroPage() {
       </div>
 
       {/* Cards de métricas */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         {metrics.map(m => (
-          <Card key={m.title} className="border-gray-200 bg-white">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-gray-500">{m.title}</CardTitle>
-              <m.icon className={`h-4 w-4 ${m.color}`} />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{m.value}</div>
-            </CardContent>
-          </Card>
+          <div
+            key={m.title}
+            className={`bg-white rounded-xl border border-zinc-200 border-l-[3px] ${m.accentColor} p-4`}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">{m.title}</p>
+              <m.icon className={`h-4 w-4 ${m.iconColor}`} />
+            </div>
+            <p className="text-2xl font-bold text-zinc-900 tabular-nums">{m.value}</p>
+          </div>
         ))}
       </div>
 
       {/* Alunos em atraso */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold text-gray-800">Alunos em atraso</h2>
+          <h2 className="text-sm font-semibold text-zinc-900">Alunos em atraso</h2>
           {overdueCount > 0 && (
-            <span className="rounded-full bg-red-950/50 px-2 py-0.5 text-xs font-medium text-red-400">
+            <span className="rounded-full bg-red-50 border border-red-200 px-2 py-0.5 text-xs font-medium text-red-700">
               {overdueCount}
             </span>
           )}
@@ -192,8 +187,8 @@ export default async function FinanceiroPage() {
       </div>
 
       {/* Mensalidades do mês */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-800">
+      <div className="space-y-3">
+        <h2 className="text-sm font-semibold text-zinc-900">
           Mensalidades — {now.toLocaleDateString('pt-BR', { month: 'long' })}
         </h2>
         <MonthlyTable records={monthlyRecords} monthlyPrice={monthlyPrice} />

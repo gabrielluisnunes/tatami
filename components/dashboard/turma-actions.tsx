@@ -5,9 +5,6 @@ import { useRouter } from 'next/navigation'
 import {
   Eye, Pencil, Trash2, X, Loader2, Users, AlertTriangle
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 
 interface Professor {
   id: string
@@ -49,21 +46,21 @@ interface AttendanceStudent {
   count: number
 }
 
-const inputClass = "rounded-xl border-zinc-800/80 bg-zinc-950/60 py-5 text-white placeholder-zinc-600 focus-visible:ring-indigo-500"
-const labelClass = "text-xs font-semibold text-zinc-400"
+const inputClass =
+  'border border-zinc-200 rounded-lg px-3.5 py-2 text-sm text-zinc-900 bg-white placeholder-zinc-400 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 w-full disabled:opacity-60'
+const labelClass = 'block text-sm font-medium text-zinc-700 mb-1.5'
 
 export function TurmaActions({ turma, professors }: TurmaActionsProps) {
   const router = useRouter()
 
-  // ── MODAL ESTADOS ──────────────────────────────────────────────
-  const [detailsOpen, setDetailsOpen]   = useState(false)
-  const [editOpen, setEditOpen]         = useState(false)
-  const [deleteOpen, setDeleteOpen]     = useState(false)
+  const [detailsOpen, setDetailsOpen] = useState(false)
+  const [editOpen, setEditOpen]       = useState(false)
+  const [deleteOpen, setDeleteOpen]   = useState(false)
 
-  // ── VER DETALHES ───────────────────────────────────────────────
-  const [students, setStudents]         = useState<AttendanceStudent[]>([])
+  // Ver detalhes
+  const [students, setStudents]           = useState<AttendanceStudent[]>([])
   const [loadingDetails, setLoadingDetails] = useState(false)
-  const [detailsError, setDetailsError] = useState<string | null>(null)
+  const [detailsError, setDetailsError]   = useState<string | null>(null)
 
   async function openDetails() {
     setDetailsOpen(true)
@@ -81,14 +78,14 @@ export function TurmaActions({ turma, professors }: TurmaActionsProps) {
     }
   }
 
-  // ── EDITAR ─────────────────────────────────────────────────────
-  const [editName, setEditName]           = useState(turma.name)
-  const [editProfId, setEditProfId]       = useState(turma.professor_id)
-  const [editWeekdays, setEditWeekdays]   = useState<number[]>(turma.weekdays)
-  const [editStart, setEditStart]         = useState(turma.start_time)
-  const [editEnd, setEditEnd]             = useState(turma.end_time)
-  const [editLoading, setEditLoading]     = useState(false)
-  const [editError, setEditError]         = useState<string | null>(null)
+  // Editar
+  const [editName, setEditName]         = useState(turma.name)
+  const [editProfId, setEditProfId]     = useState(turma.professor_id)
+  const [editWeekdays, setEditWeekdays] = useState<number[]>(turma.weekdays)
+  const [editStart, setEditStart]       = useState(turma.start_time)
+  const [editEnd, setEditEnd]           = useState(turma.end_time)
+  const [editLoading, setEditLoading]   = useState(false)
+  const [editError, setEditError]       = useState<string | null>(null)
 
   const toggleEditWeekday = (day: number) => {
     setEditWeekdays(prev =>
@@ -97,7 +94,6 @@ export function TurmaActions({ turma, professors }: TurmaActionsProps) {
   }
 
   function openEdit() {
-    // Reseta para os valores atuais da turma
     setEditName(turma.name)
     setEditProfId(turma.professor_id)
     setEditWeekdays(turma.weekdays)
@@ -140,7 +136,7 @@ export function TurmaActions({ turma, professors }: TurmaActionsProps) {
     }
   }
 
-  // ── EXCLUIR ────────────────────────────────────────────────────
+  // Excluir
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [deleteError, setDeleteError]     = useState<string | null>(null)
 
@@ -162,7 +158,6 @@ export function TurmaActions({ turma, professors }: TurmaActionsProps) {
     }
   }
 
-  // ── RENDER ─────────────────────────────────────────────────────
   return (
     <>
       {/* Botões de ação */}
@@ -170,7 +165,7 @@ export function TurmaActions({ turma, professors }: TurmaActionsProps) {
         <button
           type="button"
           onClick={openDetails}
-          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-200"
+          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
         >
           <Eye className="h-3.5 w-3.5" />
           Ver detalhes
@@ -178,7 +173,7 @@ export function TurmaActions({ turma, professors }: TurmaActionsProps) {
         <button
           type="button"
           onClick={openEdit}
-          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-200"
+          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
         >
           <Pencil className="h-3.5 w-3.5" />
           Editar
@@ -186,274 +181,281 @@ export function TurmaActions({ turma, professors }: TurmaActionsProps) {
         <button
           type="button"
           onClick={() => { setDeleteError(null); setDeleteOpen(true) }}
-          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-400 transition-colors hover:bg-red-950/40 hover:text-red-300"
+          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-500 transition-colors hover:bg-red-50 hover:text-red-700"
         >
           <Trash2 className="h-3.5 w-3.5" />
           Excluir
         </button>
       </div>
 
-      {/* ── MODAL: VER DETALHES ──────────────────────────────────── */}
+      {/* MODAL: VER DETALHES */}
       {detailsOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
             onClick={() => setDetailsOpen(false)}
           />
-          <div className="relative z-10 w-full max-w-md rounded-2xl border border-zinc-800/80 bg-zinc-900 p-6 shadow-2xl">
-            <div className="mb-1 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-zinc-100">{turma.name}</h2>
+          <div className="relative z-10 w-full max-w-md bg-white rounded-2xl border border-zinc-200 shadow-xl flex flex-col max-h-[85vh]">
+            {/* Header */}
+            <div className="flex items-center justify-between p-5 border-b border-zinc-100">
+              <div>
+                <h2 className="text-base font-semibold text-zinc-900">{turma.name}</h2>
+                <p className="text-xs text-zinc-500 mt-0.5">
+                  {formatWeekdays(turma.weekdays)} · {turma.start_time} – {turma.end_time} · {turma.professor_name}
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={() => setDetailsOpen(false)}
-                className="text-zinc-500 hover:text-zinc-300"
+                className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
             </div>
-            <p className="mb-1 text-xs text-zinc-500">
-              {formatWeekdays(turma.weekdays)} · {turma.start_time} – {turma.end_time}
-            </p>
-            <p className="mb-5 text-xs text-zinc-500">
-              Professor: {turma.professor_name}
-            </p>
 
-            <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-zinc-300">
-              <Users className="h-4 w-4 text-zinc-500" />
-              Alunos presentes
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto p-5">
+              <div className="flex items-center gap-2 text-sm font-medium text-zinc-700 mb-3">
+                <Users className="h-4 w-4 text-zinc-400" />
+                Alunos presentes
+              </div>
+
+              {loadingDetails ? (
+                <div className="flex items-center justify-center py-10">
+                  <Loader2 className="h-5 w-5 animate-spin text-zinc-400" />
+                </div>
+              ) : detailsError ? (
+                <p className="text-center text-xs text-red-500 py-6">{detailsError}</p>
+              ) : students.length === 0 ? (
+                <p className="text-center text-xs text-zinc-400 py-6">
+                  Nenhuma presença registrada nesta turma ainda.
+                </p>
+              ) : (
+                <div className="rounded-xl border border-zinc-200 overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-zinc-200 bg-zinc-50">
+                        <th className="px-3 py-2 text-left text-xs font-medium text-zinc-500">Aluno</th>
+                        <th className="px-3 py-2 text-right text-xs font-medium text-zinc-500">Presenças</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {students.map((s, i) => (
+                        <tr key={s.student_id} className="border-b border-zinc-100 last:border-0">
+                          <td className="px-3 py-2.5 text-zinc-700">{s.full_name}</td>
+                          <td className="px-3 py-2.5 text-right">
+                            <span className={`inline-flex min-w-[2rem] items-center justify-center rounded-full px-2 py-0.5 text-xs font-semibold ${
+                              i === 0
+                                ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                                : 'bg-zinc-100 text-zinc-600'
+                            }`}>
+                              {s.count}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
 
-            {loadingDetails ? (
-              <div className="flex items-center justify-center py-10">
-                <Loader2 className="h-5 w-5 animate-spin text-zinc-500" />
-              </div>
-            ) : detailsError ? (
-              <p className="text-center text-xs text-red-400 py-6">{detailsError}</p>
-            ) : students.length === 0 ? (
-              <p className="text-center text-xs text-zinc-500 py-6">
-                Nenhuma presença registrada nesta turma ainda.
-              </p>
-            ) : (
-              <div className="max-h-72 overflow-y-auto rounded-xl border border-zinc-800/60">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-zinc-800/60 bg-zinc-900/60">
-                      <th className="px-3 py-2 text-left text-xs font-medium text-zinc-500">Aluno</th>
-                      <th className="px-3 py-2 text-right text-xs font-medium text-zinc-500">Presenças</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {students.map((s, i) => (
-                      <tr key={s.student_id} className="border-b border-zinc-800/40 last:border-0">
-                        <td className="px-3 py-2.5 text-zinc-200">{s.full_name}</td>
-                        <td className="px-3 py-2.5 text-right">
-                          <span className={`inline-flex min-w-[2rem] items-center justify-center rounded-full px-2 py-0.5 text-xs font-semibold ${
-                            i === 0
-                              ? 'bg-indigo-600/20 text-indigo-700'
-                              : 'bg-zinc-800 text-zinc-400'
-                          }`}>
-                            {s.count}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            <div className="mt-5 flex justify-end">
-              <Button
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-2 p-5 border-t border-zinc-100">
+              <button
                 type="button"
-                variant="outline"
                 onClick={() => setDetailsOpen(false)}
-                className="rounded-xl border-zinc-700 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
               >
                 Fechar
-              </Button>
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── MODAL: EDITAR ───────────────────────────────────────── */}
+      {/* MODAL: EDITAR */}
       {editOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
             onClick={() => !editLoading && setEditOpen(false)}
           />
-          <div className="relative z-10 w-full max-w-md rounded-2xl border border-zinc-800/80 bg-zinc-900 p-6 shadow-2xl">
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-zinc-100">Editar turma</h2>
+          <div className="relative z-10 w-full max-w-md bg-white rounded-2xl border border-zinc-200 shadow-xl flex flex-col max-h-[85vh]">
+            {/* Header */}
+            <div className="flex items-center justify-between p-5 border-b border-zinc-100">
+              <h2 className="text-base font-semibold text-zinc-900">Editar turma</h2>
               <button
                 type="button"
                 onClick={() => !editLoading && setEditOpen(false)}
-                className="text-zinc-500 hover:text-zinc-300"
+                className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
             </div>
 
-            <form onSubmit={handleEdit} className="space-y-4">
-              {/* Nome */}
-              <div className="space-y-1.5">
-                <Label className={labelClass}>Nome da turma</Label>
-                <Input
-                  type="text"
-                  value={editName}
-                  onChange={e => setEditName(e.target.value)}
-                  required
-                  disabled={editLoading}
-                  className={inputClass}
-                />
-              </div>
-
-              {/* Professor */}
-              <div className="space-y-1.5">
-                <Label className={labelClass}>Professor responsável</Label>
-                <select
-                  value={editProfId}
-                  onChange={e => setEditProfId(e.target.value)}
-                  disabled={editLoading}
-                  required
-                  className="w-full rounded-xl border border-zinc-800/80 bg-zinc-950/60 px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  {professors.map(p => (
-                    <option key={p.id} value={p.id}>{p.full_name}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Dias da semana */}
-              <div className="space-y-2">
-                <Label className={labelClass}>Dias da semana</Label>
-                <div className="flex flex-wrap gap-2">
-                  {WEEKDAYS.map(day => (
-                    <button
-                      key={day.value}
-                      type="button"
-                      onClick={() => toggleEditWeekday(day.value)}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-                        editWeekdays.includes(day.value)
-                          ? 'bg-indigo-600 text-white'
-                          : 'border border-zinc-700 text-zinc-400 hover:border-indigo-600 hover:text-indigo-400'
-                      }`}
-                    >
-                      {day.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Horários */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label className={labelClass}>Início</Label>
-                  <Input
-                    type="time"
-                    value={editStart}
-                    onChange={e => setEditStart(e.target.value)}
-                    onClick={e => e.currentTarget.showPicker?.()}
-                    style={{ colorScheme: 'light' }}
+            {/* Body */}
+            <form onSubmit={handleEdit} className="flex flex-col flex-1 min-h-0">
+              <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                <div>
+                  <label className={labelClass}>Nome da turma</label>
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={e => setEditName(e.target.value)}
                     required
                     disabled={editLoading}
-                    className={`${inputClass} cursor-pointer`}
+                    className={inputClass}
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label className={labelClass}>Fim</Label>
-                  <Input
-                    type="time"
-                    value={editEnd}
-                    onChange={e => setEditEnd(e.target.value)}
-                    onClick={e => e.currentTarget.showPicker?.()}
-                    style={{ colorScheme: 'light' }}
-                    required
+
+                <div>
+                  <label className={labelClass}>Professor responsável</label>
+                  <select
+                    value={editProfId}
+                    onChange={e => setEditProfId(e.target.value)}
                     disabled={editLoading}
-                    className={`${inputClass} cursor-pointer`}
-                  />
+                    required
+                    className={inputClass}
+                  >
+                    {professors.map(p => (
+                      <option key={p.id} value={p.id}>{p.full_name}</option>
+                    ))}
+                  </select>
                 </div>
+
+                <div>
+                  <label className={labelClass}>Dias da semana</label>
+                  <div className="flex flex-wrap gap-2">
+                    {WEEKDAYS.map(day => (
+                      <button
+                        key={day.value}
+                        type="button"
+                        onClick={() => toggleEditWeekday(day.value)}
+                        className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                          editWeekdays.includes(day.value)
+                            ? 'bg-indigo-600 text-white'
+                            : 'border border-zinc-200 text-zinc-600 hover:border-indigo-400 hover:text-indigo-600'
+                        }`}
+                      >
+                        {day.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelClass}>Início</label>
+                    <input
+                      type="time"
+                      value={editStart}
+                      onChange={e => setEditStart(e.target.value)}
+                      onClick={e => e.currentTarget.showPicker?.()}
+                      style={{ colorScheme: 'light' }}
+                      required
+                      disabled={editLoading}
+                      className={`${inputClass} cursor-pointer`}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Fim</label>
+                    <input
+                      type="time"
+                      value={editEnd}
+                      onChange={e => setEditEnd(e.target.value)}
+                      onClick={e => e.currentTarget.showPicker?.()}
+                      style={{ colorScheme: 'light' }}
+                      required
+                      disabled={editLoading}
+                      className={`${inputClass} cursor-pointer`}
+                    />
+                  </div>
+                </div>
+
+                {editError && (
+                  <p className="text-xs text-red-500">{editError}</p>
+                )}
               </div>
 
-              {editError && (
-                <p className="text-xs text-red-400">{editError}</p>
-              )}
-
-              <div className="flex gap-3 pt-1">
-                <Button
+              {/* Footer */}
+              <div className="flex items-center justify-end gap-2 p-5 border-t border-zinc-100">
+                <button
                   type="button"
-                  variant="outline"
                   onClick={() => setEditOpen(false)}
                   disabled={editLoading}
-                  className="flex-1 rounded-xl border-zinc-700 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                  className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors disabled:opacity-50"
                 >
                   Cancelar
-                </Button>
-                <Button
+                </button>
+                <button
                   type="submit"
                   disabled={editLoading || !editName || !editProfId || editWeekdays.length === 0}
-                  className="flex-1 rounded-xl bg-indigo-600 font-semibold text-white hover:bg-indigo-500"
+                  className="rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 text-sm font-medium transition-colors disabled:opacity-60"
                 >
                   {editLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Salvar alterações'}
-                </Button>
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* ── MODAL: EXCLUIR ──────────────────────────────────────── */}
+      {/* MODAL: EXCLUIR */}
       {deleteOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
             onClick={() => !deleteLoading && setDeleteOpen(false)}
           />
-          <div className="relative z-10 w-full max-w-sm rounded-2xl border border-zinc-800/80 bg-zinc-900 p-6 shadow-2xl">
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-zinc-100">Excluir turma</h2>
+          <div className="relative z-10 w-full max-w-sm bg-white rounded-2xl border border-zinc-200 shadow-xl">
+            {/* Header */}
+            <div className="flex items-center justify-between p-5 border-b border-zinc-100">
+              <h2 className="text-base font-semibold text-zinc-900">Excluir turma</h2>
               <button
                 type="button"
                 onClick={() => !deleteLoading && setDeleteOpen(false)}
-                className="text-zinc-500 hover:text-zinc-300"
+                className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="mb-5 flex gap-3 rounded-xl border border-amber-800/40 bg-amber-950/30 p-4">
-              <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400 mt-0.5" />
-              <p className="text-sm text-amber-200">
-                Tem certeza que deseja excluir a turma{' '}
-                <strong className="text-amber-100">&quot;{turma.name}&quot;</strong>?
-                O histórico de check-ins realizados nessa turma será preservado.
-                Apenas a turma será removida do sistema.
-              </p>
+            {/* Body */}
+            <div className="p-5 space-y-4">
+              <div className="flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500 mt-0.5" />
+                <p className="text-sm text-amber-800">
+                  Tem certeza que deseja excluir a turma{' '}
+                  <strong className="text-amber-900">&quot;{turma.name}&quot;</strong>?
+                  O histórico de check-ins realizados nessa turma será preservado.
+                  Apenas a turma será removida do sistema.
+                </p>
+              </div>
+
+              {deleteError && (
+                <p className="text-xs text-red-500">{deleteError}</p>
+              )}
             </div>
 
-            {deleteError && (
-              <p className="mb-3 text-xs text-red-400">{deleteError}</p>
-            )}
-
-            <div className="flex gap-3">
-              <Button
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-2 p-5 border-t border-zinc-100">
+              <button
                 type="button"
-                variant="outline"
                 onClick={() => setDeleteOpen(false)}
                 disabled={deleteLoading}
-                className="flex-1 rounded-xl border-zinc-700 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors disabled:opacity-50"
               >
                 Cancelar
-              </Button>
-              <Button
+              </button>
+              <button
                 type="button"
                 onClick={handleDelete}
                 disabled={deleteLoading}
-                className="flex-1 rounded-xl bg-red-600 font-semibold text-white hover:bg-red-500"
+                className="rounded-lg bg-red-600 hover:bg-red-500 text-white px-4 py-2 text-sm font-medium transition-colors disabled:opacity-60"
               >
                 {deleteLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Excluir turma'}
-              </Button>
+              </button>
             </div>
           </div>
         </div>

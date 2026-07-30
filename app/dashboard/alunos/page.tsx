@@ -7,11 +7,11 @@ import { Plus } from 'lucide-react'
 import { StudentActions } from '@/components/dashboard/student-actions'
 
 const beltColors: Record<string, string> = {
-  branca: 'bg-zinc-800 text-zinc-100 ring-1 ring-zinc-700',
-  azul:   'bg-blue-100 text-blue-800 ring-1 ring-blue-200',
-  roxa:   'bg-purple-100 text-purple-800 ring-1 ring-purple-200',
-  marrom: 'bg-amber-950 text-amber-200 ring-1 ring-amber-800',
-  preta:  'bg-zinc-50 text-zinc-900 ring-1 ring-zinc-300',
+  branca: 'bg-slate-100 text-slate-800 ring-1 ring-slate-300',
+  azul:   'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
+  roxa:   'bg-purple-50 text-purple-700 ring-1 ring-purple-200',
+  marrom: 'bg-amber-100 text-amber-900 ring-1 ring-amber-300',
+  preta:  'bg-slate-900 text-white ring-1 ring-slate-900',
 }
 
 export default async function AlunosPage({
@@ -61,13 +61,13 @@ export default async function AlunosPage({
     : []
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6">
       {(searchParams.success === 'true' || searchParams.updated === 'true') && (
-        <div className="flex items-center gap-3 rounded-xl border border-emerald-800/40 bg-emerald-950/40 px-4 py-3">
-          <svg className="h-4 w-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+          <svg className="h-4 w-4 shrink-0 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
-          <p className="text-sm text-emerald-300">
+          <p className="text-sm text-emerald-800">
             {searchParams.success === 'true' ? 'Aluno cadastrado com sucesso.' : 'Dados atualizados com sucesso.'}
           </p>
         </div>
@@ -76,13 +76,13 @@ export default async function AlunosPage({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Alunos</h1>
+          <h1 className="text-xl font-semibold text-zinc-900">Alunos</h1>
           <p className="text-sm text-gray-500">
             {alunos?.length ?? 0} aluno{(alunos?.length ?? 0) !== 1 ? 's' : ''} cadastrado{(alunos?.length ?? 0) !== 1 ? 's' : ''}
           </p>
         </div>
         <Link href="/dashboard/alunos/novo">
-          <Button className="bg-indigo-600 hover:bg-indigo-500 text-white gap-2 rounded-xl shadow-lg shadow-indigo-600/20">
+          <Button className="bg-indigo-600 hover:bg-indigo-500 text-white gap-2 rounded-lg">
             <Plus className="h-4 w-4" />
             Cadastrar aluno
           </Button>
