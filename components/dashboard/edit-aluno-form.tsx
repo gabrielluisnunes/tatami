@@ -23,7 +23,7 @@ interface InitialData {
   sport?: string | null
   cep: string | null
   address: string | null
-  neighborhood: string | null       
+  neighborhood: string | null
   city: string | null
   state: string | null
 }
@@ -40,7 +40,7 @@ function formatCep(value: string): string {
   return `${digits.slice(0, 5)}-${digits.slice(5)}`
 }
 
-export function EditAlunoForm({ studentId, initialData, successRedirect = '/dashboard/alunos' }: EditAlunoFormProps) {               
+export function EditAlunoForm({ studentId, initialData, successRedirect = '/dashboard/alunos' }: EditAlunoFormProps) {
   const router = useRouter()
 
   const [fullName,       setFullName]       = useState(initialData.full_name)
@@ -94,7 +94,7 @@ export function EditAlunoForm({ studentId, initialData, successRedirect = '/dash
       const res = await fetch(`/api/students/${studentId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({      
+        body: JSON.stringify({
           full_name:       fullName,
           ...(birthDate ? { birth_date: birthDate } : {}),
           phone:           phone || null,
@@ -117,18 +117,18 @@ export function EditAlunoForm({ studentId, initialData, successRedirect = '/dash
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao salvar alterações.')
     } finally {
-      setLoading(false)             
+      setLoading(false)
     }
   }
 
-  const inputClass = "rounded-xl border-zinc-800/80 bg-zinc-950/60 py-5 text-white placeholder-zinc-600 focus-visible:ring-indigo-500"
-  const labelClass = "text-xs font-semibold text-zinc-400"
+  const inputClass = "rounded-lg border-zinc-200 bg-white py-2.5 text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-indigo-500 focus-visible:border-indigo-500"
+  const labelClass = "text-xs font-semibold text-zinc-700"
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
 
       <div className="pt-1">
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-600">
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-400">
           Dados pessoais
         </p>
       </div>
@@ -142,17 +142,17 @@ export function EditAlunoForm({ studentId, initialData, successRedirect = '/dash
           required
           minLength={2}
           disabled={loading}
-          className={inputClass}    
+          className={inputClass}
         />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <Label className={labelClass}>
-            Telefone <span className="font-normal text-zinc-600">(opcional)</span>
+            Telefone <span className="font-normal text-zinc-400">(opcional)</span>
           </Label>
           <Input
-            type="tel"              
+            type="tel"
             placeholder="(11) 99999-9999"
             value={phone}
             onChange={e => setPhone(e.target.value)}
@@ -162,14 +162,14 @@ export function EditAlunoForm({ studentId, initialData, successRedirect = '/dash
         </div>
         <div className="space-y-1.5">
           <Label className={labelClass}>
-            Emergência <span className="font-normal text-zinc-600">(opcional)</span>
+            Emergência <span className="font-normal text-zinc-400">(opcional)</span>
           </Label>
-          <Input                    
+          <Input
             type="tel"
             placeholder="(11) 99999-9999"
             value={emergencyPhone}
             onChange={e => setEmergencyPhone(e.target.value)}
-            disabled={loading}      
+            disabled={loading}
             className={inputClass}
           />
         </div>
@@ -177,7 +177,7 @@ export function EditAlunoForm({ studentId, initialData, successRedirect = '/dash
 
       <div className="space-y-1.5">
         <Label htmlFor="editBirthDate" className={labelClass}>
-          Data de nascimento <span className="font-normal text-zinc-600">(opcional)</span>
+          Data de nascimento <span className="font-normal text-zinc-400">(opcional)</span>
         </Label>
         <Input
           id="editBirthDate"
@@ -194,10 +194,10 @@ export function EditAlunoForm({ studentId, initialData, successRedirect = '/dash
       <div className="space-y-1.5">
         <Label className={labelClass}>Esporte</Label>
         <Select value={sport} onValueChange={(v) => { if (v) { setSport(v); setBelt(''); setDegree(0) } }} disabled={loading}>
-          <SelectTrigger className="rounded-xl border-zinc-800/80 bg-zinc-950/60 py-5 text-white">
+          <SelectTrigger className="rounded-lg border-zinc-200 bg-white py-2.5 text-zinc-900">
             <SelectValue placeholder="Selecione o esporte" />
           </SelectTrigger>
-          <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-100">
+          <SelectContent className="border-zinc-200 bg-white text-zinc-900">
             <SelectItem value="jiu-jitsu">Jiu-Jitsu</SelectItem>
             <SelectItem value="muay-thai">Muay Thai</SelectItem>
             <SelectItem value="boxe">Boxe</SelectItem>
@@ -213,10 +213,10 @@ export function EditAlunoForm({ studentId, initialData, successRedirect = '/dash
               {sport === 'muay-thai' ? 'Prajied (graduação)' : 'Faixa atual'}
             </Label>
             <Select value={belt} onValueChange={v => v && setBelt(v)} disabled={loading}>
-              <SelectTrigger className="rounded-xl border-zinc-800/80 bg-zinc-950/60 py-5 text-white">
+              <SelectTrigger className="rounded-lg border-zinc-200 bg-white py-2.5 text-zinc-900">
                 <SelectValue placeholder={sport === 'muay-thai' ? 'Selecione o prajied' : 'Selecione a faixa'} />
               </SelectTrigger>
-              <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-100">
+              <SelectContent className="border-zinc-200 bg-white text-zinc-900">
                 {sport === 'jiu-jitsu' && (
                   <>
                     <SelectItem value="branca">Branca</SelectItem>
@@ -245,10 +245,10 @@ export function EditAlunoForm({ studentId, initialData, successRedirect = '/dash
             <div className="space-y-1.5">
               <Label className={labelClass}>Grau</Label>
               <Select value={String(degree)} onValueChange={v => v && setDegree(Number(v))} disabled={loading}>
-                <SelectTrigger className="rounded-xl border-zinc-800/80 bg-zinc-950/60 py-5 text-white">
+                <SelectTrigger className="rounded-lg border-zinc-200 bg-white py-2.5 text-zinc-900">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-100">
+                <SelectContent className="border-zinc-200 bg-white text-zinc-900">
                   <SelectItem value="0">Sem grau</SelectItem>
                   <SelectItem value="1">1º grau</SelectItem>
                   <SelectItem value="2">2º grau</SelectItem>
@@ -262,14 +262,14 @@ export function EditAlunoForm({ studentId, initialData, successRedirect = '/dash
       )}
 
       <div className="pt-1">
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-600">
-          Endereço <span className="font-normal normal-case tracking-normal text-zinc-700">(opcional)</span>
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-400">
+          Endereço <span className="font-normal normal-case tracking-normal text-zinc-400">(opcional)</span>
         </p>
       </div>
 
       <div className="space-y-1.5">
         <Label className={labelClass}>CEP</Label>
-        <div className="relative">  
+        <div className="relative">
           <Input
             type="text"
             inputMode="numeric"
@@ -280,24 +280,24 @@ export function EditAlunoForm({ studentId, initialData, successRedirect = '/dash
             disabled={loading}
             className={`${inputClass} pr-10`}
           />
-          {cepLoading && (          
+          {cepLoading && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2">
-              <Loader2 className="h-4 w-4 animate-spin text-zinc-500" />
+              <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
             </div>
           )}
         </div>
-        {cepError && <p className="text-[11px] text-red-400">{cepError}</p>}
+        {cepError && <p className="text-[11px] text-red-500">{cepError}</p>}
       </div>
 
       <div className="space-y-1.5">
         <Label className={labelClass}>Endereço</Label>
         <Input
-          type="text"               
+          type="text"
           placeholder="Rua, Av. e número"
           value={address}
           onChange={e => setAddress(e.target.value)}
           disabled={loading}
-          className={inputClass}    
+          className={inputClass}
         />
       </div>
 
@@ -316,12 +316,12 @@ export function EditAlunoForm({ studentId, initialData, successRedirect = '/dash
       <div className="grid grid-cols-3 gap-3">
         <div className="col-span-2 space-y-1.5">
           <Label className={labelClass}>Cidade</Label>
-          <Input                    
+          <Input
             type="text"
             placeholder="São Paulo"
             value={city}
             onChange={e => setCity(e.target.value)}
-            disabled={loading}      
+            disabled={loading}
             className={inputClass}
           />
         </div>
@@ -329,19 +329,19 @@ export function EditAlunoForm({ studentId, initialData, successRedirect = '/dash
           <Label className={labelClass}>Estado</Label>
           <Input
             type="text"
-            placeholder="SP"        
+            placeholder="SP"
             value={state}
             onChange={e => setState(e.target.value.toUpperCase().slice(0, 2))}
             maxLength={2}
             disabled={loading}
-            className={inputClass}  
+            className={inputClass}
           />
         </div>
       </div>
 
-      {error && (                   
-        <div className="rounded-xl border border-red-800/30 bg-red-950/40 p-3 text-center">
-          <p className="text-xs font-medium text-red-400">{error}</p>
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-center">
+          <p className="text-xs font-medium text-red-700">{error}</p>
         </div>
       )}
 
@@ -350,16 +350,16 @@ export function EditAlunoForm({ studentId, initialData, successRedirect = '/dash
           <Button
             type="button"
             variant="outline"
-            disabled={loading}      
-            className="w-full rounded-xl border-zinc-700 py-6 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+            disabled={loading}
+            className="w-full rounded-lg border-zinc-200 py-2.5 text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900"
           >
             Cancelar
-          </Button>                 
+          </Button>
         </Link>
         <Button
           type="submit"
           disabled={loading || !fullName}
-          className="flex-1 rounded-xl bg-indigo-600 py-6 font-semibold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-500"
+          className="flex-1 rounded-lg bg-indigo-600 py-2.5 font-semibold text-white hover:bg-indigo-500"
         >
           {loading ? 'Salvando...' : 'Salvar alterações'}
         </Button>

@@ -150,16 +150,18 @@ export default function OnboardingPage() {
   const plansVisible = plans.filter(p => p.id !== 'price_1TkFfOJFm0PQ5umUgHBYJDvM')
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4 text-gray-900 sm:px-6 lg:px-8 py-10">
-      <div className="w-full max-w-5xl space-y-8">
+    <div className="relative flex min-h-screen flex-col items-center justify-center bg-zinc-950 px-4 py-10 overflow-hidden">
+      <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
+      <div className="relative w-full max-w-5xl space-y-8">
         <div className="flex flex-col items-center space-y-2 text-center mb-6">
-          <Logo className="h-14 w-14 text-indigo-600" />
-          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-indigo-800 to-gray-900 bg-clip-text text-transparent mt-2">
+          <Logo className="h-12 w-auto" variant="full" />
+          <h1 className="text-2xl font-bold text-white mt-2">
             {step === 1 ? 'Configure sua academia' : 'Escolha seu plano'}
           </h1>
-          <p className="text-sm text-gray-500">
-            {step === 1 
-              ? 'Insira os dados iniciais do seu dojo ou academia' 
+          <p className="text-sm text-zinc-400">
+            {step === 1
+              ? 'Insira os dados iniciais do seu dojo ou academia'
               : 'Todos os planos iniciam com 5 dias grátis. Cancele quando quiser.'}
           </p>
         </div>

@@ -73,11 +73,11 @@ export default async function TurmasPage() {
   }))
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Turmas</h1>
+          <h1 className="text-xl font-semibold text-zinc-900">Turmas</h1>
           <p className="text-sm text-gray-500">
             {classes.length} turma{classes.length !== 1 ? 's' : ''} cadastrada{classes.length !== 1 ? 's' : ''}
           </p>

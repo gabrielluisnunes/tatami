@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 
 interface StudentActionsProps {
   studentId: string
-  studentName: string               
+  studentName: string
 }
 
 export function StudentActions({ studentId, studentName }: StudentActionsProps) {
@@ -22,7 +22,7 @@ export function StudentActions({ studentId, studentName }: StudentActionsProps) 
     setError(null)
     try {
       const res = await fetch(`/api/students/${studentId}`, { method: 'DELETE' })
-      if (!res.ok) {                
+      if (!res.ok) {
         const d = await res.json().catch(() => ({}))
         throw new Error(d.error ?? 'Erro ao excluir')
       }
@@ -41,52 +41,51 @@ export function StudentActions({ studentId, studentName }: StudentActionsProps) 
         <Link href={`/dashboard/alunos/${studentId}/editar`}>
           <Button
             size="sm"
-            variant="ghost"         
-            className="h-7 w-7 rounded-lg p-0 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200"
+            variant="ghost"
+            className="h-7 w-7 rounded-lg p-0 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
           >
             <Pencil className="h-3.5 w-3.5" />
-          </Button>                 
+          </Button>
         </Link>
         <Button
           size="sm"
           variant="ghost"
           onClick={() => setShowConfirm(true)}
-          className="h-7 w-7 rounded-lg p-0 text-zinc-500 hover:bg-red-900/30 hover:text-red-400"
+          className="h-7 w-7 rounded-lg p-0 text-zinc-400 hover:bg-red-50 hover:text-red-500"
         >
           <Trash2 className="h-3.5 w-3.5" />
-        </Button>                   
+        </Button>
       </div>
 
-      {/* Modal de confirmação */}
       {showConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">   
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/25 backdrop-blur-[1px]"
             onClick={() => !deleting && setShowConfirm(false)}
           />
-          <div className="relative z-10 w-full max-w-sm rounded-2xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl">
+          <div className="relative z-10 w-full max-w-sm rounded-2xl border border-zinc-200 bg-white p-6 shadow-xl">
             <button
               type="button"
               onClick={() => setShowConfirm(false)}
               disabled={deleting}
-              className="absolute right-4 top-4 text-zinc-500 hover:text-zinc-300"
+              className="absolute right-4 top-4 text-zinc-400 hover:text-zinc-700 transition-colors"
             >
               <X className="h-4 w-4" />
-            </button>               
+            </button>
 
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-red-950/50">
-              <Trash2 className="h-5 w-5 text-red-400" />
+            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 border border-red-200">
+              <Trash2 className="h-5 w-5 text-red-500" />
             </div>
 
-            <h3 className="text-base font-bold text-zinc-100">Excluir aluno</h3>
-            <p className="mt-2 text-sm text-zinc-400 leading-relaxed">                   
+            <h3 className="text-base font-semibold text-zinc-900">Excluir aluno</h3>
+            <p className="mt-2 text-sm text-zinc-500 leading-relaxed">
               Tem certeza que deseja excluir{' '}
-              <span className="font-semibold text-zinc-200">{studentName}</span>?
+              <span className="font-semibold text-zinc-800">{studentName}</span>?
               Esta ação não pode ser desfeita.
             </p>
 
             {error && (
-              <p className="mt-3 text-xs text-red-400">{error}</p>
+              <p className="mt-3 text-xs text-red-600">{error}</p>
             )}
 
             <div className="mt-5 flex gap-3">
@@ -94,14 +93,14 @@ export function StudentActions({ studentId, studentName }: StudentActionsProps) 
                 variant="outline"
                 onClick={() => setShowConfirm(false)}
                 disabled={deleting}
-                className="flex-1 rounded-xl border-zinc-700 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                className="flex-1 rounded-xl border-zinc-200 text-zinc-600 hover:bg-zinc-50"
               >
                 Cancelar
               </Button>
               <Button
                 onClick={handleDelete}
-                disabled={deleting} 
-                className="flex-1 rounded-xl bg-red-700 font-semibold text-white hover:bg-red-600"
+                disabled={deleting}
+                className="flex-1 rounded-xl bg-red-600 font-semibold text-white hover:bg-red-500"
               >
                 {deleting
                   ? <Loader2 className="h-4 w-4 animate-spin" />
