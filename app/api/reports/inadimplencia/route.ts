@@ -18,16 +18,10 @@ export async function GET() {
     return NextResponse.json({ error: 'Acesso negado' }, { status: 403 })
   }
 
-  // Buscar cobranças em atraso com dados do aluno
+  // Buscar cobranças em atraso
   const { data: overdue } = await supabase
     .from('financials')
-    .select(`
-      id,
-      amount,
-      due_date,
-      status,
-      profiles!inner ( full_name )
-    `)
+    .select('id, student_id, amount, due_date, status')
     .eq('academy_id', profile.academy_id)
     .eq('status', 'overdue')
     .order('due_date', { ascending: true })
@@ -49,20 +43,32 @@ export async function GET() {
     })
   }
 
+  // Buscar nomes dos alunos separadamente
+  const studentIds = Array.from(new Set((overdue ?? []).map(f => f.student_id)))
+
+  const { data: studentsData } = await supabase
+    .from('profiles')
+    .select('id, full_name')
+    .in('id', studentIds)
+
+  const studentNameMap = new Map(
+    (studentsData ?? []).map(s => [s.id, s.full_name])
+  )
+
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  const rows = overdue.map(f => {
+  const rows = (overdue ?? []).map(f => {
     const dueDate = new Date(f.due_date + 'T00:00:00')
     const daysLate = Math.floor(
       (today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)
     )
-    const profile = (Array.isArray(f.profiles) ? f.profiles[0] : f.profiles) as { full_name: string } | null
+    const studentName = studentNameMap.get(f.student_id) ?? '—'
 
     return {
-      'Nome do aluno': profile?.full_name ?? '—',
+      'Nome do aluno': studentName,
       'Valor (R$)': Number(f.amount).toFixed(2).replace('.', ','),
-      'Vencimento': new Date(f.due_date + 'T00:00:00').toLocaleDateString('pt-BR'),
+      'Vencimento': dueDate.toLocaleDateString('pt-BR'),
       'Dias em atraso': daysLate,
       'Status': 'Em atraso',
     }
