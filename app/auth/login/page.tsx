@@ -3,8 +3,6 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Logo } from '@/components/logo'
 
 export default function LoginPage() {
@@ -67,64 +65,73 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 px-4 text-slate-100 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
-        <div className="flex flex-col items-center space-y-2 text-center mb-6">
-          <Logo className="h-28 w-auto" variant="full" />
+    <div className="relative min-h-screen flex items-center justify-center bg-zinc-950 px-4 overflow-hidden">
+      <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
+
+      <div className="relative bg-white rounded-2xl p-8 border border-zinc-200 shadow-xl max-w-sm w-full">
+        <div className="flex justify-center mb-6">
+          <Logo className="h-10 w-auto" variant="full" />
         </div>
 
-        <div className="bg-slate-900/40 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-8 shadow-2xl space-y-6">
-          <form onSubmit={handleEmailLogin} className="space-y-4">
-            <div className="space-y-1">
-              <label htmlFor="email" className="text-xs font-semibold text-slate-400">Email</label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="nome@exemplo.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
-                required
-                className="bg-slate-950/60 border-slate-800/80 text-white placeholder-slate-600 focus-visible:ring-indigo-500 rounded-xl py-5"
-              />
-            </div>
+        <h1 className="text-xl font-semibold text-zinc-900 text-center mb-6">
+          Entrar na sua conta
+        </h1>
 
-            <div className="space-y-1">
-              <label htmlFor="password" className="text-xs font-semibold text-slate-400">Senha</label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
-                required
-                className="bg-slate-950/60 border-slate-800/80 text-white placeholder-slate-600 focus-visible:ring-indigo-500 rounded-xl py-5"
-              />
-            </div>
-
-            <Button
-              type="submit"
+        <form onSubmit={handleEmailLogin} className="space-y-4">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-zinc-700 mb-1.5">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              placeholder="nome@exemplo.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               disabled={loading}
-              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-6 rounded-xl transition-all duration-200 shadow-lg shadow-indigo-600/20"
-            >
-              {loading ? 'Entrando...' : 'Entrar'}
-            </Button>
+              required
+              className="w-full border border-zinc-200 rounded-lg px-3.5 py-2.5 text-sm text-zinc-900 placeholder-zinc-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-60"
+            />
+          </div>
 
-            {error && (
-              <div className="p-3 bg-red-950/40 border border-red-800/30 rounded-xl text-center">
-                <p className="text-xs font-medium text-red-400">{error}</p>
-              </div>
-            )}
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-zinc-700 mb-1.5">
+              Senha
+            </label>
+            <input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
+              required
+              className="w-full border border-zinc-200 rounded-lg px-3.5 py-2.5 text-sm text-zinc-900 placeholder-zinc-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-60"
+            />
+          </div>
 
-            <div className="text-center pt-2">
-              <span className="text-xs text-slate-500">Não tem uma conta? </span>
-              <a href="/auth/register" className="text-xs text-indigo-400 hover:text-indigo-300 font-medium">
-                Criar conta
-              </a>
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">
+              {error}
             </div>
-          </form>
-        </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg py-2.5 text-sm font-medium mt-2 transition-colors disabled:opacity-60"
+          >
+            {loading ? 'Entrando...' : 'Entrar'}
+          </button>
+        </form>
+
+        <p className="text-center text-sm text-zinc-500 mt-6">
+          Não tem uma conta?{' '}
+          <a href="/auth/register" className="text-indigo-600 hover:text-indigo-500 font-medium">
+            Criar conta
+          </a>
+        </p>
       </div>
     </div>
   )

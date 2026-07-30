@@ -7,7 +7,6 @@ import { formatLocalDate } from '@/lib/format-date'
 import { ContratoNovoModal } from './contrato-novo-modal'
 import { ContratoAssinaturasModal } from './contrato-assinaturas-modal'
 
-// Client component para listagem de contratos
 interface ContractItem {
   id: string
   title: string
@@ -25,12 +24,9 @@ interface ContratosPageClientProps {
 
 export function ContratosPageClient({ contracts, totalStudents }: ContratosPageClientProps) {
   const router = useRouter()
-  
-  // Controle de estados dos modais
   const [isNewModalOpen, setIsNewModalOpen] = useState(false)
   const [selectedContractSignatures, setSelectedContractSignatures] = useState<{ id: string; title: string } | null>(null)
 
-  // Recarrega os dados da página após criar um contrato
   const handleCreated = () => {
     setIsNewModalOpen(false)
     router.refresh()
@@ -38,79 +34,75 @@ export function ContratosPageClient({ contracts, totalStudents }: ContratosPageC
 
   return (
     <div className="space-y-6">
-      {/* Cabeçalho */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-100">Contratos</h1>
-          <p className="text-sm text-zinc-500 mt-1">Gerencie os contratos da academia</p>
+          <h1 className="text-xl font-semibold text-zinc-900">Contratos</h1>
+          <p className="text-sm text-zinc-500 mt-0.5">Gerencie os contratos da academia</p>
         </div>
         <button
           onClick={() => setIsNewModalOpen(true)}
-          className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-500 shadow-md shadow-indigo-600/10"
+          className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-500"
         >
           <Plus className="h-4 w-4" />
           Novo contrato
         </button>
       </div>
 
-      {/* Grid de Contratos */}
       {contracts.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-800/80 bg-zinc-900/20 py-20 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 mb-4">
-            <FileText className="h-8 w-8 text-zinc-500" />
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-200 bg-white py-20 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-zinc-200 bg-zinc-50 mb-4">
+            <FileText className="h-7 w-7 text-zinc-400" />
           </div>
-          <h3 className="text-sm font-medium text-zinc-300">Nenhum contrato cadastrado</h3>
-          <p className="text-xs text-zinc-500 mt-1 max-w-[280px]">
+          <h3 className="text-sm font-medium text-zinc-700">Nenhum contrato cadastrado</h3>
+          <p className="text-xs text-zinc-400 mt-1 max-w-[280px]">
             Crie seu primeiro contrato para que os alunos possam assinar digitalmente.
           </p>
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {contracts.map((contract) => {
-            const percentage = totalStudents > 0 
+            const percentage = totalStudents > 0
               ? Math.min(100, Math.round((contract.signature_count / totalStudents) * 100))
               : 0
 
             return (
-              <div 
-                key={contract.id} 
-                className="flex flex-col justify-between rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-6 space-y-4 shadow-xl"
+              <div
+                key={contract.id}
+                className="flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-5 space-y-4"
               >
                 <div className="space-y-2">
                   <div className="flex items-start justify-between gap-3">
-                    <h3 className="text-zinc-100 font-semibold text-lg line-clamp-1">{contract.title}</h3>
-                    <span className="rounded-full px-2.5 py-0.5 text-[10px] font-semibold tracking-wider bg-zinc-800 text-zinc-300 uppercase shrink-0 ring-1 ring-zinc-700">
+                    <h3 className="text-zinc-900 font-semibold text-sm line-clamp-1">{contract.title}</h3>
+                    <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wider bg-zinc-100 text-zinc-600 border border-zinc-200 uppercase shrink-0">
                       {contract.file_type}
                     </span>
                   </div>
                   {contract.description && (
-                    <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">{contract.description}</p>
+                    <p className="text-xs text-zinc-500 line-clamp-2 leading-relaxed">{contract.description}</p>
                   )}
-                  <p className="text-[10px] text-zinc-500 font-medium">
+                  <p className="text-[10px] text-zinc-400">
                     Criado em {formatLocalDate(contract.created_at)}
                   </p>
                 </div>
 
-                {/* Progresso de Assinatura */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-400 font-medium">
+                    <span className="text-zinc-500">
                       {contract.signature_count} de {totalStudents} assinaram
                     </span>
-                    <span className="text-indigo-400 font-semibold">{percentage}%</span>
+                    <span className="text-indigo-600 font-semibold">{percentage}%</span>
                   </div>
-                  <div className="h-2 w-full rounded-full bg-zinc-800 overflow-hidden">
-                    <div 
-                      className="h-full bg-indigo-500 rounded-full transition-all duration-500" 
+                  <div className="h-1.5 w-full rounded-full bg-zinc-100 overflow-hidden">
+                    <div
+                      className="h-full bg-indigo-500 rounded-full transition-all duration-500"
                       style={{ width: `${percentage}%` }}
                     />
                   </div>
                 </div>
 
-                {/* Botões */}
                 <button
                   onClick={() => setSelectedContractSignatures({ id: contract.id, title: contract.title })}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-white"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
                 >
                   <Users className="h-4 w-4" />
                   Ver assinaturas
@@ -121,11 +113,10 @@ export function ContratosPageClient({ contracts, totalStudents }: ContratosPageC
         </div>
       )}
 
-      {/* Modais */}
       {isNewModalOpen && (
-        <ContratoNovoModal 
-          onCreated={handleCreated} 
-          onClose={() => setIsNewModalOpen(false)} 
+        <ContratoNovoModal
+          onCreated={handleCreated}
+          onClose={() => setIsNewModalOpen(false)}
         />
       )}
 

@@ -41,20 +41,20 @@ export default function ComunicadosPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="p-6 space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+        <h1 className="text-xl font-semibold text-zinc-900">
           Comunicados
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-zinc-500 mt-1">
           Envie um comunicado por email para todos os alunos da academia.
         </p>
       </div>
 
-      <div className="rounded-xl border border-gray-200 bg-white p-6 space-y-5">
+      <div className="rounded-xl border border-zinc-200 bg-white p-6 space-y-5">
         {/* Título */}
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-gray-700">
+          <label className="text-sm font-medium text-zinc-700">
             Título do comunicado
           </label>
           <input
@@ -63,18 +63,18 @@ export default function ComunicadosPage() {
             onChange={e => setTitle(e.target.value)}
             placeholder="Ex: Campeonato interno — inscrições abertas"
             maxLength={100}
-            className="w-full rounded-xl border border-gray-200 bg-white px-4 
-              py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none 
-              focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            className="w-full rounded-lg border border-zinc-200 bg-white px-3.5
+              py-2.5 text-sm text-zinc-900 placeholder-zinc-400 outline-none
+              focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
           />
-          <p className="text-xs text-gray-400 text-right">
+          <p className="text-xs text-zinc-400 text-right">
             {title.length}/100
           </p>
         </div>
 
         {/* Mensagem */}
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-gray-700">
+          <label className="text-sm font-medium text-zinc-700">
             Mensagem
           </label>
           <textarea
@@ -83,12 +83,12 @@ export default function ComunicadosPage() {
             placeholder="Escreva o comunicado aqui..."
             maxLength={2000}
             rows={8}
-            className="w-full rounded-xl border border-gray-200 bg-white px-4 
-              py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none 
-              focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 
+            className="w-full rounded-lg border border-zinc-200 bg-white px-3.5
+              py-2.5 text-sm text-zinc-900 placeholder-zinc-400 outline-none
+              focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20
               resize-none"
           />
-          <p className="text-xs text-gray-400 text-right">
+          <p className="text-xs text-zinc-400 text-right">
             {message.length}/2000
           </p>
         </div>
@@ -132,8 +132,8 @@ export default function ComunicadosPage() {
           type="button"
           onClick={handleSubmit}
           disabled={loading || !title.trim() || !message.trim()}
-          className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 
-            py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 
+          className="flex items-center gap-2 rounded-lg bg-indigo-600 px-5
+            py-2.5 text-sm font-semibold text-white hover:bg-indigo-500
             transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading 

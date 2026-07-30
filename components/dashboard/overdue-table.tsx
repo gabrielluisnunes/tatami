@@ -64,23 +64,23 @@ export function OverdueTable({ records }: OverdueTableProps) {
 
   if (visible.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-800 py-10 text-zinc-600">
-        <CheckCircle className="h-6 w-6 mb-2 text-emerald-600" />
+      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-200 py-10 text-zinc-400">
+        <CheckCircle className="h-6 w-6 mb-2 text-emerald-500" />
         <p className="text-sm">Nenhuma mensalidade em atraso.</p>
       </div>
     )
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-zinc-800/80">
+    <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-zinc-800/80 bg-zinc-900/40">
-            <th className="px-4 py-3 text-left font-medium text-zinc-400">Aluno</th>
-            <th className="px-4 py-3 text-left font-medium text-zinc-400">Valor</th>
-            <th className="px-4 py-3 text-left font-medium text-zinc-400">Vencimento</th>
-            <th className="px-4 py-3 text-left font-medium text-zinc-400">Atraso</th>
-            <th className="px-4 py-3 text-right font-medium text-zinc-400"></th>
+          <tr className="border-b border-zinc-200 bg-zinc-50">
+            <th className="px-4 py-3 text-left font-medium text-zinc-500">Aluno</th>
+            <th className="px-4 py-3 text-left font-medium text-zinc-500">Valor</th>
+            <th className="px-4 py-3 text-left font-medium text-zinc-500">Vencimento</th>
+            <th className="px-4 py-3 text-left font-medium text-zinc-500">Atraso</th>
+            <th className="px-4 py-3 text-right font-medium text-zinc-500"></th>
           </tr>
         </thead>
         <tbody>
@@ -88,19 +88,19 @@ export function OverdueTable({ records }: OverdueTableProps) {
             const days = daysOverdue(rec.due_date)
             const isLoading = loadingId === rec.id
             return (
-              <tr key={rec.id} className="border-b border-zinc-800/40 last:border-0">
-                <td className="px-4 py-3 font-medium text-zinc-200">{rec.full_name}</td>
-                <td className="px-4 py-3 text-zinc-300">
+              <tr key={rec.id} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50 transition-colors">
+                <td className="px-4 py-3 font-medium text-zinc-900">{rec.full_name}</td>
+                <td className="px-4 py-3 text-zinc-700">
                   {rec.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </td>
-                <td className="px-4 py-3 text-zinc-400">
+                <td className="px-4 py-3 text-zinc-500">
                   {formatLocalDate(rec.due_date)}
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                  <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${
                     days > 30
-                      ? 'bg-red-950/50 text-red-400'
-                      : 'bg-amber-950/50 text-amber-400'
+                      ? 'bg-red-50 text-red-700 border-red-200'
+                      : 'bg-amber-50 text-amber-700 border-amber-200'
                   }`}>
                     {days}d
                   </span>
@@ -110,7 +110,7 @@ export function OverdueTable({ records }: OverdueTableProps) {
                     size="sm"
                     disabled={isLoading}
                     onClick={() => handleMarkPaid(rec.id)}
-                    className="rounded-lg bg-emerald-700 text-white hover:bg-emerald-600 text-xs h-7 px-3"
+                    className="rounded-lg bg-emerald-600 text-white hover:bg-emerald-500 text-xs h-7 px-3"
                   >
                     {isLoading
                       ? <Loader2 className="h-3 w-3 animate-spin" />
