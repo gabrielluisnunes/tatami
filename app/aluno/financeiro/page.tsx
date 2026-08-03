@@ -39,10 +39,10 @@ export default async function AlunoFinanceiroPage() {
     .reduce((sum, f) => sum + f.amount, 0) ?? 0
 
   return (
-    <div className="space-y-6">
+    <div className="px-4 pt-8 pb-24 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-zinc-100">Financeiro</h1>
-        <p className="text-sm text-zinc-500 mt-1">Seus pagamentos e cobranças</p>
+        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Pagamentos</p>
+        <h1 className="text-2xl font-bold text-zinc-100 mt-0.5">Financeiro</h1>
       </div>
 
       {/* Card de status atual */}
