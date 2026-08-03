@@ -28,7 +28,7 @@ export default async function CompletarPerfilPage() {
   const firstName = profile.full_name?.split(' ')[0] ?? 'aluno'
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="px-4 pt-8 pb-24 max-w-md mx-auto">
       <CompletarPerfilForm firstName={firstName} hasFaceDescriptor={hasFaceDescriptor} />
     </div>
   )
