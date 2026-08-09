@@ -7,10 +7,6 @@ import { ArrowLeft, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select, SelectContent, SelectItem,
-  SelectTrigger, SelectValue,
-} from '@/components/ui/select'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -45,9 +41,23 @@ export default function NovoAlunoPage() {
   const [email, setEmail]           = useState('')
   const [birthDate, setBirthDate]   = useState('')
   const [phone, setPhone]           = useState('')
-  const [belt, setBelt]             = useState('branca')
-  const [degree, setDegree]         = useState<number>(0)
-  const [sport, setSport]           = useState<string>('jiu-jitsu')
+  const [sports, setSports]         = useState<Array<{
+    sport: string
+    belt: string
+    degree: number
+  }>>([{ sport: 'jiu-jitsu', belt: 'branca', degree: 0 }])
+
+  function addSport() {
+    setSports(prev => [...prev, { sport: '', belt: '', degree: 0 }])
+  }
+  function removeSport(index: number) {
+    setSports(prev => prev.filter((_, i) => i !== index))
+  }
+  function updateSport(index: number, field: string, value: string | number) {
+    setSports(prev => prev.map((s, i) =>
+      i === index ? { ...s, [field]: value } : s
+    ))
+  }
 
   // Novos campos
   const [emergencyPhone, setEmergencyPhone] = useState('')
@@ -113,6 +123,8 @@ export default function NovoAlunoPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    if (sports.length === 0 || sports.some(s => !s.sport)) return
+
     if (hasCep && !number) {
       setError('Informe o número do endereço.')
       return
@@ -129,8 +141,7 @@ export default function NovoAlunoPage() {
           full_name: fullName,
           email,
           role: 'aluno',
-          sport,
-          ...(sport === 'boxe' ? { belt: null, degree: 0 } : { belt, degree }),
+          sports: sports.filter(s => s.sport !== ''),
           ...(birthDate ? { birth_date: birthDate } : {}),
           phone: phone || undefined,
           emergency_phone: emergencyPhone || undefined,
@@ -277,76 +288,94 @@ export default function NovoAlunoPage() {
             />
           </div>
 
-          {/* Esporte */}
-          <div className="space-y-1.5">
-            <Label className={labelClass}>Esporte</Label>
-            <Select value={sport} onValueChange={(v) => { if (v) { setSport(v); setBelt(''); setDegree(0) } }} disabled={loading}>
-              <SelectTrigger className="rounded-xl border-gray-200 bg-white py-5 text-gray-900">
-                <SelectValue placeholder="Selecione o esporte" />
-              </SelectTrigger>
-              <SelectContent className="border-gray-200 bg-white text-gray-900">
-                <SelectItem value="jiu-jitsu">Jiu-Jitsu</SelectItem>
-                <SelectItem value="muay-thai">Muay Thai</SelectItem>
-                <SelectItem value="boxe">Boxe</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Faixa + Grau — grid condicional */}
-          {sport !== 'boxe' && (
-            <div className={`grid ${sport === 'jiu-jitsu' ? 'grid-cols-2' : 'grid-cols-1'} gap-3`}>
-              <div className="space-y-1.5">
-                <Label htmlFor="belt" className={labelClass}>
-                  {sport === 'muay-thai' ? 'Prajied (graduação)' : 'Faixa atual'}
-                </Label>
-                <Select value={belt} onValueChange={(v) => v && setBelt(v)} disabled={loading}>
-                  <SelectTrigger id="belt" className="rounded-xl border-gray-200 bg-white py-5 text-gray-900">
-                    <SelectValue placeholder={sport === 'muay-thai' ? 'Selecione o prajied' : 'Selecione a faixa'} />
-                  </SelectTrigger>
-                  <SelectContent className="border-gray-200 bg-white text-gray-900">
-                    {sport === 'jiu-jitsu' && (
-                      <>
-                        <SelectItem value="branca">Branca</SelectItem>
-                        <SelectItem value="azul">Azul</SelectItem>
-                        <SelectItem value="roxa">Roxa</SelectItem>
-                        <SelectItem value="marrom">Marrom</SelectItem>
-                        <SelectItem value="preta">Preta</SelectItem>
-                      </>
-                    )}
-                    {sport === 'muay-thai' && (
-                      <>
-                        <SelectItem value="branco">Branco</SelectItem>
-                        <SelectItem value="laranja">Laranja</SelectItem>
-                        <SelectItem value="azul-mt">Azul</SelectItem>
-                        <SelectItem value="vermelho">Vermelho</SelectItem>
-                        <SelectItem value="amarelo">Amarelo</SelectItem>
-                        <SelectItem value="verde">Verde</SelectItem>
-                        <SelectItem value="marrom-mt">Marrom</SelectItem>
-                        <SelectItem value="preto-mt">Preto</SelectItem>
-                      </>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-              {sport === 'jiu-jitsu' && (
-                <div className="space-y-1.5">
-                  <Label htmlFor="degree" className={labelClass}>Grau</Label>
-                  <Select value={String(degree)} onValueChange={(v) => v && setDegree(Number(v))} disabled={loading}>
-                    <SelectTrigger id="degree" className="rounded-xl border-gray-200 bg-white py-5 text-gray-900">
-                      <SelectValue placeholder="Selecione o grau" />
-                    </SelectTrigger>
-                    <SelectContent className="border-gray-200 bg-white text-gray-900">
-                      <SelectItem value="0">Sem grau</SelectItem>
-                      <SelectItem value="1">1º grau</SelectItem>
-                      <SelectItem value="2">2º grau</SelectItem>
-                      <SelectItem value="3">3º grau</SelectItem>
-                      <SelectItem value="4">4º grau</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+          {/* Esportes e Graduações */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className={labelClass}>Esportes e Graduações</label>
+              <button type="button" onClick={addSport}
+                className="text-xs text-indigo-600 hover:text-indigo-500 font-medium">
+                + Adicionar esporte
+              </button>
             </div>
-          )}
+
+            {sports.map((s, index) => (
+              <div
+                key={index}
+                className="flex flex-wrap items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2.5 py-2"
+              >
+                <select
+                  value={s.sport}
+                  onChange={e => {
+                    updateSport(index, 'sport', e.target.value)
+                    updateSport(index, 'belt',
+                      e.target.value === 'jiu-jitsu' ? 'branca' :
+                      e.target.value === 'muay-thai' ? 'branco' : '')
+                    updateSport(index, 'degree', 0)
+                  }}
+                  className="min-w-[8.5rem] flex-1 rounded-lg border border-zinc-200 bg-white px-2.5 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="">Esporte</option>
+                  <option value="jiu-jitsu">Jiu-Jitsu</option>
+                  <option value="muay-thai">Muay Thai</option>
+                  <option value="boxe">Boxe</option>
+                </select>
+
+                {s.sport && s.sport !== 'boxe' && (
+                  <select
+                    value={s.belt}
+                    onChange={e => updateSport(index, 'belt', e.target.value)}
+                    className="min-w-[7.5rem] flex-1 rounded-lg border border-zinc-200 bg-white px-2.5 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="">
+                      {s.sport === 'muay-thai' ? 'Prajied' : 'Faixa'}
+                    </option>
+                    {s.sport === 'jiu-jitsu' && (<>
+                      <option value="branca">Branca</option>
+                      <option value="azul">Azul</option>
+                      <option value="roxa">Roxa</option>
+                      <option value="marrom">Marrom</option>
+                      <option value="preta">Preta</option>
+                    </>)}
+                    {s.sport === 'muay-thai' && (<>
+                      <option value="branco">Branco</option>
+                      <option value="laranja">Laranja</option>
+                      <option value="azul-mt">Azul</option>
+                      <option value="vermelho">Vermelho</option>
+                      <option value="amarelo">Amarelo</option>
+                      <option value="verde">Verde</option>
+                      <option value="marrom-mt">Marrom</option>
+                      <option value="preto-mt">Preto</option>
+                    </>)}
+                  </select>
+                )}
+
+                {s.sport === 'jiu-jitsu' && (
+                  <select
+                    value={s.degree}
+                    onChange={e => updateSport(index, 'degree', Number(e.target.value))}
+                    className="min-w-[6.5rem] rounded-lg border border-zinc-200 bg-white px-2.5 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value={0}>Sem grau</option>
+                    <option value={1}>1º grau</option>
+                    <option value={2}>2º grau</option>
+                    <option value={3}>3º grau</option>
+                    <option value={4}>4º grau</option>
+                  </select>
+                )}
+
+                {sports.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeSport(index)}
+                    className="ml-auto shrink-0 rounded-md px-2 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 hover:text-red-600"
+                    title="Remover esporte"
+                  >
+                    Remover
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
 
           {/* ── Seção: Endereço ── */}
           <div className="pt-2">

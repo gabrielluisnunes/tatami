@@ -4,6 +4,7 @@ import { z } from 'zod'
 
 const updateClassSchema = z.object({
   name:         z.string().min(1).optional(),
+  sport:        z.enum(['jiu-jitsu', 'muay-thai', 'boxe']).optional(),
   professor_id: z.string().uuid().optional(),
   weekdays:     z.array(z.number().int().min(0).max(6)).min(1).optional(),
   start_time:   z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/).optional(),

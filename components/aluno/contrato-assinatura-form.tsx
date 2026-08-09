@@ -126,7 +126,7 @@ export function ContratoAssinaturaForm({
     const scaleX = e.currentTarget.width / rect.width
     const scaleY = e.currentTarget.height / rect.height
     ctx.lineTo((e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY)
-    ctx.strokeStyle = '#e4e4e7'
+    ctx.strokeStyle = '#18181b'
     ctx.lineWidth = 2.5
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
@@ -227,13 +227,13 @@ export function ContratoAssinaturaForm({
 
       {/* Cabeçalho */}
       <div>
-        <h1 className="text-xl font-bold text-zinc-100 flex items-center gap-2">
-          <FileSignature className="h-5 w-5 text-indigo-400 shrink-0" />
+        <h1 className="text-xl font-semibold text-zinc-900 flex items-center gap-2">
+          <FileSignature className="h-5 w-5 text-indigo-600 shrink-0" />
           Assinar Contrato
         </h1>
-        <h2 className="text-sm font-semibold text-zinc-200 mt-2">{title}</h2>
+        <h2 className="text-sm font-semibold text-zinc-900 mt-2">{title}</h2>
         {description && (
-          <p className="text-xs text-zinc-400 mt-1 leading-relaxed">{description}</p>
+          <p className="text-xs text-zinc-500 mt-1 leading-relaxed">{description}</p>
         )}
       </div>
 
@@ -242,7 +242,7 @@ export function ContratoAssinaturaForm({
         href={signedFileUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center justify-center gap-2 rounded-xl border border-zinc-700 px-4 py-3 text-sm font-medium text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors shadow-md"
+        className="flex items-center justify-center gap-2 rounded-xl border border-zinc-200 px-4 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
       >
         <Download className="h-4 w-4" />
         Visualizar / Baixar {fileType.toUpperCase()}
@@ -258,18 +258,18 @@ export function ContratoAssinaturaForm({
                   ? 'bg-emerald-600 text-white'
                   : idx === stepIndex
                   ? 'bg-indigo-600 text-white'
-                  : 'bg-zinc-800 text-zinc-500'
+                  : 'bg-zinc-100 text-zinc-500'
               }`}>
                 {idx < stepIndex ? '✓' : idx + 1}
               </div>
               <span className={`text-[10px] font-medium hidden sm:block ${
-                idx === stepIndex ? 'text-zinc-200' : 'text-zinc-600'
+                idx === stepIndex ? 'text-zinc-900' : 'text-zinc-400'
               }`}>
                 {s.label}
               </span>
             </div>
             {idx < steps.length - 1 && (
-              <div className={`flex-1 h-px ${idx < stepIndex ? 'bg-emerald-700' : 'bg-zinc-800'}`} />
+              <div className={`flex-1 h-px ${idx < stepIndex ? 'bg-emerald-300' : 'bg-zinc-200'}`} />
             )}
           </div>
         ))}
@@ -281,8 +281,8 @@ export function ContratoAssinaturaForm({
 
           {/* Nome completo */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-zinc-400">
-              Nome completo <span className="text-red-400">*</span>
+            <label className="text-xs font-semibold text-zinc-500">
+              Nome completo <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -292,19 +292,19 @@ export function ContratoAssinaturaForm({
                 if (formErrors.signerFullName) setFormErrors((p) => ({ ...p, signerFullName: undefined }))
               }}
               placeholder="Seu nome completo"
-              className={`w-full rounded-xl border bg-zinc-900 px-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 outline-none transition-colors focus:ring-1 focus:ring-indigo-500 ${
-                formErrors.signerFullName ? 'border-red-700' : 'border-zinc-700 focus:border-indigo-500'
+              className={`w-full rounded-xl border bg-white px-4 py-3 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:ring-1 focus:ring-indigo-500 ${
+                formErrors.signerFullName ? 'border-red-300' : 'border-zinc-200 focus:border-indigo-500'
               }`}
             />
             {formErrors.signerFullName && (
-              <p className="text-xs text-red-400">{formErrors.signerFullName}</p>
+              <p className="text-xs text-red-500">{formErrors.signerFullName}</p>
             )}
           </div>
 
           {/* CPF */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-zinc-400">
-              CPF <span className="text-red-400">*</span>
+            <label className="text-xs font-semibold text-zinc-500">
+              CPF <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -317,12 +317,12 @@ export function ContratoAssinaturaForm({
               }}
               placeholder="000.000.000-00"
               maxLength={14}
-              className={`w-full rounded-xl border bg-zinc-900 px-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 outline-none transition-colors focus:ring-1 focus:ring-indigo-500 font-mono ${
-                formErrors.signerCpf ? 'border-red-700' : 'border-zinc-700 focus:border-indigo-500'
+              className={`w-full rounded-xl border bg-white px-4 py-3 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:ring-1 focus:ring-indigo-500 font-mono ${
+                formErrors.signerCpf ? 'border-red-300' : 'border-zinc-200 focus:border-indigo-500'
               }`}
             />
             {formErrors.signerCpf && (
-              <p className="text-xs text-red-400">{formErrors.signerCpf}</p>
+              <p className="text-xs text-red-500">{formErrors.signerCpf}</p>
             )}
           </div>
 
@@ -340,22 +340,22 @@ export function ContratoAssinaturaForm({
                 }))
                 setFormErrors((p) => ({ ...p, guardianName: undefined, guardianCpf: undefined }))
               }}
-              className="h-4 w-4 rounded border-zinc-600 bg-zinc-800 accent-indigo-500"
+              className="h-4 w-4 rounded border-zinc-300 bg-white accent-indigo-600"
             />
-            <span className="text-sm text-zinc-300">Sou menor de 18 anos</span>
+            <span className="text-sm text-zinc-700">Sou menor de 18 anos</span>
           </label>
 
           {/* Campos do responsável (condicional) */}
           {formData.isMinor && (
-            <div className="space-y-4 rounded-xl border border-zinc-700/50 bg-zinc-900/40 p-4">
-              <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+            <div className="space-y-4 rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
                 Dados do responsável legal
               </p>
 
               {/* Nome do responsável */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-400">
-                  Nome completo do responsável <span className="text-red-400">*</span>
+                <label className="text-xs font-semibold text-zinc-500">
+                  Nome completo do responsável <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -365,19 +365,19 @@ export function ContratoAssinaturaForm({
                     if (formErrors.guardianName) setFormErrors((p) => ({ ...p, guardianName: undefined }))
                   }}
                   placeholder="Nome completo do responsável"
-                  className={`w-full rounded-xl border bg-zinc-900 px-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 outline-none transition-colors focus:ring-1 focus:ring-indigo-500 ${
-                    formErrors.guardianName ? 'border-red-700' : 'border-zinc-700 focus:border-indigo-500'
+                  className={`w-full rounded-xl border bg-white px-4 py-3 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:ring-1 focus:ring-indigo-500 ${
+                    formErrors.guardianName ? 'border-red-300' : 'border-zinc-200 focus:border-indigo-500'
                   }`}
                 />
                 {formErrors.guardianName && (
-                  <p className="text-xs text-red-400">{formErrors.guardianName}</p>
+                  <p className="text-xs text-red-500">{formErrors.guardianName}</p>
                 )}
               </div>
 
               {/* CPF do responsável */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-400">
-                  CPF do responsável <span className="text-red-400">*</span>
+                <label className="text-xs font-semibold text-zinc-500">
+                  CPF do responsável <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -390,12 +390,12 @@ export function ContratoAssinaturaForm({
                   }}
                   placeholder="000.000.000-00"
                   maxLength={14}
-                  className={`w-full rounded-xl border bg-zinc-900 px-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 outline-none transition-colors focus:ring-1 focus:ring-indigo-500 font-mono ${
-                    formErrors.guardianCpf ? 'border-red-700' : 'border-zinc-700 focus:border-indigo-500'
+                  className={`w-full rounded-xl border bg-white px-4 py-3 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:ring-1 focus:ring-indigo-500 font-mono ${
+                    formErrors.guardianCpf ? 'border-red-300' : 'border-zinc-200 focus:border-indigo-500'
                   }`}
                 />
                 {formErrors.guardianCpf && (
-                  <p className="text-xs text-red-400">{formErrors.guardianCpf}</p>
+                  <p className="text-xs text-red-500">{formErrors.guardianCpf}</p>
                 )}
               </div>
             </div>
@@ -405,7 +405,7 @@ export function ContratoAssinaturaForm({
           <button
             type="button"
             onClick={handleFormContinue}
-            className="w-full rounded-xl bg-indigo-600 py-4 font-semibold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-500 transition-colors flex items-center justify-center gap-2"
+            className="w-full rounded-2xl bg-indigo-600 py-4 font-semibold text-white hover:bg-indigo-500 transition-colors flex items-center justify-center gap-2"
           >
             Continuar
             <ChevronRight className="h-4 w-4" />
@@ -417,18 +417,18 @@ export function ContratoAssinaturaForm({
       {step === 'signature' && (
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-zinc-400">
-              Assinatura Manual <span className="text-red-400">*</span>
+            <label className="text-xs font-semibold text-zinc-500">
+              Assinatura Manual <span className="text-red-500">*</span>
             </label>
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-950 overflow-hidden shadow-inner">
-              <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800/80 bg-zinc-900/30">
+            <div className="rounded-2xl border border-zinc-200 bg-white overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-100 bg-zinc-50">
                 <span className="text-[10px] font-medium text-zinc-500">
                   Desenhe sua assinatura no quadro abaixo
                 </span>
                 <button
                   type="button"
                   onClick={clearSignature}
-                  className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+                  className="text-xs text-zinc-500 hover:text-zinc-700 transition-colors"
                 >
                   Limpar
                 </button>
@@ -437,7 +437,7 @@ export function ContratoAssinaturaForm({
                 ref={canvasRef}
                 width={400}
                 height={180}
-                className="w-full touch-none cursor-crosshair bg-zinc-950/40"
+                className="w-full touch-none cursor-crosshair bg-white"
                 onPointerDown={startDraw}
                 onPointerMove={draw}
                 onPointerUp={endDraw}
@@ -450,7 +450,7 @@ export function ContratoAssinaturaForm({
             <button
               type="button"
               onClick={() => setStep('form')}
-              className="flex items-center gap-2 rounded-xl border border-zinc-700 px-5 py-4 text-sm font-medium text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors"
+              className="flex items-center gap-2 rounded-xl border border-zinc-200 px-5 py-4 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
               Voltar
@@ -459,7 +459,7 @@ export function ContratoAssinaturaForm({
               type="button"
               onClick={() => setStep('photo')}
               disabled={isCanvasBlank}
-              className="flex-1 rounded-xl bg-indigo-600 py-4 font-semibold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              className="flex-1 rounded-2xl bg-indigo-600 py-4 font-semibold text-white hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
             >
               Próximo
               <ChevronRight className="h-4 w-4" />
@@ -472,16 +472,16 @@ export function ContratoAssinaturaForm({
       {step === 'photo' && (
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-zinc-400">
-              Foto de Confirmação <span className="text-red-400">*</span>
+            <label className="text-xs font-semibold text-zinc-500">
+              Foto de Confirmação <span className="text-red-500">*</span>
             </label>
             <SimpleCamera onCapture={(base64) => setPhotoData(base64)} />
           </div>
 
           {error && (
-            <div className="flex items-start gap-2 rounded-xl border border-red-800/30 bg-red-950/30 px-4 py-3">
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
-              <p className="text-xs text-red-300">{error}</p>
+            <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+              <p className="text-xs text-red-800">{error}</p>
             </div>
           )}
 
@@ -489,7 +489,7 @@ export function ContratoAssinaturaForm({
             <button
               type="button"
               onClick={() => { setPhotoData(null); setStep('signature') }}
-              className="flex items-center gap-2 rounded-xl border border-zinc-700 px-5 py-4 text-sm font-medium text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors"
+              className="flex items-center gap-2 rounded-xl border border-zinc-200 px-5 py-4 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
               Voltar
@@ -498,7 +498,7 @@ export function ContratoAssinaturaForm({
               type="button"
               onClick={handleSubmit}
               disabled={!photoData || submitting}
-              className="flex-1 rounded-xl bg-indigo-600 py-4 font-semibold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="flex-1 rounded-2xl bg-indigo-600 py-4 font-semibold text-white hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               {submitting ? (
                 <span className="flex items-center justify-center gap-2">

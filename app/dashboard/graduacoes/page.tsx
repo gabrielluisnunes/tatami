@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createStorageAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { GraduacoesClient } from '@/components/dashboard/graduacoes-client'
 import { Award } from 'lucide-react'
@@ -11,6 +11,7 @@ interface StudentViewRecord {
   trainings_since_belt:      number | null
   attendance_rate:           number | null
   total_classes_since_belt:  number | null
+  sport:                     string | null
 }
 
 export default async function GraduacoesPage() {
@@ -28,29 +29,21 @@ export default async function GraduacoesPage() {
   if (!profile?.academy_id) redirect('/onboarding')
   if (profile.role !== 'admin') redirect('/dashboard')
 
-  // Busca alunos com treinos desde última faixa via view
-  const { data: raw } = await supabase
+  // 1 linha por aluno×esporte — service role bypassa RLS
+  const storageAdmin = createStorageAdminClient()
+  const { data: raw } = await storageAdmin
     .from('v_trainings_since_belt')
-    .select('student_id, full_name, belt, degree, trainings_since_belt, attendance_rate, total_classes_since_belt')
+    .select('student_id, full_name, belt, degree, trainings_since_belt, attendance_rate, total_classes_since_belt, sport')
     .eq('academy_id', profile.academy_id)
     .order('full_name', { ascending: true })
-
-  // Busca sport de profiles (a view não possui esse campo)
-  const { data: sportsData } = await supabase
-    .from('profiles')
-    .select('id, sport')
-    .eq('academy_id', profile.academy_id)
-    .eq('role', 'aluno')
-
-  const sportMap = new Map(sportsData?.map(s => [s.id, s.sport]) ?? [])
 
   const students = ((raw as unknown as StudentViewRecord[]) ?? []).map(s => ({
     id:                        s.student_id,
     full_name:                 s.full_name,
-    belt:                      s.belt || 'branca',
+    belt:                      s.belt ?? 'branca',
     degree:                    s.degree ?? 0,
-    sport:                     (sportMap.get(s.student_id) as string) ?? 'jiu-jitsu',
-    trainings_since_belt:      s.trainings_since_belt || 0,
+    sport:                     s.sport ?? 'jiu-jitsu',
+    trainings_since_belt:      s.trainings_since_belt ?? 0,
     attendance_rate:           s.attendance_rate ?? null,
     total_classes_since_belt:  s.total_classes_since_belt ?? 0,
   }))

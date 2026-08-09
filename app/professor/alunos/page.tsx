@@ -3,11 +3,11 @@ import { redirect } from 'next/navigation'
 import Image from 'next/image'
 
 const beltColors: Record<string, string> = {
-  branca: 'bg-zinc-800 text-zinc-100 ring-1 ring-zinc-700',
+  branca: 'bg-zinc-100 text-zinc-800 ring-1 ring-zinc-200',
   azul:   'bg-blue-100 text-blue-800 ring-1 ring-blue-200',
   roxa:   'bg-purple-100 text-purple-800 ring-1 ring-purple-200',
-  marrom: 'bg-amber-950 text-amber-200 ring-1 ring-amber-800',
-  preta:  'bg-zinc-50 text-zinc-900 ring-1 ring-zinc-300',
+  marrom: 'bg-amber-100 text-amber-900 ring-1 ring-amber-200',
+  preta:  'bg-zinc-900 text-white ring-1 ring-zinc-900',
 }
 
 export default async function ProfessorAlunosPage() {
@@ -56,8 +56,8 @@ export default async function ProfessorAlunosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-zinc-100">Alunos</h1>
-        <p className="text-sm text-zinc-500 mt-1">
+        <h1 className="text-xl font-semibold text-zinc-900">Alunos</h1>
+        <p className="text-sm text-zinc-500 mt-0.5">
           {alunos.length} aluno{alunos.length !== 1 ? 's' : ''} na academia
         </p>
       </div>
@@ -66,7 +66,7 @@ export default async function ProfessorAlunosPage() {
         <div className="space-y-2">
           {alunos.map(aluno => {
             const beltCls = beltColors[aluno.belt?.toLowerCase() ?? 'branca']
-              ?? 'bg-zinc-700 text-zinc-300'
+              ?? 'bg-zinc-100 text-zinc-800 ring-1 ring-zinc-200'
             const initials = aluno.full_name
               ?.split(' ')
               .map((n: string) => n[0])
@@ -77,7 +77,7 @@ export default async function ProfessorAlunosPage() {
             return (
               <div
                 key={aluno.id}
-                className="flex items-center gap-3 rounded-xl border border-zinc-800/60 bg-zinc-900/40 px-4 py-3"
+                className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white px-4 py-3"
               >
                 {aluno.photo_url ? (
                   <Image
@@ -85,15 +85,15 @@ export default async function ProfessorAlunosPage() {
                     alt={aluno.full_name}
                     width={36}
                     height={36}
-                    className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-zinc-700"
+                    className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-zinc-200"
                   />
                 ) : (
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-xs font-bold text-zinc-400 ring-1 ring-zinc-700">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-xs font-bold text-zinc-500 ring-1 ring-zinc-200">
                     {initials}
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-zinc-200 truncate">{aluno.full_name}</p>
+                  <p className="text-sm font-medium text-zinc-900 truncate">{aluno.full_name}</p>
                   {aluno.phone && (
                     <p className="text-xs text-zinc-500 truncate">{aluno.phone}</p>
                   )}
@@ -108,7 +108,7 @@ export default async function ProfessorAlunosPage() {
           })}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-800 py-16 text-center">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-300 bg-white py-16 text-center">
           <p className="text-sm text-zinc-500">Nenhum aluno cadastrado ainda.</p>
         </div>
       )}

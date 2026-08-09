@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Camera, Users, Activity, Award, Calendar } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 const tabs = [
   { href: '/professor/checkin',    icon: Camera,    label: 'Check-in'   },
@@ -16,20 +17,20 @@ export function ProfessorNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-10 border-t border-zinc-800 bg-zinc-900/95 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-lg">
+    <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-zinc-200 bg-white pb-[env(safe-area-inset-bottom)]">
+      <div className="mx-auto flex max-w-lg items-center">
         {tabs.map(tab => {
           const active = pathname.startsWith(tab.href)
           return (
             <Link
               key={tab.href}
               href={tab.href}
-              className={`flex flex-1 flex-col items-center gap-1 py-3 text-xs font-medium transition-colors ${
-                active ? 'text-indigo-400' : 'text-zinc-500 hover:text-zinc-300'
-              }`}
+              className="flex flex-1 flex-col items-center justify-center gap-1 py-2"
             >
-              <tab.icon className={`h-5 w-5 ${active ? 'text-indigo-400' : ''}`} />
-              {tab.label}
+              <tab.icon className={cn('h-5 w-5 transition-colors', active ? 'text-zinc-900' : 'text-zinc-400')} />
+              <span className={cn('text-[10px] transition-colors', active ? 'text-zinc-900 font-medium' : 'text-zinc-400')}>
+                {tab.label}
+              </span>
             </Link>
           )
         })}

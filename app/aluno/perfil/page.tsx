@@ -128,43 +128,43 @@ export default function PerfilPage() {
   }
 
   return (
-    <div className="px-4 pt-8 pb-24 space-y-6 max-w-sm mx-auto">
+    <div className="space-y-6">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Conta</p>
-        <h1 className="text-2xl font-bold text-zinc-100 mt-0.5">Meu Perfil</h1>
+        <h1 className="text-xl font-semibold text-zinc-900">Meu Perfil</h1>
+        <p className="text-sm text-zinc-500 mt-1">Foto e configurações da conta</p>
       </div>
 
       {/* Foto atual */}
       {step === 'view' && (
         <div className="space-y-4">
-          <div className="bg-zinc-900 rounded-2xl border border-zinc-800 p-6">
+          <div className="rounded-xl border border-zinc-200 bg-white p-6">
             <div className="flex flex-col items-center gap-4">
               {photoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={photoUrl}
                   alt={fullName}
-                  className="h-24 w-24 rounded-full object-cover ring-4 ring-zinc-800"
+                  className="h-24 w-24 rounded-full object-cover ring-4 ring-zinc-100"
                 />
               ) : (
-                <div className="h-24 w-24 rounded-full bg-zinc-800 ring-4 ring-zinc-700 flex items-center justify-center text-3xl font-bold text-zinc-400">
+                <div className="h-24 w-24 rounded-full bg-zinc-100 ring-4 ring-zinc-200 flex items-center justify-center text-3xl font-bold text-zinc-400">
                   {fullName.charAt(0).toUpperCase()}
                 </div>
               )}
-              <p className="text-lg font-semibold text-zinc-100">{fullName}</p>
+              <p className="text-lg font-semibold text-zinc-900">{fullName}</p>
             </div>
 
             {result && (
               <div className={`mt-4 rounded-xl border p-3 flex items-center gap-2 ${
                 result.success
-                  ? 'border-emerald-800/40 bg-emerald-950/30'
-                  : 'border-red-800/40 bg-red-950/30'
+                  ? 'border-emerald-200 bg-emerald-50'
+                  : 'border-red-200 bg-red-50'
               }`}>
                 {result.success
-                  ? <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                  ? <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
                   : <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />
                 }
-                <p className={`text-sm ${result.success ? 'text-emerald-400' : 'text-red-400'}`}>
+                <p className={`text-sm ${result.success ? 'text-emerald-800' : 'text-red-800'}`}>
                   {result.message}
                 </p>
               </div>
@@ -174,7 +174,7 @@ export default function PerfilPage() {
               type="button"
               onClick={startCamera}
               disabled={!modelsLoaded}
-              className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors disabled:opacity-50"
+              className="mt-4 w-full flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors disabled:opacity-50"
             >
               <Camera className="h-4 w-4" />
               {modelsLoaded ? 'Atualizar foto' : 'Carregando câmera...'}
@@ -182,16 +182,19 @@ export default function PerfilPage() {
           </div>
 
           {/* Ações da conta */}
-          <div className="bg-zinc-900 rounded-2xl border border-zinc-800 overflow-hidden">
+          <div className="rounded-xl border border-zinc-200 bg-white overflow-hidden">
             <Link
               href="/aluno/senha"
-              className="flex items-center justify-between px-4 py-3.5 hover:bg-zinc-800 transition-colors border-b border-zinc-800"
+              className="flex items-center justify-between px-4 py-3.5 hover:bg-zinc-50 transition-colors border-b border-zinc-100"
             >
-              <span className="text-sm text-zinc-200">Alterar senha</span>
-              <ChevronRight className="h-4 w-4 text-zinc-600" />
+              <span className="text-sm text-zinc-700">Alterar senha</span>
+              <ChevronRight className="h-4 w-4 text-zinc-400" />
             </Link>
             <div className="px-4 py-3">
-              <LogoutButton showText={true} />
+              <LogoutButton
+                showText={true}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-500 transition-colors hover:bg-red-50"
+              />
             </div>
           </div>
         </div>
@@ -200,7 +203,7 @@ export default function PerfilPage() {
       {/* Câmera */}
       {step === 'camera' && (
         <div className="space-y-4">
-          <div className="relative overflow-hidden rounded-2xl bg-zinc-900 aspect-square">
+          <div className="relative overflow-hidden rounded-xl bg-black border border-zinc-200 aspect-square">
             <video
               ref={videoRef}
               autoPlay
@@ -219,14 +222,14 @@ export default function PerfilPage() {
             <button
               type="button"
               onClick={cancelCapture}
-              className="flex-1 rounded-xl border border-zinc-700 py-3 text-sm font-medium text-zinc-400 hover:bg-zinc-800 transition-colors"
+              className="flex-1 rounded-xl border border-zinc-200 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
             >
               Cancelar
             </button>
             <button
               type="button"
               onClick={capturePhoto}
-              className="flex-1 rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors"
+              className="flex-1 rounded-2xl bg-indigo-600 py-3 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors"
             >
               <Camera className="h-4 w-4 inline mr-2" />
               Capturar
@@ -246,7 +249,7 @@ export default function PerfilPage() {
               className="h-48 w-48 rounded-full object-cover ring-4 ring-indigo-500 scale-x-[-1]"
             />
           </div>
-          <p className="text-center text-sm text-zinc-400">
+          <p className="text-center text-sm text-zinc-500">
             Gostou da foto? Confirme para salvar.
           </p>
           <div className="flex gap-3">
@@ -254,7 +257,7 @@ export default function PerfilPage() {
               type="button"
               onClick={cancelCapture}
               disabled={saving}
-              className="flex-1 rounded-xl border border-zinc-700 py-3 text-sm font-medium text-zinc-400 hover:bg-zinc-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 rounded-xl border border-zinc-200 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
               <RefreshCw className="h-4 w-4" />
               Tirar outra
@@ -263,7 +266,7 @@ export default function PerfilPage() {
               type="button"
               onClick={savePhoto}
               disabled={saving}
-              className="flex-1 rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 rounded-2xl bg-indigo-600 py-3 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {saving
                 ? <><Loader2 className="h-4 w-4 animate-spin" /> Salvando...</>

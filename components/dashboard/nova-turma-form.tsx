@@ -32,6 +32,7 @@ export function NovaTurmaForm({ professors }: NovaTurmaFormProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const [sport, setSport] = useState<string>('')
   const [name, setName] = useState('')
   const [professorId, setProfessorId] = useState(professors[0]?.id ?? '')
   const [weekdays, setWeekdays] = useState<number[]>([])
@@ -46,6 +47,7 @@ export function NovaTurmaForm({ professors }: NovaTurmaFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!sport) return
     if (weekdays.length === 0) {
       setError('Selecione ao menos um dia da semana.')
       return
@@ -58,6 +60,7 @@ export function NovaTurmaForm({ professors }: NovaTurmaFormProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name,
+          sport,
           professor_id: professorId,
           weekdays,
           start_time: startTime,
@@ -70,6 +73,7 @@ export function NovaTurmaForm({ professors }: NovaTurmaFormProps) {
       }
       setOpen(false)
       setName('')
+      setSport('')
       setWeekdays([])
       router.refresh()
     } catch (err) {
@@ -79,14 +83,17 @@ export function NovaTurmaForm({ professors }: NovaTurmaFormProps) {
     }
   }
 
-  const inputClass = "rounded-xl border-zinc-800/80 bg-zinc-950/60 py-5 text-white placeholder-zinc-600 focus-visible:ring-indigo-500"
-  const labelClass = "text-xs font-semibold text-zinc-400"
+  const inputClass =
+    'rounded-xl border-zinc-200 bg-white py-5 text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-indigo-500'
+  const labelClass = 'text-xs font-semibold text-zinc-500'
+  const selectClass =
+    'w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50'
 
   return (
     <>
       <Button
         onClick={() => setOpen(true)}
-        className="bg-indigo-600 hover:bg-indigo-500 text-white gap-2 rounded-xl shadow-lg shadow-indigo-600/20"
+        className="bg-indigo-600 hover:bg-indigo-500 text-white gap-2 rounded-xl shadow-sm"
       >
         <Plus className="h-4 w-4" />
         Nova turma
@@ -96,22 +103,42 @@ export function NovaTurmaForm({ professors }: NovaTurmaFormProps) {
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setOpen(false)}
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => !loading && setOpen(false)}
           />
-          <div className="relative z-10 w-full max-w-md rounded-2xl border border-zinc-800/80 bg-zinc-900 p-6 shadow-2xl">
+          <div className="relative z-10 w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-6 shadow-xl">
             <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-zinc-100">Nova turma</h2>
+              <h2 className="text-lg font-semibold text-zinc-900">Nova turma</h2>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="text-zinc-500 hover:text-zinc-300"
+                disabled={loading}
+                className="rounded-lg p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 transition-colors disabled:opacity-50"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Esporte */}
+              <div className="space-y-1.5">
+                <Label className={labelClass}>Esporte</Label>
+                <select
+                  value={sport}
+                  onChange={e => setSport(e.target.value)}
+                  required
+                  disabled={loading}
+                  className={selectClass}
+                >
+                  <option value="" disabled>
+                    Selecione o esporte
+                  </option>
+                  <option value="jiu-jitsu">Jiu-Jitsu</option>
+                  <option value="muay-thai">Muay Thai</option>
+                  <option value="boxe">Boxe</option>
+                </select>
+              </div>
+
               {/* Nome */}
               <div className="space-y-1.5">
                 <Label className={labelClass}>Nome da turma</Label>
@@ -134,13 +161,17 @@ export function NovaTurmaForm({ professors }: NovaTurmaFormProps) {
                   onChange={e => setProfessorId(e.target.value)}
                   disabled={loading}
                   required
-                  className="w-full rounded-xl border border-zinc-800/80 bg-zinc-950/60 px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className={selectClass}
                 >
                   {professors.length === 0 && (
-                    <option value="" disabled>Nenhum professor cadastrado</option>
+                    <option value="" disabled>
+                      Nenhum professor cadastrado
+                    </option>
                   )}
                   {professors.map(p => (
-                    <option key={p.id} value={p.id}>{p.full_name}</option>
+                    <option key={p.id} value={p.id}>
+                      {p.full_name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -154,10 +185,11 @@ export function NovaTurmaForm({ professors }: NovaTurmaFormProps) {
                       key={day.value}
                       type="button"
                       onClick={() => toggleWeekday(day.value)}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                      disabled={loading}
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 ${
                         weekdays.includes(day.value)
                           ? 'bg-indigo-600 text-white'
-                          : 'border border-zinc-700 text-zinc-400 hover:border-indigo-600 hover:text-indigo-400'
+                          : 'border border-zinc-200 bg-white text-zinc-600 hover:border-indigo-300 hover:text-indigo-600'
                       }`}
                     >
                       {day.label}
@@ -197,7 +229,7 @@ export function NovaTurmaForm({ professors }: NovaTurmaFormProps) {
               </div>
 
               {error && (
-                <p className="text-xs text-red-400">{error}</p>
+                <p className="text-xs text-red-600">{error}</p>
               )}
 
               <div className="flex gap-3 pt-1">
@@ -206,13 +238,13 @@ export function NovaTurmaForm({ professors }: NovaTurmaFormProps) {
                   variant="outline"
                   onClick={() => setOpen(false)}
                   disabled={loading}
-                  className="flex-1 rounded-xl border-zinc-700 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                  className="flex-1 rounded-xl border-zinc-200 text-zinc-600 hover:bg-zinc-50"
                 >
                   Cancelar
                 </Button>
                 <Button
                   type="submit"
-                  disabled={loading || !name || !professorId || weekdays.length === 0}
+                  disabled={loading || !name || !sport || !professorId || weekdays.length === 0}
                   className="flex-1 rounded-xl bg-indigo-600 font-semibold text-white hover:bg-indigo-500"
                 >
                   {loading

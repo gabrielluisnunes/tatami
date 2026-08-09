@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createStorageAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Camera, Download } from 'lucide-react'
@@ -54,11 +54,15 @@ export default async function CheckinsPage({ searchParams }: CheckinsPageProps) 
 
   const academyId = profile.academy_id
   const selectedMonth = searchParams.month
-  const status = searchParams.status ?? ''
+  const statusParam = searchParams.status ?? ''
+  const status = statusParam && statusParam !== 'all' ? statusParam : ''
   const page = Math.max(1, parseInt(searchParams.page ?? '1', 10) || 1)
 
+  // Mesmo padrão de professor/frequencia e dashboard/graduacoes — bypass RLS de forma explícita
+  const adminSupabase = createStorageAdminClient()
+
   // Constrói a consulta de checkins do Supabase com base nos filtros
-  let query = supabase
+  let query = adminSupabase
     .from('checkins')
     .select(`
       id,
@@ -70,7 +74,7 @@ export default async function CheckinsPage({ searchParams }: CheckinsPageProps) 
     `)
     .eq('academy_id', academyId)
 
-  let countQuery = supabase
+  let countQuery = adminSupabase
     .from('checkins')
     .select('id', { count: 'exact', head: true })
     .eq('academy_id', academyId)
@@ -97,7 +101,9 @@ export default async function CheckinsPage({ searchParams }: CheckinsPageProps) 
   }
 
   // Obter total de registros para cálculo das páginas
-  const { count } = await countQuery
+  const { count, error: countError } = await countQuery
+  if (countError) console.error('[CHECKINS] count error:', countError)
+
   const totalCount = count ?? 0
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE) || 1
 
@@ -105,19 +111,23 @@ export default async function CheckinsPage({ searchParams }: CheckinsPageProps) 
   const from = (page - 1) * ITEMS_PER_PAGE
   const to = page * ITEMS_PER_PAGE - 1
 
-  const { data: rawCheckins } = await query
+  const { data: rawCheckins, error: checkinsError } = await query
     .order('checked_in_at', { ascending: false })
     .range(from, to)
+
+  if (checkinsError) console.error('[CHECKINS] query error:', checkinsError)
 
   const checkinIds = (rawCheckins ?? []).map((c) => c.id as string)
 
   // Busca toda a attendance dos checkins selecionados (evita N+1)
-  const { data: rawAttendance } = checkinIds.length
-    ? await supabase
+  const { data: rawAttendance, error: attendanceError } = checkinIds.length
+    ? await adminSupabase
         .from('attendance')
         .select('checkin_id, student_id, source, profiles!attendance_student_id_fkey(full_name)')
         .in('checkin_id', checkinIds)
-    : { data: [] }
+    : { data: [], error: null }
+
+  if (attendanceError) console.error('[CHECKINS] attendance error:', attendanceError)
 
   // Agrupa attendance por checkin_id
   const attendanceMap = new Map<string, { student_id: string; full_name: string; source: 'ai' | 'manual' }[]>()

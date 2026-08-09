@@ -39,52 +39,52 @@ export default async function AlunoFinanceiroPage() {
     .reduce((sum, f) => sum + f.amount, 0) ?? 0
 
   return (
-    <div className="px-4 pt-8 pb-24 space-y-6">
+    <div className="space-y-6">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Pagamentos</p>
-        <h1 className="text-2xl font-bold text-zinc-100 mt-0.5">Financeiro</h1>
+        <h1 className="text-xl font-semibold text-zinc-900">Financeiro</h1>
+        <p className="text-sm text-zinc-500 mt-0.5">Pagamentos e pendências</p>
       </div>
 
       {/* Card de status atual */}
       {hasOverdue ? (
-        <div className="rounded-2xl border border-red-800/40 bg-red-950/20 p-5 flex gap-4 items-start">
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-red-900/40">
-            <AlertCircle className="h-5 w-5 text-red-400" />
+        <div className="rounded-xl border border-red-200 bg-red-50 p-5 flex gap-4 items-start">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-red-100">
+            <AlertCircle className="h-5 w-5 text-red-500" />
           </div>
           <div>
-            <p className="font-semibold text-red-300">Pagamento em atraso</p>
-            <p className="text-sm text-red-400/80 mt-0.5">
+            <p className="font-semibold text-red-800">Pagamento em atraso</p>
+            <p className="text-sm text-red-700 mt-0.5">
               Valor total em atraso:{' '}
-              <span className="font-bold text-red-300">
+              <span className="font-bold">
                 {overdueTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
               </span>
             </p>
-            <p className="text-xs text-red-500 mt-1">
+            <p className="text-xs text-red-600 mt-1">
               Entre em contato com a academia para regularizar.
             </p>
           </div>
         </div>
       ) : (
-        <div className="rounded-2xl border border-emerald-800/30 bg-emerald-950/20 p-5 flex gap-4 items-center">
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-900/40">
-            <CheckCircle className="h-5 w-5 text-emerald-400" />
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 flex gap-4 items-center">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-100">
+            <CheckCircle className="h-5 w-5 text-emerald-600" />
           </div>
           <div>
-            <p className="font-semibold text-emerald-300">Pagamentos em dia</p>
-            <p className="text-sm text-emerald-400/70 mt-0.5">Nenhuma pendência no momento.</p>
+            <p className="font-semibold text-emerald-800">Pagamentos em dia</p>
+            <p className="text-sm text-emerald-700 mt-0.5">Nenhuma pendência no momento.</p>
           </div>
         </div>
       )}
 
       {/* Histórico */}
       <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-widest">
+        <h2 className="text-sm font-semibold text-zinc-900">
           Histórico
         </h2>
 
         {!financials || financials.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-zinc-800 py-10 text-center text-zinc-600">
-            <p className="text-sm">Nenhum registro financeiro encontrado.</p>
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-300 bg-white py-16 text-center">
+            <p className="text-sm text-zinc-500">Nenhum registro financeiro encontrado.</p>
           </div>
         ) : (
           <FinanceiroClient financials={financials} hasPix={!!academy?.pix_key} />

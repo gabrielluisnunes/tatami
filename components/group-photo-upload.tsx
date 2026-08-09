@@ -74,14 +74,14 @@ export function GroupPhotoUpload({ onSelect, onClear, disabled }: GroupPhotoUplo
   return (
     <div className="space-y-3">
       {preview ? (
-        <div className="relative overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-950">
+        <div className="relative overflow-hidden rounded-xl border border-zinc-200 bg-white">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={preview} alt="Foto da turma" className="w-full object-cover max-h-72" />
           <button
             type="button"
             onClick={handleClear}
             disabled={disabled}
-            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-zinc-950/80 text-zinc-400 border border-zinc-700 hover:text-zinc-50 transition-colors backdrop-blur-md"
+            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-zinc-600 border border-zinc-200 hover:text-zinc-900 transition-colors backdrop-blur-md"
           >
             <X className="h-4 w-4" />
           </button>
@@ -91,21 +91,21 @@ export function GroupPhotoUpload({ onSelect, onClear, disabled }: GroupPhotoUplo
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled || compressing}
-          className="flex h-56 w-full flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-zinc-700 bg-zinc-950/40 text-zinc-500 transition-colors hover:border-indigo-600/60 hover:text-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-56 w-full flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-zinc-300 bg-white text-zinc-500 transition-colors hover:border-indigo-300 hover:text-indigo-600 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {compressing ? (
             <>
-              <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+              <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
               <span className="text-sm">Processando...</span>
             </>
           ) : (
             <>
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-900 border border-zinc-800">
-                <Camera className="h-7 w-7" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-100 border border-zinc-200">
+                <Camera className="h-7 w-7 text-zinc-400" />
               </div>
               <div className="text-center">
-                <p className="text-sm font-medium text-zinc-300">Foto da turma</p>
-                <p className="text-xs text-zinc-600 mt-1">Toque para tirar ou selecionar</p>
+                <p className="text-sm font-medium text-zinc-800">Foto da turma</p>
+                <p className="text-xs text-zinc-500 mt-1">Toque para tirar ou selecionar</p>
               </div>
             </>
           )}
@@ -113,7 +113,7 @@ export function GroupPhotoUpload({ onSelect, onClear, disabled }: GroupPhotoUplo
       )}
 
       {error && (
-        <p className="text-xs text-red-400">{error}</p>
+        <p className="text-xs text-red-600">{error}</p>
       )}
 
       <input

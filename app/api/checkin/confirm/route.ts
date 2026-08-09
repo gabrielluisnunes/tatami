@@ -11,6 +11,14 @@ const confirmSchema = z.object({
   })).min(1, 'Nenhum aluno confirmado'),
 })
 
+type ClassSportRelation = { sport: string } | { sport: string }[] | null
+
+function resolveTurmaSport(classes: ClassSportRelation): string | null {
+  if (!classes) return null
+  if (Array.isArray(classes)) return classes[0]?.sport ?? null
+  return classes.sport ?? null
+}
+
 export async function POST(request: Request) {
   const supabase = createClient()
 
@@ -37,15 +45,51 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 })
   }
 
-  // Verifica que o check-in pertence à academia do professor
-  const { data: checkin } = await supabase
+  const { createStorageAdminClient } = await import('@/lib/supabase/server')
+  const adminSupabase = createStorageAdminClient()
+
+  // Verifica check-in e busca esporte da turma
+  const { data: checkinData } = await adminSupabase
     .from('checkins')
-    .select('id, status')
+    .select('id, status, class_id, academy_id, classes(sport)')
     .eq('id', body.checkin_id)
-    .eq('academy_id', profile.academy_id)
     .single()
 
-  if (!checkin) return NextResponse.json({ error: 'Check-in não encontrado' }, { status: 404 })
+  if (!checkinData || checkinData.academy_id !== profile.academy_id) {
+    return NextResponse.json({ error: 'Check-in não encontrado' }, { status: 404 })
+  }
+
+  const turmaSport = resolveTurmaSport(checkinData.classes as ClassSportRelation)
+
+  if (!turmaSport) {
+    return NextResponse.json(
+      { error: 'Turma sem esporte cadastrado. Edite a turma e defina o esporte antes de confirmar.' },
+      { status: 400 }
+    )
+  }
+
+  const eligibleStudents: typeof body.students = []
+  const skipped: Array<{ student_id: string; reason: 'sport_mismatch' }> = []
+
+  // Validar se cada aluno pratica o esporte da turma
+  for (const student of body.students) {
+    const { data: studentSport } = await adminSupabase
+      .from('student_sports')
+      .select('id')
+      .eq('student_id', student.student_id)
+      .eq('sport', turmaSport)
+      .eq('academy_id', profile.academy_id)
+      .maybeSingle()
+
+    if (!studentSport) {
+      // Aluno não pratica esse esporte — pular, não registrar presença
+      console.log(`[CHECKIN] Aluno ${student.student_id} não pratica ${turmaSport} — ignorado`)
+      skipped.push({ student_id: student.student_id, reason: 'sport_mismatch' })
+      continue
+    }
+
+    eligibleStudents.push(student)
+  }
 
   const now = new Date().toISOString()
 
@@ -59,8 +103,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Erro ao limpar presenças anteriores' }, { status: 500 })
   }
 
-  // Insere registros de presença
-  const attendanceRecords = body.students.map(({ student_id, source, similarity }) => ({
+  // Insere registros de presença apenas dos alunos elegíveis
+  const attendanceRecords = eligibleStudents.map(({ student_id, source, similarity }) => ({
     checkin_id: body.checkin_id,
     student_id,
     academy_id: profile.academy_id,
@@ -69,12 +113,14 @@ export async function POST(request: Request) {
     present_at: now,
   }))
 
-  const { error: attendanceError } = await supabase
-    .from('attendance')
-    .insert(attendanceRecords)
+  if (attendanceRecords.length > 0) {
+    const { error: attendanceError } = await supabase
+      .from('attendance')
+      .insert(attendanceRecords)
 
-  if (attendanceError) {
-    return NextResponse.json({ error: 'Erro ao registrar presenças' }, { status: 500 })
+    if (attendanceError) {
+      return NextResponse.json({ error: 'Erro ao registrar presenças' }, { status: 500 })
+    }
   }
 
   // Atualiza status do check-in para 'confirmed'
@@ -83,5 +129,9 @@ export async function POST(request: Request) {
     .update({ status: 'confirmed', confirmed_at: now })
     .eq('id', body.checkin_id)
 
-  return NextResponse.json({ success: true, count: attendanceRecords.length })
+  return NextResponse.json({
+    success: true,
+    count: attendanceRecords.length,
+    skipped,
+  })
 }

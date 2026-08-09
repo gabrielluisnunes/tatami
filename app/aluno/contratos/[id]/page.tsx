@@ -45,17 +45,17 @@ export default async function AlunoContratoAssinaturaPage({
 
   if (existingSignature) {
     return (
-      <div className="px-4 pt-8 pb-24 space-y-6">
+      <div className="space-y-6">
         <div>
-          <h1 className="text-xl font-bold text-zinc-100">{contract.title}</h1>
+          <h1 className="text-xl font-semibold text-zinc-900">{contract.title}</h1>
           {contract.description && (
-            <p className="mt-1 text-sm text-zinc-400">{contract.description}</p>
+            <p className="mt-1 text-sm text-zinc-500">{contract.description}</p>
           )}
         </div>
-        <div className="flex flex-col items-center gap-4 rounded-2xl border border-emerald-800/40 bg-emerald-950/30 py-10 px-6 text-center">
-          <CheckCircle className="h-12 w-12 text-emerald-400" />
+        <div className="flex flex-col items-center gap-4 rounded-xl border border-emerald-200 bg-emerald-50 py-10 px-6 text-center">
+          <CheckCircle className="h-12 w-12 text-emerald-600" />
           <div>
-            <p className="font-semibold text-emerald-300">Contrato assinado</p>
+            <p className="font-semibold text-emerald-800">Contrato assinado</p>
             <p className="mt-1 text-xs text-zinc-500">
               Assinado em {formatLocalDate(existingSignature.signed_at)}
             </p>
@@ -64,7 +64,7 @@ export default async function AlunoContratoAssinaturaPage({
             <a
               href={`/api/contracts/${contract.id}/download`}
               download
-              className="mt-2 flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-500 transition-colors"
+              className="mt-2 flex items-center gap-2 rounded-2xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors"
             >
               <Download className="h-4 w-4" />
               Baixar documento assinado
@@ -73,7 +73,7 @@ export default async function AlunoContratoAssinaturaPage({
         </div>
         <Link
           href="/aluno/contratos"
-          className="block text-center text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
+          className="block text-center text-sm text-indigo-600 hover:text-indigo-500 transition-colors"
         >
           ← Voltar para contratos
         </Link>
@@ -87,7 +87,7 @@ export default async function AlunoContratoAssinaturaPage({
     .createSignedUrl(contract.file_url, 3600)
 
   return (
-    <div className="px-4 pt-8 pb-24">
+    <div>
       <ContratoAssinaturaForm
         contractId={contract.id}
         title={contract.title}

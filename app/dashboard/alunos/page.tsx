@@ -1,10 +1,24 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createStorageAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import { StudentActions } from '@/components/dashboard/student-actions'
+import { cn } from '@/lib/utils'
+
+const BELT_LABELS: Record<string, string> = {
+  branca: 'Branca', azul: 'Azul', roxa: 'Roxa', marrom: 'Marrom', preta: 'Preta',
+  branco: 'Branco', laranja: 'Laranja', 'azul-mt': 'Azul',
+  vermelho: 'Vermelho', amarelo: 'Amarelo', verde: 'Verde',
+  'marrom-mt': 'Marrom', 'preto-mt': 'Preto',
+}
+
+const SPORT_LABELS: Record<string, string> = {
+  'jiu-jitsu': 'Jiu-Jitsu',
+  'muay-thai': 'Muay Thai',
+  'boxe': 'Boxe',
+}
 
 const beltColors: Record<string, string> = {
   branca: 'bg-slate-100 text-slate-800 ring-1 ring-slate-300',
@@ -36,6 +50,26 @@ export default async function AlunosPage({
     redirect('/onboarding')
   }
 
+  const storageAdmin = createStorageAdminClient()
+  const { data: allStudentSports } = await storageAdmin
+    .from('student_sports')
+    .select('student_id, sport, belt, degree')
+    .eq('academy_id', profile.academy_id)
+
+  const studentSportsMap = new Map<string, Array<{
+    sport: string
+    belt: string | null
+    degree: number
+  }>>()
+  for (const ss of allStudentSports ?? []) {
+    const existing = studentSportsMap.get(ss.student_id) ?? []
+    studentSportsMap.set(ss.student_id, [...existing, {
+      sport: ss.sport,
+      belt: ss.belt,
+      degree: ss.degree,
+    }])
+  }
+
   const { data: rawAlunos } = await supabase
     .from('profiles')
     .select('id, full_name, phone, belt, degree, photo_url, city, state, created_at, birth_date, sport')
@@ -46,16 +80,23 @@ export default async function AlunosPage({
   const alunos = rawAlunos
     ? await Promise.all(
         rawAlunos.map(async (aluno) => {
+          const sports = studentSportsMap.get(aluno.id) ?? [{
+            sport: aluno.sport ?? 'jiu-jitsu',
+            belt: aluno.belt,
+            degree: aluno.degree ?? 0,
+          }]
+          let photo_url = aluno.photo_url
           if (aluno.photo_url && !aluno.photo_url.startsWith('http') && !aluno.photo_url.startsWith('data:')) {
             const { data } = await supabase.storage
               .from('student-photos')
               .createSignedUrl(aluno.photo_url, 3600)
-            return {
-              ...aluno,
-              photo_url: data?.signedUrl || null,
-            }
+            photo_url = data?.signedUrl || null
           }
-          return aluno
+          return {
+            ...aluno,
+            photo_url,
+            sports,
+          }
         })
       )
     : []
@@ -99,7 +140,9 @@ export default async function AlunosPage({
                 <th className="px-4 py-3 text-left font-medium text-gray-500">Nome</th>
                 <th className="px-4 py-3 text-left font-medium text-gray-500">Telefone</th>
                 <th className="px-4 py-3 text-left font-medium text-gray-500">Localização</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500">Faixa</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wide">
+                  Graduação
+                </th>
                 <th className="px-4 py-3 text-left font-medium text-gray-500">Desde</th>
                 <th className="px-4 py-3 text-right font-medium text-gray-500"></th>
               </tr>
@@ -135,20 +178,27 @@ export default async function AlunosPage({
                       : aluno.city || aluno.state || '—'}
                   </td>
                   <td className="px-4 py-3">
-                    {aluno.belt ? (
-                      <span
-                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          beltColors[aluno.belt.toLowerCase()] ?? 'bg-gray-200 text-gray-700'
-                        }`}
-                      >
-                        {aluno.belt.charAt(0).toUpperCase() + aluno.belt.slice(1)}
-                        {(aluno.degree ?? 0) > 0 && (
-                          <span className="tracking-tighter opacity-60">{'●'.repeat(aluno.degree ?? 0)}</span>
-                        )}
-                      </span>
-                    ) : (
-                      <span className="text-gray-400">—</span>
-                    )}
+                    <div className="flex flex-wrap gap-1">
+                      {aluno.sports.map((ss, i) => (
+                        <div key={i} className="flex items-center gap-1">
+                          {ss.sport !== 'boxe' && ss.belt ? (
+                            <span className={cn(
+                              "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
+                              beltColors[ss.belt] ?? 'bg-zinc-100 text-zinc-700'
+                            )}>
+                              {SPORT_LABELS[ss.sport]} · {BELT_LABELS[ss.belt] ?? ss.belt}
+                              {ss.sport === 'jiu-jitsu' && ss.degree > 0 && (
+                                <span className="ml-1">{'●'.repeat(ss.degree)}</span>
+                              )}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-zinc-100 text-zinc-600">
+                              {SPORT_LABELS[ss.sport] ?? ss.sport}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-gray-500">
                     {new Date(aluno.created_at).toLocaleDateString('pt-BR', {

@@ -1,4 +1,4 @@
-import { createAdminClient } from '@/lib/supabase/server'
+import { createClient, createStorageAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sendWelcomeEmail } from '@/lib/notifications'
@@ -17,9 +17,11 @@ const enrollSchema = z.object({
   full_name: z.string().min(2),
   email: z.string().email(),
   role: z.enum(['aluno', 'professor']),
-  sport: z.enum(['jiu-jitsu', 'muay-thai', 'boxe']).default('jiu-jitsu'),
-  belt: z.string().nullable().default('branca'),
-  degree: z.number().int().min(0).max(4).default(0),
+  sports: z.array(z.object({
+    sport: z.enum(['jiu-jitsu', 'muay-thai', 'boxe']),
+    belt: z.string().optional().nullable(),
+    degree: z.number().int().min(0).max(4).default(0),
+  })).min(1),
   birth_date: z.string().optional(),
   phone: z.string().optional(),
   emergency_phone: z.string().optional(),
@@ -32,7 +34,8 @@ const enrollSchema = z.object({
 })
 
 export async function POST(request: Request) {
-  const supabase = createAdminClient()
+  const supabase = createClient()
+  const adminSupabase = createStorageAdminClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
@@ -83,9 +86,10 @@ export async function POST(request: Request) {
     }
   }
 
+  const primarySport = body.sports[0]
   const tempPassword = body.password?.trim() || generateTempPassword()
 
-  const { data: created, error: createError } = await supabase.auth.admin.createUser({
+  const { data: created, error: createError } = await adminSupabase.auth.admin.createUser({
     email: body.email,
     password: tempPassword,
     email_confirm: true,
@@ -93,36 +97,25 @@ export async function POST(request: Request) {
       full_name: body.full_name,
       role: body.role,
       academy_id: adminProfile.academy_id,
-      belt: body.belt,
+      belt: primarySport.belt ?? null,
     },
   })
 
   if (createError || !created.user) {
+    console.error('[ENROLL] createUser error:', JSON.stringify(createError))
     if (createError?.message?.includes('already')) {
       return NextResponse.json({ error: 'Email já cadastrado' }, { status: 409 })
     }
-    return NextResponse.json({ error: 'Erro ao criar usuário' }, { status: 500 })
-  }
-
-  // Registra faixa inicial em belt_history para garantir histórico completo desde o cadastro
-  // Boxe não tem graduação — não inserir em belt_history
-  if (body.sport !== 'boxe') {
-    await supabase.from('belt_history').insert({
-      student_id: created.user.id,
-      academy_id: adminProfile.academy_id,
-      belt: body.belt ?? 'branca',
-      degree: body.sport === 'jiu-jitsu' ? (body.degree ?? 0) : 0,
-      sport: body.sport,
-      graded_at: new Date().toISOString(),
-      graded_by: user.id,
-      notes: 'Graduação de cadastro inicial',
-      trainings_at_graduation: 0,
-    })
+    return NextResponse.json({ error: createError?.message ?? 'Erro ao criar usuário' }, { status: 500 })
   }
 
   const updates: Record<string, unknown> = {
-    degree: body.degree,
-    sport: body.sport,
+    full_name: body.full_name,
+    role: body.role,
+    academy_id: adminProfile.academy_id,
+    sport: primarySport.sport,
+    belt: primarySport.belt ?? null,
+    degree: primarySport.sport === 'jiu-jitsu' ? (primarySport.degree ?? 0) : 0,
   }
 
   if (body.birth_date) updates.birth_date = body.birth_date
@@ -135,7 +128,40 @@ export async function POST(request: Request) {
   if (body.state) updates.state = body.state
 
   if (Object.keys(updates).length > 0) {
-    await supabase.from('profiles').update(updates).eq('id', created.user.id)
+    const { error: profileError } = await adminSupabase.from('profiles').update(updates).eq('id', created.user.id)
+    if (profileError) console.error('[ENROLL] profiles update error:', JSON.stringify(profileError))
+  }
+
+  for (const s of body.sports) {
+    // Inserir em student_sports
+    const { error: ssError } = await adminSupabase
+      .from('student_sports')
+      .insert({
+        student_id: created.user.id,
+        academy_id: adminProfile.academy_id,
+        sport: s.sport,
+        belt: s.sport !== 'boxe' ? (s.belt ?? null) : null,
+        degree: s.sport === 'jiu-jitsu' ? (s.degree ?? 0) : 0,
+      })
+    if (ssError) console.error('[ENROLL] student_sports error:', JSON.stringify(ssError))
+
+    // Inserir em belt_history (exceto boxe)
+    if (s.sport !== 'boxe') {
+      const { error: bhError } = await adminSupabase
+        .from('belt_history')
+        .insert({
+          student_id: created.user.id,
+          academy_id: adminProfile.academy_id,
+          belt: s.belt ?? (s.sport === 'jiu-jitsu' ? 'branca' : 'branco'),
+          degree: s.sport === 'jiu-jitsu' ? (s.degree ?? 0) : 0,
+          sport: s.sport,
+          graded_at: new Date().toISOString(),
+          graded_by: user.id,
+          notes: 'Graduação de cadastro inicial',
+          trainings_at_graduation: 0,
+        })
+      if (bhError) console.error('[ENROLL] belt_history error:', JSON.stringify(bhError))
+    }
   }
 
   // Envia email com senha temporária (aguarda envio; não bloqueia cadastro em caso de falha)
