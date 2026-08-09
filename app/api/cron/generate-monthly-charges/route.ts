@@ -1,6 +1,11 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { sendDueTodayAlert } from '@/lib/notifications'
+import {
+  dueDateForMonth,
+  getBrasiliaParts,
+  monthBounds,
+} from '@/lib/financial-month'
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization')
@@ -11,19 +16,10 @@ export async function GET(request: Request) {
 
   const supabase = createAdminClient()
 
-  const now = new Date()
-  const brasiliaOffset = -3 * 60 // -180 minutos
-  const brasiliaTime = new Date(now.getTime() + brasiliaOffset * 60 * 1000)
-  const todayDay = brasiliaTime.getUTCDate()
-  const todayMonth = brasiliaTime.getUTCMonth() + 1
-  const todayYear = brasiliaTime.getUTCFullYear()
+  const { year: todayYear, month: todayMonth, day: todayDay } = getBrasiliaParts()
+  const { first: monthStart, last: monthEnd } = monthBounds(todayYear, todayMonth)
 
-  console.log(`[generate-monthly-charges] Data Brasília: ${brasiliaTime.toISOString()}, Dia: ${todayDay}, Mês: ${todayMonth}, Ano: ${todayYear}`)
-
-  const pad = (n: number) => String(n).padStart(2, '0')
-  const dueDateStr  = `${todayYear}-${pad(todayMonth)}-${pad(todayDay)}`
-  const monthStart  = `${todayYear}-${pad(todayMonth)}-01`
-  const monthEnd    = `${todayYear}-${pad(todayMonth)}-31`
+  console.log(`[generate-monthly-charges] Brasília ${todayYear}-${todayMonth}-${todayDay}`)
 
   const { data: students, error: studentsError } = await supabase
     .from('profiles')
@@ -58,6 +54,8 @@ export async function GET(request: Request) {
   let created = 0
 
   for (const student of students) {
+    if (!student.payment_due_day) continue
+
     const studentEmail = emailMap.get(student.id)
     if (!studentEmail) {
       console.warn(`Email não encontrado para student_id: ${student.id}`)
@@ -77,6 +75,8 @@ export async function GET(request: Request) {
 
     if (existing && existing.length > 0) continue
 
+    const dueDateStr = dueDateForMonth(todayYear, todayMonth, student.payment_due_day)
+
     const { error: insertError } = await supabase
       .from('financials')
       .insert({
@@ -94,13 +94,17 @@ export async function GET(request: Request) {
 
     created++
 
-    sendDueTodayAlert(
-      studentEmail,
-      student.full_name,
-      academy.monthly_price,
-      dueDateStr,
-      academy.name,
-    ).catch(err => console.error(`Falha no email vencimento ${student.id}:`, err))
+    // Só alerta "vence hoje" no dia real de vencimento (não em catch-up)
+    const dueDay = Number(dueDateStr.split('-')[2])
+    if (dueDay === todayDay) {
+      sendDueTodayAlert(
+        studentEmail,
+        student.full_name,
+        academy.monthly_price,
+        dueDateStr,
+        academy.name,
+      ).catch(err => console.error(`Falha no email vencimento ${student.id}:`, err))
+    }
   }
 
   return NextResponse.json({ created })

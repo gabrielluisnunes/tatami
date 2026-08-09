@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { sendOverdueAlert } from '@/lib/notifications'
+import { getBrasiliaParts, pad2 } from '@/lib/financial-month'
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization')
@@ -11,10 +12,8 @@ export async function GET(request: Request) {
 
   const supabase = createAdminClient()
 
-  const now = new Date()
-  const brasiliaOffset = -3 * 60
-  const brasiliaTime = new Date(now.getTime() + brasiliaOffset * 60 * 1000)
-  const today = brasiliaTime.toISOString().split('T')[0]
+  const { year, month, day } = getBrasiliaParts()
+  const today = `${year}-${pad2(month)}-${pad2(day)}`
 
   console.log(`[update-overdue] Data Brasília: ${today}`)
 
