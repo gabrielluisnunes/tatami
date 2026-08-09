@@ -3,8 +3,14 @@ import { redirect } from 'next/navigation'
 import { DollarSign, AlertTriangle, TrendingDown, TrendingUp, Download } from 'lucide-react'
 import { OverdueTable } from '@/components/dashboard/overdue-table'
 import { MonthlyTable } from '@/components/dashboard/monthly-table'
+import { FinanceiroMonthNav } from '@/components/dashboard/financeiro-month-nav'
+import { parseMonthParam } from '@/lib/financial-month'
 
-export default async function FinanceiroPage() {
+interface FinanceiroPageProps {
+  searchParams: { month?: string }
+}
+
+export default async function FinanceiroPage({ searchParams }: FinanceiroPageProps) {
   const supabase = createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -20,25 +26,13 @@ export default async function FinanceiroPage() {
   if (profile.role !== 'admin') redirect('/dashboard')
 
   const academyId = profile.academy_id
-
-  const { data: summary } = await supabase
-    .from('v_financial_dashboard')
-    .select('paid_total, overdue_total, overdue_count, pending_count')
-    .eq('academy_id', academyId)
-    .single()
+  const { year, month, first: firstOfMonth, last: lastOfMonth } = parseMonthParam(searchParams.month)
 
   const { count: totalStudents } = await supabase
     .from('profiles')
     .select('id', { count: 'exact', head: true })
     .eq('academy_id', academyId)
     .eq('role', 'aluno')
-
-  const paidTotal    = summary?.paid_total    ?? 0
-  const overdueTotal = summary?.overdue_total ?? 0
-  const overdueCount = summary?.overdue_count ?? 0
-  const inadimplencia = totalStudents
-    ? ((overdueCount / totalStudents) * 100).toFixed(1)
-    : '0.0'
 
   interface OverdueRaw {
     id: string
@@ -63,26 +57,29 @@ export default async function FinanceiroPage() {
     due_date:   f.due_date,
   }))
 
-  const now = new Date()
-  const year = now.getUTCFullYear()
-  const month = now.getUTCMonth() + 1
-  const pad = (n: number) => String(n).padStart(2, '0')
-  const firstOfMonth = `${year}-${pad(month)}-01`
-  const lastOfMonth  = `${year}-${pad(month)}-31`
+  const overdueTotal = overdueRecords.reduce((sum, r) => sum + (r.amount || 0), 0)
+  const overdueCount = new Set(overdueRecords.map(r => r.student_id)).size
+  const inadimplencia = totalStudents
+    ? ((overdueCount / totalStudents) * 100).toFixed(1)
+    : '0.0'
 
   const { data: allStudents } = await supabase
     .from('profiles')
     .select('id, full_name, payment_due_day')
-    .eq('academy_id', profile.academy_id)
+    .eq('academy_id', academyId)
     .eq('role', 'aluno')
     .order('full_name', { ascending: true })
 
   const { data: monthlyCharges } = await supabase
     .from('financials')
     .select('id, student_id, amount, due_date, paid_at, status')
-    .eq('academy_id', profile.academy_id)
+    .eq('academy_id', academyId)
     .gte('due_date', firstOfMonth)
     .lte('due_date', lastOfMonth)
+
+  const paidTotal = (monthlyCharges ?? [])
+    .filter(c => c.status === 'paid')
+    .reduce((sum, c) => sum + (c.amount || 0), 0)
 
   const monthlyRecords = (allStudents ?? []).map(student => {
     const charge = (monthlyCharges ?? []).find(c => c.student_id === student.id)
@@ -102,14 +99,14 @@ export default async function FinanceiroPage() {
   const { data: academyData } = await supabase
     .from('academies')
     .select('monthly_price')
-    .eq('id', profile.academy_id)
+    .eq('id', academyId)
     .single()
 
   const monthlyPrice = academyData?.monthly_price ?? 0
 
   const metrics = [
     {
-      title: 'TOTAL RECEBIDO',
+      title: 'RECEBIDO NO MÊS',
       value: paidTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
       icon: TrendingUp,
       iconColor: 'text-emerald-500',
@@ -138,23 +135,32 @@ export default async function FinanceiroPage() {
     },
   ]
 
-  const monthName = now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+  const monthLabel = new Date(year, month - 1, 1).toLocaleDateString('pt-BR', {
+    month: 'long',
+    year: 'numeric',
+  })
+  const monthShort = new Date(year, month - 1, 1).toLocaleDateString('pt-BR', {
+    month: 'long',
+  })
 
   return (
     <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-lg lg:text-xl font-semibold text-zinc-900">Financeiro</h1>
-          <p className="text-sm text-zinc-500 mt-0.5 capitalize">{monthName}</p>
+          <p className="text-sm text-zinc-500 mt-0.5">Mensalidades e inadimplência</p>
         </div>
-        <a
-          href="/api/reports/inadimplencia"
-          download
-          className="flex items-center gap-2 rounded-lg border border-zinc-200 px-3 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition-colors"
-        >
-          <Download className="h-4 w-4" />
-          Exportar inadimplentes
-        </a>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <FinanceiroMonthNav year={year} month={month} label={monthLabel} />
+          <a
+            href="/api/reports/inadimplencia"
+            download
+            className="flex items-center justify-center gap-2 rounded-lg border border-zinc-200 px-3 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition-colors"
+          >
+            <Download className="h-4 w-4" />
+            Exportar inadimplentes
+          </a>
+        </div>
       </div>
 
       {/* Cards de métricas */}
@@ -173,7 +179,7 @@ export default async function FinanceiroPage() {
         ))}
       </div>
 
-      {/* Alunos em atraso */}
+      {/* Alunos em atraso (todas as cobranças em aberto) */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <h2 className="text-sm font-semibold text-zinc-900">Alunos em atraso</h2>
@@ -186,10 +192,10 @@ export default async function FinanceiroPage() {
         <OverdueTable records={overdueRecords} />
       </div>
 
-      {/* Mensalidades do mês */}
+      {/* Mensalidades do mês selecionado */}
       <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-zinc-900">
-          Mensalidades — {now.toLocaleDateString('pt-BR', { month: 'long' })}
+        <h2 className="text-sm font-semibold text-zinc-900 capitalize">
+          Mensalidades — {monthShort}
         </h2>
         <MonthlyTable records={monthlyRecords} monthlyPrice={monthlyPrice} />
       </div>
