@@ -22,13 +22,14 @@ export async function GET() {
     return NextResponse.json({ error: 'Acesso negado' }, { status: 403 })
   }
 
-  // Admin vê todas as turmas da academia, professor vê só as suas
+  // Admin vê todas as turmas da academia; professor só as suas
   let query = supabase
     .from('classes')
-    .select('id, name, start_time, end_time, weekdays')
+    .select('id, name, start_time, end_time, weekdays, sport')
     .eq('academy_id', profile.academy_id)
     .order('start_time', { ascending: true })
 
+  // Professor só vê suas turmas
   if (profile.role === 'professor') {
     query = query.eq('professor_id', user.id)
   }
@@ -42,6 +43,7 @@ export async function GET() {
 
 const createClassSchema = z.object({
   name: z.string().min(1),
+  sport: z.enum(['jiu-jitsu', 'muay-thai', 'boxe']),
   professor_id: z.string().uuid(),
   weekdays: z.array(z.number().int().min(0).max(6)).min(1),
   start_time: z.string().regex(/^\d{2}:\d{2}$/),
@@ -89,6 +91,7 @@ export async function POST(request: Request) {
     .insert({
       academy_id: profile.academy_id,
       name: body.name,
+      sport: body.sport,
       professor_id: body.professor_id,
       weekdays: body.weekdays,
       start_time: body.start_time,

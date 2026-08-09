@@ -109,6 +109,7 @@ function ModalContent({
           student_id:              student.id,
           belt,
           degree: student.sport === 'jiu-jitsu' ? degree : 0,
+          sport:                   student.sport,
           notes:                   notes || undefined,
           trainings_at_graduation: trainings,
         }),

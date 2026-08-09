@@ -21,6 +21,12 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
+      - name: Cache Next.js
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
       - name: Instalar dependências
         run: npm ci
 

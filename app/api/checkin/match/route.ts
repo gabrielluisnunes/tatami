@@ -1,4 +1,4 @@
-import { createAdminClient } from '@/lib/supabase/server'
+import { createAdminClient, createStorageAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
@@ -7,6 +7,7 @@ const MATCH_THRESHOLD = 0.6
 const matchSchema = z.object({
   detected_descriptors: z.array(z.array(z.number()).length(128)).min(1).max(50),
   academy_id: z.string().uuid().optional(),
+  class_id: z.string().uuid().optional(),
 })
 
 function euclideanDistance(a: number[], b: number[]): number {
@@ -41,6 +42,34 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 })
   }
 
+  // Esporte da turma (opcional) — reconhecimento continua para todos; elegibilidade é só para presença
+  let classSport: string | null = null
+  const eligibleStudentIds = new Set<string>()
+
+  if (body.class_id) {
+    const adminSupabase = createStorageAdminClient()
+    const { data: classData } = await adminSupabase
+      .from('classes')
+      .select('id, sport, academy_id')
+      .eq('id', body.class_id)
+      .eq('academy_id', profile.academy_id)
+      .maybeSingle()
+
+    classSport = classData?.sport ?? null
+
+    if (classSport) {
+      const { data: sportsRows } = await adminSupabase
+        .from('student_sports')
+        .select('student_id')
+        .eq('academy_id', profile.academy_id)
+        .eq('sport', classSport)
+
+      for (const row of sportsRows ?? []) {
+        eligibleStudentIds.add(row.student_id)
+      }
+    }
+  }
+
   // Buscar todos os descritores dos alunos da academia (APENAS no servidor)
   const { data: students } = await supabase
     .from('profiles')
@@ -50,7 +79,7 @@ export async function POST(request: Request) {
     .not('face_descriptor', 'is', null)
 
   if (!students || students.length === 0) {
-    return NextResponse.json({ matches: [] })
+    return NextResponse.json({ matches: [], sport: classSport })
   }
 
   // Gerar signed URLs das fotos (sem expor face_descriptor)
@@ -63,11 +92,11 @@ export async function POST(request: Request) {
           .createSignedUrl(photoUrl, 3600)
         photoUrl = data?.signedUrl ?? null
       }
-      return { 
-        id: s.id, 
-        full_name: s.full_name, 
+      return {
+        id: s.id,
+        full_name: s.full_name,
         photo_url: photoUrl,
-        face_descriptor: s.face_descriptor as number[]
+        face_descriptor: s.face_descriptor as number[],
       }
     })
   )
@@ -79,6 +108,7 @@ export async function POST(request: Request) {
     photo_url: string | null
     similarity: number
     source: 'ai'
+    eligible: boolean
   }> = []
 
   const matchedStudentIds = new Set<string>()
@@ -100,16 +130,18 @@ export async function POST(request: Request) {
 
     if (bestMatch) {
       matchedStudentIds.add(bestMatch.id)
+      const eligible = !classSport || eligibleStudentIds.has(bestMatch.id)
       matches.push({
         student_id: bestMatch.id,
         full_name: bestMatch.full_name,
         photo_url: bestMatch.photo_url,
         similarity: bestDistance,
         source: 'ai',
+        eligible,
       })
     }
   }
 
   // Retorna apenas os matches — NUNCA retorna face_descriptor
-  return NextResponse.json({ matches })
+  return NextResponse.json({ matches, sport: classSport })
 }

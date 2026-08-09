@@ -61,8 +61,8 @@ export default async function ProfessorFrequenciaPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-zinc-100">Frequência</h1>
-        <p className="text-sm text-zinc-500 mt-1">Últimos 30 check-ins das suas turmas</p>
+        <h1 className="text-xl font-semibold text-zinc-900">Frequência</h1>
+        <p className="text-sm text-zinc-500 mt-0.5">Últimos 30 check-ins das suas turmas</p>
       </div>
 
       {checkins.length > 0 ? (
@@ -70,15 +70,15 @@ export default async function ProfessorFrequenciaPage() {
           {checkins.map(c => {
             const date = new Date(c.checked_in_at)
             return (
-              <div key={c.id} className="rounded-xl border border-zinc-800/60 bg-zinc-900/40 px-4 py-3">
+              <div key={c.id} className="rounded-xl border border-zinc-200 bg-white px-4 py-3">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-zinc-200">{c.class_name}</p>
+                  <p className="text-sm font-medium text-zinc-900">{c.class_name}</p>
                   {c.status === 'confirmed' ? (
-                    <span className="text-xs font-medium text-emerald-400">Confirmado</span>
+                    <span className="text-xs font-medium text-emerald-700">Confirmado</span>
                   ) : (
                     <Link
                       href={`/professor/checkin/${c.id}`}
-                      className="text-xs font-medium text-amber-400 underline-offset-2 hover:underline transition-colors"
+                      className="text-xs font-medium text-amber-600 underline-offset-2 hover:underline transition-colors"
                     >
                       Pendente
                     </Link>
@@ -99,8 +99,8 @@ export default async function ProfessorFrequenciaPage() {
           })}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-800 py-16 text-center">
-          <Camera className="h-6 w-6 mb-2 text-zinc-700" />
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-300 bg-white py-16 text-center">
+          <Camera className="h-6 w-6 mb-2 text-zinc-400" />
           <p className="text-sm text-zinc-500">Nenhum check-in registrado ainda.</p>
         </div>
       )}
