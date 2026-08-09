@@ -16,6 +16,13 @@ interface ClassOption {
   name: string
   start_time: string
   end_time: string
+  sport?: string | null
+}
+
+const SPORT_LABELS: Record<string, string> = {
+  'jiu-jitsu': 'Jiu-Jitsu',
+  'muay-thai': 'Muay Thai',
+  'boxe': 'Boxe',
 }
 
 type Step = 'select-class' | 'upload-photo' | 'processing' | 'review' | 'success'
@@ -38,6 +45,7 @@ export default function ProfessorCheckinPage() {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [totalPresent, setTotalPresent] = useState(0)
+  const [skippedCount, setSkippedCount] = useState(0)
 
   // Busca perfil/role do usuário logado
   useEffect(() => {
@@ -114,7 +122,10 @@ export default function ProfessorCheckinPage() {
       const matchRes = await fetch('/api/checkin/match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ detected_descriptors: detectedDescriptors }),
+        body: JSON.stringify({
+          detected_descriptors: detectedDescriptors,
+          class_id: selectedClass.id,
+        }),
       })
 
       if (!matchRes.ok) {
@@ -140,8 +151,11 @@ export default function ProfessorCheckinPage() {
     setConfirmed(prev => [...prev, student])
   }, [])
 
+  const eligibleConfirmed = confirmed.filter(s => s.eligible !== false)
+  const ineligibleConfirmed = confirmed.filter(s => s.eligible === false)
+
   const handleConfirm = async () => {
-    if (!checkinId || confirmed.length === 0) return
+    if (!checkinId || eligibleConfirmed.length === 0) return
     setSubmitting(true)
     setError(null)
 
@@ -151,7 +165,7 @@ export default function ProfessorCheckinPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           checkin_id: checkinId,
-          students: confirmed.map(({ student_id, source, similarity }) => ({
+          students: eligibleConfirmed.map(({ student_id, source, similarity }) => ({
             student_id,
             source,
             similarity,
@@ -164,7 +178,14 @@ export default function ProfessorCheckinPage() {
         throw new Error(d.error ?? 'Erro ao confirmar')
       }
 
-      setTotalPresent(confirmed.length)
+      const data = await res.json() as { count?: number; skipped?: unknown[] }
+      setTotalPresent(typeof data.count === 'number' ? data.count : eligibleConfirmed.length)
+      setSkippedCount(
+        Math.max(
+          ineligibleConfirmed.length,
+          Array.isArray(data.skipped) ? data.skipped.length : 0
+        )
+      )
       setStep('success')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao confirmar presenças')
@@ -179,12 +200,13 @@ export default function ProfessorCheckinPage() {
     setCheckinId(null)
     setConfirmed([])
     setError(null)
+    setSkippedCount(0)
   }
 
   const backToDashboardButton = isAdmin ? (
     <Link
       href="/dashboard"
-      className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-200 transition-colors mb-4"
+      className="flex items-center gap-1.5 text-sm text-zinc-600 hover:text-zinc-900 transition-colors mb-4"
     >
       <ArrowLeft className="h-4 w-4" />
       Voltar ao painel
@@ -199,31 +221,31 @@ export default function ProfessorCheckinPage() {
       <div className="space-y-6">
         {backToDashboardButton}
         <div>
-          <h1 className="text-2xl font-bold text-zinc-100">Check-in</h1>
-          <p className="text-sm text-zinc-500 mt-1">Selecione a turma para registrar presenças.</p>
+          <h1 className="text-xl font-semibold text-zinc-900">Check-in</h1>
+          <p className="text-sm text-zinc-500 mt-0.5">Selecione a turma para registrar presenças.</p>
         </div>
 
         {faceApiStatus === 'loading' && (
-          <div className="flex items-center gap-2 rounded-xl border border-indigo-800/30 bg-indigo-950/30 px-4 py-3">
-            <Loader2 className="h-4 w-4 animate-spin text-indigo-400" />
-            <span className="text-xs text-indigo-400">Carregando modelos de reconhecimento facial...</span>
+          <div className="flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3">
+            <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
+            <span className="text-xs text-indigo-700">Carregando modelos de reconhecimento facial...</span>
           </div>
         )}
 
         {error && (
-          <div className="flex items-center gap-2 rounded-xl border border-red-800/30 bg-red-950/30 px-4 py-3">
-            <AlertCircle className="h-4 w-4 text-red-400" />
-            <span className="text-xs text-red-400">{error}</span>
+          <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+            <AlertCircle className="h-4 w-4 text-red-500" />
+            <span className="text-xs text-red-600">{error}</span>
           </div>
         )}
 
         {loadingClasses ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-zinc-600" />
+            <Loader2 className="h-6 w-6 animate-spin text-indigo-600" />
           </div>
         ) : classes.length === 0 ? (
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 py-12 text-center text-zinc-600">
-            <p className="text-sm">Nenhuma turma encontrada.</p>
+          <div className="rounded-xl border border-dashed border-zinc-300 bg-white py-12 text-center">
+            <p className="text-sm text-zinc-500">Nenhuma turma encontrada.</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -232,13 +254,18 @@ export default function ProfessorCheckinPage() {
                 key={cls.id}
                 type="button"
                 onClick={() => { setSelectedClass(cls); setStep('upload-photo') }}
-                className="flex w-full items-center justify-between rounded-2xl border border-zinc-800 bg-zinc-900/60 px-5 py-4 text-left transition-colors hover:border-indigo-600/50 hover:bg-zinc-800/60"
+                className="flex w-full items-center justify-between rounded-xl border border-zinc-200 bg-white px-5 py-4 text-left transition-colors hover:border-indigo-300 hover:bg-zinc-50"
               >
                 <div>
-                  <p className="text-sm font-semibold text-zinc-100">{cls.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-zinc-900">{cls.name}</p>
+                    <span className="text-xs rounded-full px-2 py-0.5 bg-zinc-100 text-zinc-600">
+                      {SPORT_LABELS[cls.sport ?? ''] ?? cls.sport}
+                    </span>
+                  </div>
                   <p className="text-xs text-zinc-500 mt-0.5">{cls.start_time} – {cls.end_time}</p>
                 </div>
-                <ChevronRight className="h-5 w-5 text-zinc-600" />
+                <ChevronRight className="h-5 w-5 text-zinc-400" />
               </button>
             ))}
           </div>
@@ -256,25 +283,25 @@ export default function ProfessorCheckinPage() {
           <button
             type="button"
             onClick={() => setStep('select-class')}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-700 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-50 transition-colors"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200 text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-zinc-100">{selectedClass?.name}</h1>
-            <p className="text-sm text-zinc-500">{selectedClass?.start_time} – {selectedClass?.end_time}</p>
+            <h1 className="text-xl font-semibold text-zinc-900">{selectedClass?.name}</h1>
+            <p className="text-sm text-zinc-500 mt-0.5">{selectedClass?.start_time} – {selectedClass?.end_time}</p>
           </div>
         </div>
 
         {error && (
-          <div className="flex items-center gap-2 rounded-xl border border-red-800/30 bg-red-950/30 px-4 py-3">
-            <AlertCircle className="h-4 w-4 text-red-400" />
-            <span className="text-xs text-red-400">{error}</span>
+          <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+            <AlertCircle className="h-4 w-4 text-red-500" />
+            <span className="text-xs text-red-600">{error}</span>
           </div>
         )}
 
-        <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-5 space-y-4">
-          <p className="text-sm font-medium text-zinc-300">
+        <div className="rounded-xl border border-zinc-200 bg-white p-5 space-y-4">
+          <p className="text-sm font-medium text-zinc-800">
             Tire uma foto da turma ou selecione da galeria.
             Quanto mais rostos visíveis, melhor o reconhecimento.
           </p>
@@ -293,15 +320,15 @@ export default function ProfessorCheckinPage() {
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 text-center">
         {backToDashboardButton}
         <div className="relative">
-          <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-indigo-600/10 ring-1 ring-indigo-500/20">
-            <Loader2 className="h-9 w-9 animate-spin text-indigo-500" />
+          <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-indigo-50 ring-1 ring-indigo-200">
+            <Loader2 className="h-9 w-9 animate-spin text-indigo-600" />
           </div>
         </div>
         <div>
-          <h2 className="text-lg font-bold text-zinc-100">Processando</h2>
-          <p className="text-sm text-zinc-500 mt-1">{processingMsg}</p>
+          <h2 className="text-lg font-semibold text-zinc-900">Processando</h2>
+          <p className="text-sm text-zinc-500 mt-0.5">{processingMsg}</p>
         </div>
-        <p className="text-xs text-zinc-700 max-w-[240px]">
+        <p className="text-xs text-zinc-500 max-w-[240px]">
           Reconhecimento seguro: a comparação biométrica é realizada de forma protegida no servidor.
         </p>
       </div>
@@ -318,20 +345,25 @@ export default function ProfessorCheckinPage() {
             type="button"
             onClick={() => setStep('upload-photo')}
             disabled={submitting}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-700 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-50 transition-colors disabled:opacity-50"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200 text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition-colors disabled:opacity-50"
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-zinc-100">Revisar Presenças</h1>
-            <p className="text-sm text-zinc-500">{confirmed.length} aluno{confirmed.length !== 1 ? 's' : ''} identificado{confirmed.length !== 1 ? 's' : ''}</p>
+            <h1 className="text-xl font-semibold text-zinc-900">Revisar Presenças</h1>
+            <p className="text-sm text-zinc-500 mt-0.5">
+              {eligibleConfirmed.length} elegível{eligibleConfirmed.length !== 1 ? 'is' : ''}
+              {ineligibleConfirmed.length > 0
+                ? ` · ${ineligibleConfirmed.length} sem o esporte da turma`
+                : ''}
+            </p>
           </div>
         </div>
 
         {error && (
-          <div className="flex items-center gap-2 rounded-xl border border-red-800/30 bg-red-950/30 px-4 py-3">
-            <AlertCircle className="h-4 w-4 text-red-400" />
-            <span className="text-xs text-red-400">{error}</span>
+          <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+            <AlertCircle className="h-4 w-4 text-red-500" />
+            <span className="text-xs text-red-600">{error}</span>
           </div>
         )}
 
@@ -339,13 +371,15 @@ export default function ProfessorCheckinPage() {
           confirmed={confirmed}
           onRemove={handleRemove}
           onAdd={handleAdd}
+          sport={selectedClass?.sport}
+          sportLabel={selectedClass?.sport ? SPORT_LABELS[selectedClass.sport] : undefined}
         />
 
         <div className="pt-2 space-y-3">
           <Button
             onClick={handleConfirm}
-            disabled={submitting || confirmed.length === 0}
-            className="w-full rounded-2xl bg-indigo-600 py-6 text-base font-semibold text-white shadow-lg shadow-indigo-600/20 transition-all hover:bg-indigo-500 disabled:opacity-50"
+            disabled={submitting || eligibleConfirmed.length === 0}
+            className="w-full rounded-2xl bg-indigo-600 py-6 text-base font-semibold text-white transition-all hover:bg-indigo-500 disabled:opacity-50"
           >
             {submitting ? (
               <span className="flex items-center gap-2">
@@ -353,12 +387,14 @@ export default function ProfessorCheckinPage() {
                 Confirmando...
               </span>
             ) : (
-              `Confirmar ${confirmed.length} presença${confirmed.length !== 1 ? 's' : ''}`
+              `Confirmar ${eligibleConfirmed.length} presença${eligibleConfirmed.length !== 1 ? 's' : ''}`
             )}
           </Button>
-          {confirmed.length === 0 && (
-            <p className="text-center text-xs text-zinc-600">
-              Adicione ao menos um aluno para confirmar.
+          {eligibleConfirmed.length === 0 && (
+            <p className="text-center text-xs text-zinc-500">
+              {confirmed.length > 0
+                ? 'Nenhum aluno elegível para este esporte. Adicione o esporte no cadastro ou inclua outro aluno.'
+                : 'Adicione ao menos um aluno para confirmar.'}
             </p>
           )}
         </div>
@@ -370,14 +406,19 @@ export default function ProfessorCheckinPage() {
   if (step === 'success') {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 text-center px-4">
-        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-emerald-500/10 ring-1 ring-emerald-500/20">
-          <CheckCircle className="h-10 w-10 text-emerald-500" />
+        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-emerald-50 ring-1 ring-emerald-200">
+          <CheckCircle className="h-10 w-10 text-emerald-600" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-zinc-100">Presenças confirmadas!</h2>
+          <h2 className="text-xl font-semibold text-zinc-900">Presenças confirmadas!</h2>
           <p className="text-zinc-500 mt-2 text-sm">
-            {totalPresent} aluno{totalPresent !== 1 ? 's' : ''} registrado{totalPresent !== 1 ? 's' : ''} em <span className="text-zinc-300 font-medium">{selectedClass?.name}</span>
+            {totalPresent} aluno{totalPresent !== 1 ? 's' : ''} registrado{totalPresent !== 1 ? 's' : ''} em <span className="text-zinc-900 font-medium">{selectedClass?.name}</span>
           </p>
+          {skippedCount > 0 && (
+            <p className="text-amber-700 mt-2 text-xs">
+              {skippedCount} reconhecido{skippedCount !== 1 ? 's' : ''} sem o esporte da turma — sem presença.
+            </p>
+          )}
         </div>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Button
@@ -389,7 +430,7 @@ export default function ProfessorCheckinPage() {
           {isAdmin && (
             <Link
               href="/dashboard"
-              className="flex items-center gap-2 rounded-xl border border-zinc-700 px-5 py-3 text-sm font-medium text-zinc-300 hover:bg-zinc-800 transition-colors"
+              className="flex items-center gap-2 rounded-xl border border-zinc-200 px-5 py-3 text-sm font-medium text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition-colors"
             >
               Voltar ao painel
             </Link>

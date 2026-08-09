@@ -47,32 +47,31 @@ export default function AlteraSenhaPage() {
     }
   }
 
-  const inputClass = "rounded-xl border-zinc-800/80 bg-zinc-950/60 py-5 text-white placeholder-zinc-600 focus-visible:ring-indigo-500 pr-10"
-  const labelClass = "text-xs font-semibold text-zinc-400"
+  const inputClass = "rounded-xl border-zinc-200 bg-white py-5 text-zinc-900 placeholder-zinc-400 focus-visible:ring-indigo-500 pr-10"
+  const labelClass = "text-xs font-semibold text-zinc-500"
 
   return (
-    <div className="px-4 pt-8 pb-24 space-y-6 max-w-sm mx-auto">
+    <div className="space-y-6">
       <div>
         <Link
           href="/aluno/perfil"
-          className="flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-300 transition-colors mb-4"
+          className="flex items-center gap-1 text-sm text-zinc-500 hover:text-indigo-600 transition-colors mb-4"
         >
           <ChevronLeft className="h-4 w-4" />
           Perfil
         </Link>
-        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Segurança</p>
-        <h1 className="text-2xl font-bold text-zinc-100 mt-0.5">Alterar senha</h1>
+        <h1 className="text-xl font-semibold text-zinc-900">Alterar senha</h1>
         <p className="text-sm text-zinc-500 mt-1">Escolha uma nova senha de acesso.</p>
       </div>
 
       {success && (
-        <div className="flex items-center gap-3 rounded-xl border border-emerald-800/30 bg-emerald-950/30 px-4 py-3">
-          <CheckCircle className="h-4 w-4 shrink-0 text-emerald-400" />
-          <p className="text-sm text-emerald-300">Senha alterada com sucesso!</p>
+        <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+          <CheckCircle className="h-4 w-4 shrink-0 text-emerald-600" />
+          <p className="text-sm text-emerald-800">Senha alterada com sucesso!</p>
         </div>
       )}
 
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl">
+      <div className="rounded-xl border border-zinc-200 bg-white p-6">
         <form onSubmit={handleSubmit} className="space-y-5">
 
           <div className="space-y-1.5">
@@ -91,7 +90,7 @@ export default function AlteraSenhaPage() {
               <button
                 type="button"
                 onClick={() => setShowNew(p => !p)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
               >
                 {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -114,7 +113,7 @@ export default function AlteraSenhaPage() {
               <button
                 type="button"
                 onClick={() => setShowConfirm(p => !p)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
               >
                 {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -122,15 +121,15 @@ export default function AlteraSenhaPage() {
           </div>
 
           {error && (
-            <div className="rounded-xl border border-red-800/30 bg-red-950/40 p-3">
-              <p className="text-xs font-medium text-red-400">{error}</p>
+            <div className="rounded-xl border border-red-200 bg-red-50 p-3">
+              <p className="text-xs font-medium text-red-800">{error}</p>
             </div>
           )}
 
           <Button
             type="submit"
             disabled={loading || !newPassword || !confirmPassword}
-            className="w-full rounded-xl bg-indigo-600 py-6 font-semibold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-500"
+            className="w-full rounded-2xl bg-indigo-600 py-6 font-semibold text-white hover:bg-indigo-500"
           >
             {loading
               ? <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Alterando...</span>

@@ -114,7 +114,7 @@ export function CompletarPerfilForm({ firstName, hasFaceDescriptor = false }: Co
     return (
       <div className="space-y-6 pb-4">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-100">Escolha seu dia de pagamento</h1>
+          <h1 className="text-xl font-semibold text-zinc-900">Escolha seu dia de pagamento</h1>
           <p className="mt-1 text-sm text-zinc-500">
             Selecione o dia do mês em que sua mensalidade irá vencer.
             Essa escolha é definitiva e não poderá ser alterada depois.
@@ -130,7 +130,7 @@ export function CompletarPerfilForm({ firstName, hasFaceDescriptor = false }: Co
               className={`aspect-square w-full rounded-xl font-semibold text-sm transition-colors ${
                 paymentDay === day
                   ? 'bg-indigo-600 text-white ring-2 ring-indigo-400'
-                  : 'bg-zinc-800/60 text-zinc-300 hover:bg-zinc-700'
+                  : 'bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50'
               }`}
             >
               {day}
@@ -139,8 +139,8 @@ export function CompletarPerfilForm({ firstName, hasFaceDescriptor = false }: Co
         </div>
 
         {saveError && (
-          <div className="rounded-xl border border-red-800/30 bg-red-950/30 px-4 py-3">
-            <p className="text-xs font-medium text-red-400">{saveError}</p>
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+            <p className="text-xs font-medium text-red-800">{saveError}</p>
           </div>
         )}
 
@@ -148,7 +148,7 @@ export function CompletarPerfilForm({ firstName, hasFaceDescriptor = false }: Co
           type="button"
           disabled={paymentDay === null || isSavingPayment}
           onClick={hasFaceDescriptor ? handleSavePaymentDayOnly : () => setStep('instructions')}
-          className="w-full rounded-xl bg-indigo-600 py-6 font-semibold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-500 disabled:opacity-50"
+          className="w-full rounded-2xl bg-indigo-600 py-6 font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
         >
           {isSavingPayment ? (
             <span className="flex items-center justify-center gap-2">
@@ -166,11 +166,11 @@ export function CompletarPerfilForm({ firstName, hasFaceDescriptor = false }: Co
   if (step === 'saved') {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-5 text-center">
-        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-emerald-500/10 ring-1 ring-emerald-500/20">
-          <CheckCircle className="h-10 w-10 text-emerald-500" />
+        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-emerald-50 ring-1 ring-emerald-200">
+          <CheckCircle className="h-10 w-10 text-emerald-600" />
         </div>
         <div>
-          <p className="text-xl font-bold text-zinc-100">Foto cadastrada!</p>
+          <p className="text-xl font-semibold text-zinc-900">Foto cadastrada!</p>
           <p className="mt-1 text-sm text-zinc-500">Redirecionando para o portal...</p>
         </div>
       </div>
@@ -182,7 +182,7 @@ export function CompletarPerfilForm({ firstName, hasFaceDescriptor = false }: Co
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-zinc-100">
+        <h1 className="text-xl font-semibold text-zinc-900">
           Olá, {firstName}!
         </h1>
         <p className="mt-1 text-sm text-zinc-500">
@@ -192,17 +192,17 @@ export function CompletarPerfilForm({ firstName, hasFaceDescriptor = false }: Co
       </div>
 
       {/* Card de instruções */}
-      <div className="rounded-2xl border border-amber-800/30 bg-amber-950/20 p-5">
-        <p className="mb-3 text-xs font-bold uppercase tracking-widest text-amber-400">
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
+        <p className="mb-3 text-sm font-semibold text-amber-800">
           Antes de tirar a foto
         </p>
         <ul className="space-y-2.5">
           {INSTRUCTIONS.map(({ icon: Icon, text }, i) => (
             <li key={i} className="flex items-start gap-2.5">
               <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center">
-                <Icon className="h-4 w-4 text-amber-400" />
+                <Icon className="h-4 w-4 text-amber-600" />
               </span>
-              <span className="text-sm text-amber-200/80">{text}</span>
+              <span className="text-sm text-amber-800">{text}</span>
             </li>
           ))}
         </ul>
@@ -213,7 +213,7 @@ export function CompletarPerfilForm({ firstName, hasFaceDescriptor = false }: Co
         <Button
           type="button"
           onClick={() => setStep('camera')}
-          className="w-full rounded-xl bg-indigo-600 py-6 font-semibold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-500"
+          className="w-full rounded-2xl bg-indigo-600 py-6 font-semibold text-white hover:bg-indigo-500"
         >
           <Camera className="mr-2 h-5 w-5" />
           Entendi, abrir câmera
@@ -224,8 +224,8 @@ export function CompletarPerfilForm({ firstName, hasFaceDescriptor = false }: Co
 
           {/* Erro de salvamento */}
           {saveError && (
-            <div className="rounded-xl border border-red-800/30 bg-red-950/30 px-4 py-3">
-              <p className="text-xs font-medium text-red-400">{saveError}</p>
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+              <p className="text-xs font-medium text-red-800">{saveError}</p>
             </div>
           )}
 
@@ -235,7 +235,7 @@ export function CompletarPerfilForm({ firstName, hasFaceDescriptor = false }: Co
               type="button"
               onClick={handleSave}
               disabled={step === 'saving'}
-              className="w-full rounded-xl bg-emerald-600 py-6 font-semibold text-white shadow-lg shadow-emerald-600/20 hover:bg-emerald-500 disabled:opacity-70"
+              className="w-full rounded-2xl bg-emerald-600 py-6 font-semibold text-white hover:bg-emerald-500 disabled:opacity-70"
             >
               {step === 'saving' ? (
                 <span className="flex items-center gap-2">

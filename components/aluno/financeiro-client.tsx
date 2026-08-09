@@ -19,10 +19,10 @@ interface FinanceiroClientProps {
 }
 
 const statusConfig = {
-  paid: { label: 'Pago', cls: 'bg-emerald-950/50 text-emerald-400 border-emerald-800/30' },
-  pending: { label: 'Pendente', cls: 'bg-zinc-800/80 text-zinc-400 border-zinc-700/30' },
-  overdue: { label: 'Em atraso', cls: 'bg-red-950/50 text-red-400 border-red-800/30' },
-  aguardando_confirmacao: { label: 'Aguardando confirmação', cls: 'bg-blue-950/50 text-blue-400 border-blue-800/30' },
+  paid: { label: 'Pago', cls: 'bg-emerald-50 text-emerald-800 border-emerald-200' },
+  pending: { label: 'Pendente', cls: 'bg-zinc-50 text-zinc-600 border-zinc-200' },
+  overdue: { label: 'Em atraso', cls: 'bg-red-50 text-red-800 border-red-200' },
+  aguardando_confirmacao: { label: 'Aguardando confirmação', cls: 'bg-blue-50 text-blue-800 border-blue-200' },
 }
 
 function formatLocalDate(dateStr: string) {
@@ -156,10 +156,10 @@ export default function FinanceiroClient({ financials, hasPix }: FinanceiroClien
         return (
           <div
             key={f.id}
-            className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-zinc-800/60 bg-zinc-900/40 px-4 py-3"
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-zinc-200 bg-white px-4 py-3"
           >
             <div>
-              <p className="text-sm font-medium text-zinc-200">
+              <p className="text-sm font-medium text-zinc-900">
                 {f.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
               </p>
               <p className="text-xs text-zinc-500 mt-0.5">
@@ -177,7 +177,7 @@ export default function FinanceiroClient({ financials, hasPix }: FinanceiroClien
                 <button
                   type="button"
                   onClick={() => openPixModal(f.id, f.amount, desc)}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-100 bg-indigo-600 hover:bg-indigo-500 transition-colors border border-indigo-500 rounded-lg px-3 py-1.5 shadow-sm"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition-colors rounded-xl px-3 py-1.5"
                 >
                   <QrCode className="h-3.5 w-3.5" />
                   Pagar via PIX
@@ -193,22 +193,22 @@ export default function FinanceiroClient({ financials, hasPix }: FinanceiroClien
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => !markingPaid && setPixModal(null)}
           />
 
           {/* Modal Card */}
-          <div className="relative z-10 w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl text-zinc-100 space-y-5">
+          <div className="relative z-10 w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-6 shadow-xl text-zinc-900 space-y-5">
             {/* Header */}
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-zinc-100 flex items-center gap-2">
-                <QrCode className="h-5 w-5 text-indigo-400" />
+              <h3 className="text-base font-bold text-zinc-900 flex items-center gap-2">
+                <QrCode className="h-5 w-5 text-indigo-600" />
                 Pagar via PIX
               </h3>
               <button
                 type="button"
                 onClick={() => !markingPaid && setPixModal(null)}
-                className="text-zinc-400 hover:text-zinc-200 transition-colors"
+                className="text-zinc-400 hover:text-zinc-700 transition-colors"
                 disabled={markingPaid}
               >
                 <X className="h-4 w-4" />
@@ -217,13 +217,13 @@ export default function FinanceiroClient({ financials, hasPix }: FinanceiroClien
 
             {loadingPix && (
               <div className="flex flex-col items-center justify-center py-10 space-y-3">
-                <Loader2 className="h-8 w-8 animate-spin text-indigo-400" />
-                <p className="text-xs text-zinc-400">Gerando QR Code PIX...</p>
+                <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+                <p className="text-xs text-zinc-500">Gerando QR Code PIX...</p>
               </div>
             )}
 
             {error && (
-              <div className="p-4 bg-red-950/30 border border-red-900/40 rounded-xl flex items-start space-x-3 text-red-400">
+              <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-3 text-red-800">
                 <AlertCircle className="h-5 w-5 shrink-0 text-red-500 mt-0.5" />
                 <div>
                   <p className="text-xs">{error}</p>
@@ -235,13 +235,13 @@ export default function FinanceiroClient({ financials, hasPix }: FinanceiroClien
               <div className="space-y-4">
                 {/* QR Code Container */}
                 <div className="flex justify-center">
-                  <div className="bg-white p-3 rounded-xl border border-zinc-800">
+                  <div className="bg-white p-3 rounded-xl border border-zinc-200">
                     {qrCodeUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={qrCodeUrl} alt="PIX QR Code" className="h-48 w-48 object-contain" />
                     ) : (
                       <div className="h-48 w-48 flex items-center justify-center">
-                        <Loader2 className="h-6 w-6 animate-spin text-zinc-900" />
+                        <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
                       </div>
                     )}
                   </div>
@@ -249,11 +249,11 @@ export default function FinanceiroClient({ financials, hasPix }: FinanceiroClien
 
                 {/* Details */}
                 <div className="space-y-2 text-center">
-                  <p className="text-xl font-bold text-zinc-100">
+                  <p className="text-xl font-bold text-zinc-900">
                     {pixData.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                   </p>
-                  <p className="text-xs text-zinc-400">
-                    Beneficiário: <strong className="text-zinc-200">{pixData.academy_name}</strong>
+                  <p className="text-xs text-zinc-500">
+                    Beneficiário: <strong className="text-zinc-700">{pixData.academy_name}</strong>
                   </p>
                   <p className="text-[11px] text-zinc-500 italic">
                     {pixData.description}
@@ -262,18 +262,18 @@ export default function FinanceiroClient({ financials, hasPix }: FinanceiroClien
 
                 {/* Copy and Paste PIX */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Código Copia e Cola</label>
+                  <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Código Copia e Cola</label>
                   <div className="flex gap-2">
                     <input
                       type="text"
                       readOnly
                       value={pixData.pix_payload}
-                      className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-300 outline-none select-all"
+                      className="flex-1 bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs text-zinc-900 outline-none select-all"
                     />
                     <button
                       type="button"
                       onClick={handleCopy}
-                      className="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 rounded-xl px-3 py-2 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0"
+                      className="bg-white hover:bg-zinc-50 text-zinc-700 border border-zinc-200 rounded-xl px-3 py-2 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0"
                     >
                       <Copy className="h-3.5 w-3.5" />
                       {copied ? 'Copiado!' : 'Copiar'}
@@ -282,8 +282,8 @@ export default function FinanceiroClient({ financials, hasPix }: FinanceiroClien
                 </div>
 
                 {pixPaid && (
-                  <div className="p-3.5 bg-emerald-950/40 border border-emerald-900/40 rounded-xl flex items-center gap-2 text-emerald-400">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                  <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2 text-emerald-800">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
                     <p className="text-xs font-medium">
                       Pagamento registrado! Aguarde a confirmação da academia.
                     </p>
@@ -297,7 +297,7 @@ export default function FinanceiroClient({ financials, hasPix }: FinanceiroClien
                       type="button"
                       onClick={() => setPixModal(null)}
                       disabled={markingPaid}
-                      className="flex-1 border border-zinc-800 hover:bg-zinc-900 rounded-xl py-2.5 text-xs font-medium text-zinc-400 transition-colors disabled:opacity-50"
+                      className="flex-1 border border-zinc-200 hover:bg-zinc-50 rounded-xl py-2.5 text-xs font-medium text-zinc-700 transition-colors disabled:opacity-50"
                     >
                       Cancelar
                     </button>

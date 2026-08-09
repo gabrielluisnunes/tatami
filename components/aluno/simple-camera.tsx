@@ -129,7 +129,7 @@ export function SimpleCamera({ onCapture }: SimpleCameraProps) {
   return (
     <div className="space-y-4">
       {/* Guia de enquadramento ou status */}
-      <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 shadow-inner">
+      <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-zinc-200 bg-black">
         {/* Vídeo ao Vivo */}
         <video
           ref={videoRef}
@@ -151,11 +151,11 @@ export function SimpleCamera({ onCapture }: SimpleCameraProps) {
 
         {/* Estado: Ocioso */}
         {status === 'idle' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-zinc-950 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900">
-              <Camera className="h-8 w-8 text-zinc-500" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-zinc-900 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-zinc-700 bg-zinc-800">
+              <Camera className="h-8 w-8 text-zinc-400" />
             </div>
-            <p className="max-w-[220px] text-xs text-zinc-500 leading-relaxed">
+            <p className="max-w-[220px] text-xs text-zinc-400 leading-relaxed">
               Precisamos de uma foto rápida para confirmar sua identidade na assinatura.
             </p>
           </div>
@@ -163,17 +163,17 @@ export function SimpleCamera({ onCapture }: SimpleCameraProps) {
 
         {/* Estado: Solicitando Permissão */}
         {status === 'requesting' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-zinc-950">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-zinc-900">
             <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
-            <p className="text-xs text-zinc-500">Acessando câmera...</p>
+            <p className="text-xs text-zinc-400">Acessando câmera...</p>
           </div>
         )}
 
         {/* Badge: Confirmado com Sucesso */}
         {status === 'confirmed' && (
           <div className="absolute left-3 top-3">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400 backdrop-blur-md">
-              <CheckCircle className="h-3.5 w-3.5" />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800 backdrop-blur-md">
+              <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />
               Foto capturada
             </span>
           </div>
@@ -181,11 +181,11 @@ export function SimpleCamera({ onCapture }: SimpleCameraProps) {
 
         {/* Estado: Erro ou Permissão Negada */}
         {(status === 'camera-denied' || status === 'error') && !capturedImage && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-zinc-950 p-6 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900">
-              <Camera className="h-7 w-7 text-zinc-600" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-zinc-900 p-6 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-zinc-700 bg-zinc-800">
+              <Camera className="h-7 w-7 text-zinc-500" />
             </div>
-            <p className="text-sm text-zinc-400 leading-relaxed">{errorMsg}</p>
+            <p className="text-sm text-zinc-300 leading-relaxed">{errorMsg}</p>
           </div>
         )}
 
@@ -203,7 +203,7 @@ export function SimpleCamera({ onCapture }: SimpleCameraProps) {
           <button
             type="button"
             onClick={startCamera}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 font-semibold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-500 transition-colors"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 font-semibold text-white hover:bg-indigo-500 transition-colors"
           >
             <Camera className="h-4 w-4" />
             Abrir câmera
@@ -214,7 +214,7 @@ export function SimpleCamera({ onCapture }: SimpleCameraProps) {
           <button
             type="button"
             onClick={handleCapture}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 font-semibold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-500 transition-colors"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 font-semibold text-white hover:bg-indigo-500 transition-colors"
           >
             <Camera className="h-4 w-4" />
             Tirar foto
@@ -226,14 +226,14 @@ export function SimpleCamera({ onCapture }: SimpleCameraProps) {
             <button
               type="button"
               onClick={handleRetake}
-              className="rounded-xl border border-zinc-700 py-3 text-sm font-semibold text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors"
+              className="rounded-xl border border-zinc-200 py-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
             >
               Tirar novamente
             </button>
             <button
               type="button"
               onClick={handleConfirm}
-              className="rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white hover:bg-indigo-500 shadow-md shadow-indigo-600/10 transition-colors"
+              className="rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors"
             >
               Usar esta foto
             </button>
@@ -244,7 +244,7 @@ export function SimpleCamera({ onCapture }: SimpleCameraProps) {
           <button
             type="button"
             onClick={handleRetake}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-700 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
           >
             Alterar foto
           </button>
@@ -254,7 +254,7 @@ export function SimpleCamera({ onCapture }: SimpleCameraProps) {
           <button
             type="button"
             onClick={startCamera}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-700 py-3 text-sm font-semibold text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 py-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
           >
             <RefreshCw className="h-4 w-4" />
             Tentar novamente

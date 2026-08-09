@@ -159,25 +159,25 @@ export function LiveCameraCapture({ onCapture }: LiveCameraCaptureProps) {
 
       {/* Status dos modelos de IA */}
       {faceApiStatus === 'loading' && (
-        <div className="flex items-center gap-2 rounded-xl border border-indigo-800/30 bg-indigo-950/30 px-4 py-3">
-          <Loader2 className="h-4 w-4 shrink-0 animate-spin text-indigo-400" />
-          <span className="text-xs text-indigo-300">
+        <div className="flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3">
+          <Loader2 className="h-4 w-4 shrink-0 animate-spin text-indigo-600" />
+          <span className="text-xs text-indigo-800">
             Carregando modelos de reconhecimento facial...
           </span>
         </div>
       )}
 
       {faceApiStatus === 'error' && (
-        <div className="flex items-center gap-2 rounded-xl border border-red-800/30 bg-red-950/30 px-4 py-3">
-          <AlertCircle className="h-4 w-4 shrink-0 text-red-400" />
-          <span className="text-xs text-red-300">
+        <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+          <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
+          <span className="text-xs text-red-800">
             Erro ao carregar modelos de IA. Recarregue a página.
           </span>
         </div>
       )}
 
       {/* Área da câmera */}
-      <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950">
+      <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-zinc-200 bg-black">
 
         {/* Vídeo ao vivo */}
         <video
@@ -204,11 +204,11 @@ export function LiveCameraCapture({ onCapture }: LiveCameraCaptureProps) {
 
         {/* Estado: ocioso (antes de abrir câmera) */}
         {status === 'idle' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-zinc-950 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900">
-              <Camera className="h-8 w-8 text-zinc-500" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-zinc-900 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-zinc-700 bg-zinc-800">
+              <Camera className="h-8 w-8 text-zinc-400" />
             </div>
-            <p className="max-w-[200px] text-xs text-zinc-500">
+            <p className="max-w-[200px] text-xs text-zinc-400">
               Clique em &quot;Abrir câmera&quot; quando estiver pronto.
             </p>
           </div>
@@ -216,25 +216,25 @@ export function LiveCameraCapture({ onCapture }: LiveCameraCaptureProps) {
 
         {/* Estado: solicitando permissão */}
         {status === 'requesting' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-zinc-950">
-            <Loader2 className="h-8 w-8 animate-spin text-zinc-600" />
-            <p className="text-xs text-zinc-500">Acessando câmera...</p>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-zinc-900">
+            <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+            <p className="text-xs text-zinc-400">Acessando câmera...</p>
           </div>
         )}
 
         {/* Estado: detectando */}
         {status === 'detecting' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-zinc-950/80 backdrop-blur-sm">
-            <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
-            <p className="text-sm font-medium text-zinc-200">Detectando rosto...</p>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/70 backdrop-blur-sm">
+            <Loader2 className="h-8 w-8 animate-spin text-indigo-400" />
+            <p className="text-sm font-medium text-white">Detectando rosto...</p>
           </div>
         )}
 
         {/* Badge: rosto detectado com sucesso */}
         {status === 'success' && (
           <div className="absolute left-3 top-3">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400 backdrop-blur-md">
-              <CheckCircle className="h-3.5 w-3.5" />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800 backdrop-blur-md">
+              <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />
               Rosto detectado
             </span>
           </div>
@@ -242,11 +242,11 @@ export function LiveCameraCapture({ onCapture }: LiveCameraCaptureProps) {
 
         {/* Estado: câmera negada ou erro sem captura */}
         {(status === 'camera-denied' || status === 'error') && !capturedImage && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-zinc-950 p-6 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900">
-              <Camera className="h-7 w-7 text-zinc-600" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-zinc-900 p-6 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-zinc-700 bg-zinc-800">
+              <Camera className="h-7 w-7 text-zinc-500" />
             </div>
-            <p className="text-sm text-zinc-400">{errorMsg}</p>
+            <p className="text-sm text-zinc-300">{errorMsg}</p>
           </div>
         )}
 
@@ -260,9 +260,9 @@ export function LiveCameraCapture({ onCapture }: LiveCameraCaptureProps) {
 
       {/* Mensagem de erro após captura sem rosto */}
       {(status === 'no-face' || (status === 'error' && capturedImage)) && errorMsg && (
-        <div className="flex items-start gap-2 rounded-xl border border-amber-800/30 bg-amber-950/30 px-4 py-3">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
-          <p className="text-xs text-amber-300">{errorMsg}</p>
+        <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+          <p className="text-xs text-amber-800">{errorMsg}</p>
         </div>
       )}
 
@@ -275,7 +275,7 @@ export function LiveCameraCapture({ onCapture }: LiveCameraCaptureProps) {
             type="button"
             onClick={startCamera}
             disabled={faceApiStatus === 'loading' || faceApiStatus === 'error'}
-            className="w-full rounded-xl bg-indigo-600 py-6 font-semibold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-500 disabled:opacity-50"
+            className="w-full rounded-xl bg-indigo-600 py-6 font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
           >
             <Camera className="mr-2 h-5 w-5" />
             {faceApiStatus === 'loading' ? 'Carregando IA...' : 'Abrir câmera'}
@@ -288,7 +288,7 @@ export function LiveCameraCapture({ onCapture }: LiveCameraCaptureProps) {
             type="button"
             onClick={handleCapture}
             disabled={faceApiStatus !== 'ready'}
-            className="w-full rounded-xl bg-indigo-600 py-6 font-semibold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-500 disabled:opacity-50"
+            className="w-full rounded-xl bg-indigo-600 py-6 font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
           >
             <Camera className="mr-2 h-5 w-5" />
             Tirar foto
@@ -301,7 +301,7 @@ export function LiveCameraCapture({ onCapture }: LiveCameraCaptureProps) {
             type="button"
             onClick={startCamera}
             variant="outline"
-            className="w-full rounded-xl border-zinc-700 py-6 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+            className="w-full rounded-xl border-zinc-200 py-6 text-zinc-700 hover:bg-zinc-50"
           >
             <RefreshCw className="mr-2 h-4 w-4" />
             Tentar novamente

@@ -21,24 +21,24 @@ export default async function ProfessorLayout({ children }: { children: React.Re
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      <header className="sticky top-0 z-10 border-b border-zinc-800 bg-zinc-900/80 backdrop-blur-xl">
+    <div className="min-h-screen bg-zinc-100 text-zinc-900">
+      <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white">
         <div className="mx-auto flex h-14 max-w-lg items-center justify-between px-4">
-          <div className="flex items-center gap-2">
-            <Logo className="h-6 w-6" variant="icon" />
-            <span className="text-base font-black tracking-[0.2em] text-zinc-50">TΛTΛMI</span>
-          </div>
+          <Logo className="h-7 w-auto" variant="full" />
           <div className="flex items-center gap-3">
             {isAdmin && (
               <Link
                 href="/dashboard"
-                className="flex items-center gap-1.5 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
+                className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-500 transition-colors"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
                 Painel Admin
               </Link>
             )}
-            <LogoutButton showText={false} />
+            <LogoutButton
+              showText={false}
+              className="rounded-md p-1.5 text-zinc-500 hover:bg-zinc-100 hover:text-red-500 transition-colors"
+            />
           </div>
         </div>
       </header>

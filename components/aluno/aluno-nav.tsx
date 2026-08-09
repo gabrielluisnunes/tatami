@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, Award, DollarSign, FileText, UserCircle } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 const tabs = [
   { href: '/aluno/frequencia', icon: Home,        label: 'Início'     },
@@ -12,16 +13,18 @@ const tabs = [
   { href: '/aluno/perfil',     icon: UserCircle,  label: 'Perfil'     },
 ]
 
-export function AlunoNav({ sport }: { sport?: string | null }) {
+export function AlunoNav({ sports }: { sports?: string[] }) {
   const pathname = usePathname()
 
-  const visibleTabs = sport === 'boxe'
+  // Esconder graduações só se TODOS os esportes forem boxe
+  const allBoxe = !sports || sports.length === 0 || sports.every(s => s === 'boxe')
+  const visibleTabs = allBoxe
     ? tabs.filter(t => t.href !== '/aluno/graduacoes')
     : tabs
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-zinc-900/95 backdrop-blur-md border-t border-zinc-800 pb-[env(safe-area-inset-bottom)]">
-      <div className="flex items-center justify-around px-2 py-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-zinc-200 bg-white pb-[env(safe-area-inset-bottom)]">
+      <div className="mx-auto flex max-w-lg items-center">
         {visibleTabs.map(tab => {
           const active = pathname.startsWith(tab.href)
           const Icon = tab.icon
@@ -29,10 +32,10 @@ export function AlunoNav({ sport }: { sport?: string | null }) {
             <Link
               key={tab.href}
               href={tab.href}
-              className="flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-colors"
+              className="flex flex-1 flex-col items-center justify-center gap-1 py-2"
             >
-              <Icon className={`h-5 w-5 ${active ? 'text-indigo-400' : 'text-zinc-500'}`} />
-              <span className={`text-[10px] font-medium ${active ? 'text-indigo-400' : 'text-zinc-500'}`}>
+              <Icon className={cn('h-5 w-5 transition-colors', active ? 'text-zinc-900' : 'text-zinc-400')} />
+              <span className={cn('text-[10px] transition-colors', active ? 'text-zinc-900 font-medium' : 'text-zinc-400')}>
                 {tab.label}
               </span>
             </Link>

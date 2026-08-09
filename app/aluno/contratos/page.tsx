@@ -52,20 +52,20 @@ export default async function AlunoContratosPage() {
   const signedList  = mappedContracts.filter((c) => c.signed)
 
   return (
-    <div className="px-4 pt-8 pb-24 space-y-6">
+    <div className="space-y-6">
       <Suspense fallback={null}>
         <ContratosSuccessBanner />
       </Suspense>
 
       <div>
-        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Documentos</p>
-        <h1 className="text-2xl font-bold text-zinc-100 mt-0.5">Contratos</h1>
+        <h1 className="text-xl font-semibold text-zinc-900">Contratos</h1>
+        <p className="text-sm text-zinc-500 mt-0.5">Documentos da academia</p>
       </div>
 
       {mappedContracts.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-800 py-16 text-center">
-          <FileText className="h-8 w-8 text-zinc-700 mb-2" />
-          <p className="text-sm text-zinc-600">Nenhum contrato ativo cadastrado.</p>
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-300 bg-white py-16 text-center">
+          <FileText className="h-6 w-6 text-zinc-400 mb-2" />
+          <p className="text-sm text-zinc-500">Nenhum contrato ativo cadastrado.</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -73,36 +73,36 @@ export default async function AlunoContratosPage() {
           {/* Pendentes de assinatura */}
           {pendingList.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-xs font-semibold uppercase tracking-widest text-zinc-500 flex items-center gap-1.5">
+              <h2 className="text-sm font-semibold text-zinc-900 flex items-center gap-1.5">
                 <div className="h-1.5 w-1.5 rounded-full bg-amber-500" />
                 Pendentes ({pendingList.length})
               </h2>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {pendingList.map((contract) => (
                   <div
                     key={contract.id}
-                    className="rounded-2xl border border-zinc-800 border-l-4 border-l-amber-500 bg-zinc-900 p-5 space-y-3"
+                    className="rounded-xl border border-zinc-200 border-l-[3px] border-l-amber-500 bg-white px-4 py-3 space-y-3"
                   >
                     <div>
                       <div className="flex items-center justify-between gap-3">
-                        <h3 className="font-semibold text-zinc-100 text-sm">{contract.title}</h3>
-                        <span className="rounded-full px-2 py-0.5 text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase shrink-0">
+                        <h3 className="font-medium text-zinc-900 text-sm">{contract.title}</h3>
+                        <span className="rounded-full px-2 py-0.5 text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200 uppercase shrink-0">
                           {contract.file_type}
                         </span>
                       </div>
                       {contract.description && (
-                        <p className="text-xs text-zinc-400 mt-1 line-clamp-2 leading-relaxed">
+                        <p className="text-xs text-zinc-500 mt-1 line-clamp-2 leading-relaxed">
                           {contract.description}
                         </p>
                       )}
-                      <p className="text-[10px] text-zinc-600 mt-2">
+                      <p className="text-xs text-zinc-500 mt-2">
                         Publicado em {formatLocalDate(contract.created_at)}
                       </p>
                     </div>
                     <div className="flex justify-end">
                       <Link
                         href={`/aluno/contratos/${contract.id}`}
-                        className="flex items-center gap-1 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 text-xs font-semibold shadow-md transition-colors"
+                        className="flex items-center gap-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 text-xs font-semibold transition-colors"
                       >
                         Assinar
                         <ChevronRight className="h-3 w-3" />
@@ -117,38 +117,38 @@ export default async function AlunoContratosPage() {
           {/* Assinados */}
           {signedList.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-xs font-semibold uppercase tracking-widest text-zinc-500 flex items-center gap-1.5">
+              <h2 className="text-sm font-semibold text-zinc-900 flex items-center gap-1.5">
                 <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                 Assinados ({signedList.length})
               </h2>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {signedList.map((contract) => (
                   <div
                     key={contract.id}
-                    className="rounded-2xl border border-zinc-800 border-l-4 border-l-emerald-500 bg-zinc-900 p-5"
+                    className="rounded-xl border border-zinc-200 border-l-[3px] border-l-emerald-500 bg-white px-4 py-3"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <h3 className="font-semibold text-zinc-100 text-sm truncate">{contract.title}</h3>
-                        <p className="text-[10px] text-zinc-500 mt-1">
+                        <h3 className="font-medium text-zinc-900 text-sm truncate">{contract.title}</h3>
+                        <p className="text-xs text-zinc-500 mt-1">
                           Assinado em {formatLocalDate(contract.signed_at!)}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <span className="rounded-full px-2 py-0.5 text-[9px] font-bold bg-zinc-800 text-zinc-400 border border-zinc-700 uppercase">
+                        <span className="rounded-full px-2 py-0.5 text-[9px] font-bold bg-zinc-100 text-zinc-600 border border-zinc-200 uppercase">
                           {contract.file_type}
                         </span>
-                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/10">
-                          <Check className="h-3 w-3 text-emerald-400" />
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-50">
+                          <Check className="h-3 w-3 text-emerald-600" />
                         </span>
                       </div>
                     </div>
                     {contract.file_type === 'docx' && (
-                      <div className="mt-3 pt-3 border-t border-zinc-800">
+                      <div className="mt-3 pt-3 border-t border-zinc-100">
                         <a
                           href={`/api/contracts/${contract.id}/download`}
                           download
-                          className="flex items-center gap-1.5 rounded-xl border border-zinc-700 px-3 py-2 text-xs font-medium text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100 transition-colors w-fit"
+                          className="flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-50 transition-colors w-fit"
                         >
                           <Download className="h-3.5 w-3.5" />
                           Baixar DOCX

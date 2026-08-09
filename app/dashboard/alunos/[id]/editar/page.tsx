@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createStorageAdminClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { EditAlunoForm } from '@/components/dashboard/edit-aluno-form'
 import Link from 'next/link'
@@ -27,13 +27,33 @@ export default async function EditarAlunoPage({
 
   const { data: aluno } = await supabase
     .from('profiles')
-    .select('id, full_name, phone, emergency_phone, belt, degree, cep, address, neighborhood, city, state, birth_date')
+    .select('id, full_name, phone, emergency_phone, belt, degree, sport, cep, address, neighborhood, city, state, birth_date')
     .eq('id', params.id)
     .eq('academy_id', adminProfile.academy_id)
     .eq('role', 'aluno')
     .single()
 
   if (!aluno) notFound()
+
+  // student_sports é a fonte da verdade — service role bypassa RLS
+  const storageAdmin = createStorageAdminClient()
+  const { data: studentSports } = await storageAdmin
+    .from('student_sports')
+    .select('sport, belt, degree')
+    .eq('student_id', params.id)
+    .eq('academy_id', adminProfile.academy_id)
+
+  const sports = (studentSports ?? []).length > 0
+    ? (studentSports ?? []).map((ss) => ({
+        sport: ss.sport,
+        belt: ss.belt ?? '',
+        degree: ss.degree ?? 0,
+      }))
+    : [{
+        sport: aluno.sport ?? 'jiu-jitsu',
+        belt: aluno.belt ?? 'branca',
+        degree: aluno.degree ?? 0,
+      }]
 
   return (
     <div className="mx-auto max-w-xl space-y-6">
@@ -54,7 +74,10 @@ export default async function EditarAlunoPage({
       </div>
 
       <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-2xl backdrop-blur-xl">
-        <EditAlunoForm studentId={params.id} initialData={aluno} />
+        <EditAlunoForm
+          studentId={params.id}
+          initialData={{ ...aluno, sports }}
+        />
       </div>
     </div>
   )
