@@ -51,12 +51,14 @@ export default async function ProfessorGraduacoesPage() {
     total_classes_since_belt:  s.total_classes_since_belt ?? 0,
   }))
 
+  const uniqueStudentCount = new Set(students.map(s => s.id)).size
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-zinc-900">Graduações</h1>
         <p className="text-sm text-zinc-500 mt-0.5">
-          {students.length} aluno{students.length !== 1 ? 's' : ''} cadastrado{students.length !== 1 ? 's' : ''}
+          {uniqueStudentCount} aluno{uniqueStudentCount !== 1 ? 's' : ''} cadastrado{uniqueStudentCount !== 1 ? 's' : ''}
         </p>
       </div>
 
