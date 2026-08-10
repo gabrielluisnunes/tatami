@@ -31,6 +31,47 @@ export default async function GraduacoesPage() {
 
   // 1 linha por aluno×esporte — service role bypassa RLS
   const storageAdmin = createStorageAdminClient()
+
+  // Alunos legados (pré multi-sport) podem existir só em profiles.
+  // v_trainings_since_belt parte de student_sports — sem row o aluno some da lista.
+  const [{ data: academyAlunos }, { data: existingSports }] = await Promise.all([
+    storageAdmin
+      .from('profiles')
+      .select('id, sport, belt, degree, created_at')
+      .eq('academy_id', profile.academy_id)
+      .eq('role', 'aluno'),
+    storageAdmin
+      .from('student_sports')
+      .select('student_id, sport')
+      .eq('academy_id', profile.academy_id),
+  ])
+
+  const existingKeys = new Set(
+    (existingSports ?? []).map(s => `${s.student_id}:${s.sport}`)
+  )
+  const missingSports = (academyAlunos ?? [])
+    .map(aluno => {
+      const sport = ['jiu-jitsu', 'muay-thai', 'boxe'].includes(aluno.sport ?? '')
+        ? (aluno.sport as string)
+        : 'jiu-jitsu'
+      return { aluno, sport }
+    })
+    .filter(({ aluno, sport }) => !existingKeys.has(`${aluno.id}:${sport}`))
+    .map(({ aluno, sport }) => ({
+      student_id: aluno.id,
+      academy_id: profile.academy_id,
+      sport,
+      belt: sport === 'boxe'
+        ? null
+        : (aluno.belt ?? (sport === 'jiu-jitsu' ? 'branca' : 'branco')),
+      degree: sport === 'jiu-jitsu' ? (aluno.degree ?? 0) : 0,
+      created_at: aluno.created_at ?? new Date().toISOString(),
+    }))
+
+  if (missingSports.length > 0) {
+    await storageAdmin.from('student_sports').insert(missingSports)
+  }
+
   const { data: raw } = await storageAdmin
     .from('v_trainings_since_belt')
     .select('student_id, full_name, belt, degree, trainings_since_belt, attendance_rate, total_classes_since_belt, sport')
@@ -48,12 +89,14 @@ export default async function GraduacoesPage() {
     total_classes_since_belt:  s.total_classes_since_belt ?? 0,
   }))
 
+  const uniqueStudentCount = new Set(students.map(s => s.id)).size
+
   return (
     <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
       <div>
         <h1 className="text-lg lg:text-xl font-semibold text-zinc-900">Graduações</h1>
         <p className="text-sm text-gray-400">
-          {students.length} aluno{students.length !== 1 ? 's' : ''} cadastrado{students.length !== 1 ? 's' : ''}
+          {uniqueStudentCount} aluno{uniqueStudentCount !== 1 ? 's' : ''} cadastrado{uniqueStudentCount !== 1 ? 's' : ''}
         </p>
       </div>
 
