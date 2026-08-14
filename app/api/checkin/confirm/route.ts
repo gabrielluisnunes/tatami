@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { rateLimiters, getIp } from '@/lib/rate-limit'
 
 const confirmSchema = z.object({
   checkin_id: z.string().uuid(),
@@ -20,7 +21,17 @@ function resolveTurmaSport(classes: ClassSportRelation): string | null {
 }
 
 export async function POST(request: Request) {
+  const ip = getIp(request)
+  const { success } = await rateLimiters.heavy.limit(ip)
+  if (!success) {
+    return NextResponse.json(
+      { error: 'Muitas requisições. Tente novamente em alguns minutos.' },
+      { status: 429 }
+    )
+  }
+
   const supabase = createClient()
+
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
