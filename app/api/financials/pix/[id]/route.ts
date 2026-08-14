@@ -1,5 +1,6 @@
 import { createClient, createStorageAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { rateLimiters, getIp } from '@/lib/rate-limit'
 
 // Gera payload PIX estático seguindo padrão EMV do Banco Central (BR Code)
 function generatePixPayload(
@@ -57,10 +58,20 @@ function generatePixPayload(
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
+  const ip = getIp(request)
+  const { success } = await rateLimiters.default.limit(ip)
+  if (!success) {
+    return NextResponse.json(
+      { error: 'Muitas requisições. Tente novamente em alguns minutos.' },
+      { status: 429 }
+    )
+  }
+
   const supabase = createClient()
+
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })

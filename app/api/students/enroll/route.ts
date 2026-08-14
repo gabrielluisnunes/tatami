@@ -2,6 +2,7 @@ import { createClient, createStorageAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sendWelcomeEmail } from '@/lib/notifications'
+import { rateLimiters, getIp } from '@/lib/rate-limit'
 
 // Charset sem caracteres ambíguos (0/O, 1/l/I)
 const PASSWORD_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789'
@@ -34,7 +35,17 @@ const enrollSchema = z.object({
 })
 
 export async function POST(request: Request) {
+  const ip = getIp(request)
+  const { success } = await rateLimiters.strict.limit(ip)
+  if (!success) {
+    return NextResponse.json(
+      { error: 'Muitas requisições. Tente novamente em alguns minutos.' },
+      { status: 429 }
+    )
+  }
+
   const supabase = createClient()
+
   const adminSupabase = createStorageAdminClient()
 
   const { data: { user } } = await supabase.auth.getUser()

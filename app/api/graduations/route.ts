@@ -1,6 +1,7 @@
 import { createClient, createStorageAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { rateLimiters, getIp } from '@/lib/rate-limit'
 
 const BELTS = [
   'branca', 'azul', 'roxa', 'marrom', 'preta',
@@ -17,7 +18,17 @@ const graduationSchema = z.object({
 })
 
 export async function POST(request: Request) {
+  const ip = getIp(request)
+  const { success } = await rateLimiters.default.limit(ip)
+  if (!success) {
+    return NextResponse.json(
+      { error: 'Muitas requisições. Tente novamente em alguns minutos.' },
+      { status: 429 }
+    )
+  }
+
   const supabase = createClient()
+
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })

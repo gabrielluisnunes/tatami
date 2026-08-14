@@ -2,6 +2,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sendComunicado } from '@/lib/notifications'
+import { rateLimiters, getIp } from '@/lib/rate-limit'
 
 const schema = z.object({
   title: z.string().min(3).max(100),
@@ -9,7 +10,17 @@ const schema = z.object({
 })
 
 export async function POST(request: Request) {
+  const ip = getIp(request)
+  const { success } = await rateLimiters.heavy.limit(ip)
+  if (!success) {
+    return NextResponse.json(
+      { error: 'Muitas requisições. Tente novamente em alguns minutos.' },
+      { status: 429 }
+    )
+  }
+
   const supabase = createAdminClient()
+
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
