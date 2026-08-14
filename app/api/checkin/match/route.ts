@@ -1,6 +1,7 @@
 import { createAdminClient, createStorageAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { rateLimiters, getIp } from '@/lib/rate-limit'
 
 const MATCH_THRESHOLD = 0.6
 
@@ -20,7 +21,17 @@ function euclideanDistance(a: number[], b: number[]): number {
 }
 
 export async function POST(request: Request) {
+  const ip = getIp(request)
+  const { success } = await rateLimiters.heavy.limit(ip)
+  if (!success) {
+    return NextResponse.json(
+      { error: 'Muitas requisições. Tente novamente em alguns minutos.' },
+      { status: 429 }
+    )
+  }
+
   const supabase = createAdminClient()
+
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
