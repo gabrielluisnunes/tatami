@@ -226,4 +226,76 @@ describe('POST /api/students/enroll', () => {
     await expect(res.json()).resolves.toEqual({ success: true, user_id: IDS.student })
     expect(sendWelcomeEmailMock).toHaveBeenCalled()
   })
+
+  it('retorna 400 se aluno não enviar esportes', async () => {
+    allowRateLimit(true)
+    mockClients({
+      user: { id: IDS.admin },
+      adminProfile: { role: 'admin', academy_id: IDS.academy },
+    })
+
+    const res = await POST(
+      new Request('http://localhost/api/students/enroll', {
+        method: 'POST',
+        body: JSON.stringify({
+          full_name: 'Aluno Teste',
+          email: 'aluno@teste.com',
+          role: 'aluno',
+        }),
+      }),
+    )
+
+    expect(res.status).toBe(400)
+  })
+
+  it('retorna 400 se professor não enviar esportes', async () => {
+    allowRateLimit(true)
+    mockClients({
+      user: { id: IDS.admin },
+      adminProfile: { role: 'admin', academy_id: IDS.academy },
+    })
+
+    const res = await POST(
+      new Request('http://localhost/api/students/enroll', {
+        method: 'POST',
+        body: JSON.stringify({
+          full_name: 'Prof Teste',
+          email: 'prof@teste.com',
+          role: 'professor',
+          belt: 'preta',
+          degree: 1,
+        }),
+      }),
+    )
+
+    expect(res.status).toBe(400)
+  })
+
+  it('cadastra professor sem inserir student_sports', async () => {
+    allowRateLimit(true)
+    mockClients({
+      user: { id: IDS.admin },
+      adminProfile: { role: 'admin', academy_id: IDS.academy },
+      academy: { name: 'Dojo', plan: 'pro' },
+      createdUserId: IDS.student,
+    })
+
+    const res = await POST(
+      new Request('http://localhost/api/students/enroll', {
+        method: 'POST',
+        headers: { origin: 'http://localhost:3000' },
+        body: JSON.stringify({
+          full_name: 'Prof Teste',
+          email: 'prof@teste.com',
+          role: 'professor',
+          sports: [{ sport: 'jiu-jitsu', belt: 'preta', degree: 1 }],
+        }),
+      }),
+    )
+
+    expect(res.status).toBe(200)
+    const adminFrom = createStorageAdminClientMock.mock.results.at(-1)?.value.from as jest.Mock
+    expect(adminFrom).not.toHaveBeenCalledWith('student_sports')
+    expect(adminFrom).not.toHaveBeenCalledWith('belt_history')
+  })
 })
