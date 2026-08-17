@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { markAsPaid } from '@/lib/services/financials.service'
 
 const schema = z.object({
   financial_id: z.string().uuid(),
@@ -29,25 +30,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 })
   }
 
-  // Garante que o registro pertence à academia do admin
-  const { data: financial } = await supabase
-    .from('financials')
-    .select('id, status')
-    .eq('id', body.financial_id)
-    .eq('academy_id', profile.academy_id)
-    .single()
+  const result = await markAsPaid(supabase, body.financial_id, profile.academy_id)
 
-  if (!financial) return NextResponse.json({ error: 'Registro não encontrado' }, { status: 404 })
-  if (financial.status === 'paid') {
-    return NextResponse.json({ error: 'Já marcado como pago' }, { status: 409 })
+  if (!result.ok) {
+    if (result.error === 'not_found') {
+      return NextResponse.json({ error: 'Registro não encontrado' }, { status: 404 })
+    }
+    if (result.error === 'already_paid') {
+      return NextResponse.json({ error: 'Já marcado como pago' }, { status: 409 })
+    }
+    return NextResponse.json({ error: 'Erro ao atualizar' }, { status: 500 })
   }
-
-  const { error } = await supabase
-    .from('financials')
-    .update({ status: 'paid', paid_at: new Date().toISOString() })
-    .eq('id', body.financial_id)
-
-  if (error) return NextResponse.json({ error: 'Erro ao atualizar' }, { status: 500 })
 
   return NextResponse.json({ success: true })
 }

@@ -2,6 +2,10 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { sendOverdueAlert } from '@/lib/notifications'
 import { getBrasiliaParts, pad2 } from '@/lib/financial-month'
+import {
+  findPendingOverdueBefore,
+  updateStatusByIds,
+} from '@/lib/repositories/financials.repository'
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization')
@@ -17,11 +21,10 @@ export async function GET(request: Request) {
 
   console.log(`[update-overdue] Data Brasília: ${today}`)
 
-  const { data: overdue, error: fetchError } = await supabase
-    .from('financials')
-    .select('id, student_id, academy_id, amount, due_date, profiles!inner(full_name)')
-    .eq('status', 'pending')
-    .lt('due_date', today)
+  const { data: overdue, error: fetchError } = await findPendingOverdueBefore(
+    supabase,
+    today,
+  )
 
   if (fetchError) {
     console.error('Erro ao buscar pendentes:', fetchError)
@@ -34,10 +37,7 @@ export async function GET(request: Request) {
 
   const ids = overdue.map(f => f.id)
 
-  const { error: updateError } = await supabase
-    .from('financials')
-    .update({ status: 'overdue' })
-    .in('id', ids)
+  const { error: updateError } = await updateStatusByIds(supabase, ids, 'overdue')
 
   if (updateError) {
     console.error('Erro ao atualizar status:', updateError)

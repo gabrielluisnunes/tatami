@@ -6,6 +6,10 @@ import {
   getBrasiliaParts,
   monthBounds,
 } from '@/lib/financial-month'
+import {
+  findExistingInMonth,
+  insertFinancial,
+} from '@/lib/repositories/financials.repository'
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization')
@@ -65,27 +69,24 @@ export async function GET(request: Request) {
     const academy = academyMap.get(student.academy_id)
     if (!academy) continue
 
-    const { data: existing } = await supabase
-      .from('financials')
-      .select('id')
-      .eq('student_id', student.id)
-      .gte('due_date', monthStart)
-      .lte('due_date', monthEnd)
-      .limit(1)
+    const { data: existing } = await findExistingInMonth(
+      supabase,
+      student.id,
+      monthStart,
+      monthEnd,
+    )
 
     if (existing && existing.length > 0) continue
 
     const dueDateStr = dueDateForMonth(todayYear, todayMonth, student.payment_due_day)
 
-    const { error: insertError } = await supabase
-      .from('financials')
-      .insert({
-        student_id: student.id,
-        academy_id: student.academy_id,
-        amount:     academy.monthly_price,
-        due_date:   dueDateStr,
-        status:     'pending',
-      })
+    const { error: insertError } = await insertFinancial(supabase, {
+      student_id: student.id,
+      academy_id: student.academy_id,
+      amount:     academy.monthly_price,
+      due_date:   dueDateStr,
+      status:     'pending',
+    })
 
     if (insertError) {
       console.error(`Erro ao criar cobrança para ${student.id}:`, insertError)

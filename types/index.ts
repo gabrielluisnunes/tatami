@@ -67,7 +67,7 @@ export interface Financial {
   amount: number;
   due_date: string;
   paid_at?: string | null;
-  status: 'pending' | 'paid' | 'overdue';
+  status: 'pending' | 'paid' | 'overdue' | 'aguardando_confirmacao';
 }
 
 export interface BeltHistory {
