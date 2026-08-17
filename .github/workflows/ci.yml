@@ -33,6 +33,9 @@ jobs:
       - name: Verificar TypeScript
         run: npx tsc --noEmit
 
+      - name: Rodar testes unitários
+        run: npm test
+
       - name: Rodar build de produção
         run: npm run build
         env:
