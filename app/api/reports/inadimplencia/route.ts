@@ -1,6 +1,8 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import * as XLSX from 'xlsx'
+import { listOverdueByAcademy } from '@/lib/repositories/financials.repository'
+import { getBrasiliaParts, monthBounds } from '@/lib/financial-month'
 
 export async function GET() {
   const supabase = createAdminClient()
@@ -18,13 +20,16 @@ export async function GET() {
     return NextResponse.json({ error: 'Acesso negado' }, { status: 403 })
   }
 
-  // Buscar cobranças em atraso
-  const { data: overdue, error: overdueError } = await supabase
-    .from('financials')
-    .select('id, student_id, amount, due_date, status')
-    .eq('academy_id', profile.academy_id)
-    .eq('status', 'overdue')
-    .order('due_date', { ascending: true })
+  // Sempre o mês atual (calendário Brasília), alinhado à tela Financeiro
+  const { year, month } = getBrasiliaParts()
+  const { first: monthStart, last: monthEnd } = monthBounds(year, month)
+
+  const { data: overdue, error: overdueError } = await listOverdueByAcademy(
+    supabase,
+    profile.academy_id,
+    monthStart,
+    monthEnd,
+  )
 
   if (overdueError) {
     console.error('Erro ao buscar financials overdue:', overdueError)
@@ -35,7 +40,7 @@ export async function GET() {
     // Retornar Excel vazio com mensagem
     const wb = XLSX.utils.book_new()
     const ws = XLSX.utils.json_to_sheet([{ 
-      'Situação': 'Nenhum aluno inadimplente no momento' 
+      'Situação': 'Nenhum aluno inadimplente no mês atual' 
     }])
     XLSX.utils.book_append_sheet(wb, ws, 'Inadimplência')
     const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })

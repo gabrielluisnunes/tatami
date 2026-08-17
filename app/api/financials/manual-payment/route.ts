@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { registerManualPayment } from '@/lib/services/financials.service'
 
 const schema = z.object({
   student_id: z.string().uuid(),
@@ -43,24 +44,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Aluno não encontrado' }, { status: 404 })
   }
 
-  // Criar cobrança já paga
-  const today = new Date()
-  const pad = (n: number) => String(n).padStart(2, '0')
-  const due_date = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`
+  const result = await registerManualPayment(supabase, {
+    studentId: body.student_id,
+    academyId: profile.academy_id,
+    amount: body.amount,
+    paidAt: body.paid_at,
+  })
 
-  const { error } = await supabase
-    .from('financials')
-    .insert({
-      student_id: body.student_id,
-      academy_id: profile.academy_id,
-      amount: body.amount,
-      due_date,
-      paid_at: body.paid_at,
-      status: 'paid',
-    })
-
-  if (error) {
-    console.error('Erro ao registrar pagamento:', error)
+  if (!result.ok) {
+    console.error('Erro ao registrar pagamento')
     return NextResponse.json({ error: 'Erro ao registrar pagamento' }, { status: 500 })
   }
 

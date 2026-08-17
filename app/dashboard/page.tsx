@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Users, DollarSign, AlertTriangle, TrendingDown } from 'lucide-react'
+import { getBrasiliaParts, monthBounds } from '@/lib/financial-month'
+import { DashboardCharts } from '@/components/dashboard/dashboard-charts'
 
 export default async function DashboardPage() {
   const supabase = createClient()
@@ -34,26 +36,57 @@ export default async function DashboardPage() {
     .eq('academy_id', academyId)
     .eq('role', 'aluno')
 
-  const now = new Date()
-  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-  const lastOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString()
+  const { year, month, day: todayDay } = getBrasiliaParts()
+  const { first: firstOfMonth, last: lastOfMonth } = monthBounds(year, month)
 
-  const { count: pagasNoMes } = await supabase
+  const { data: monthCharges } = await supabase
     .from('financials')
-    .select('id', { count: 'exact', head: true })
+    .select('id, student_id, amount, status')
     .eq('academy_id', academyId)
-    .eq('status', 'paid')
     .gte('due_date', firstOfMonth)
     .lte('due_date', lastOfMonth)
 
-  const { data: overdueData } = await supabase
-    .from('financials')
-    .select('id, amount')
-    .eq('academy_id', academyId)
-    .eq('status', 'overdue')
+  const charges = monthCharges ?? []
+  const pagasNoMes = charges.filter((c) => c.status === 'paid').length
+  const overdueInMonth = charges.filter((c) => c.status === 'overdue')
+  const inadimplentes = new Set(overdueInMonth.map((c) => c.student_id)).size
+  const valorEmAtraso = overdueInMonth.reduce((sum, f) => sum + (f.amount || 0), 0)
 
-  const inadimplentes = overdueData?.length ?? 0
-  const valorEmAtraso = overdueData?.reduce((sum, f) => sum + (f.amount || 0), 0) ?? 0
+  const studentsWithCharge = new Set(charges.map((c) => c.student_id))
+  const noChargeCount = Math.max(0, (totalAlunos ?? 0) - studentsWithCharge.size)
+
+  const chargeBreakdown = {
+    paid: pagasNoMes,
+    pending: charges.filter((c) => c.status === 'pending').length,
+    overdue: overdueInMonth.length,
+    awaiting: charges.filter((c) => c.status === 'aguardando_confirmacao').length,
+    noCharge: noChargeCount,
+  }
+
+  const { data: monthAttendance } = await supabase
+    .from('attendance')
+    .select('present_at')
+    .eq('academy_id', academyId)
+    .gte('present_at', `${firstOfMonth}T00:00:00`)
+    .lte('present_at', `${lastOfMonth}T23:59:59`)
+
+  const attendanceCountByDay = new Map<string, number>()
+  for (const row of monthAttendance ?? []) {
+    const key = row.present_at.slice(0, 10)
+    attendanceCountByDay.set(key, (attendanceCountByDay.get(key) ?? 0) + 1)
+  }
+
+  // Últimos 14 dias do mês atual (ou todos os dias com presença se preferir compacto)
+  const attendanceByDay: { day: string; count: number }[] = []
+  const lastDay = Number(lastOfMonth.split('-')[2])
+  const startDay = Math.max(1, Math.min(todayDay, lastDay) - 13)
+  for (let d = startDay; d <= Math.min(todayDay, lastDay); d++) {
+    const key = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+    attendanceByDay.push({
+      day: String(d).padStart(2, '0'),
+      count: attendanceCountByDay.get(key) ?? 0,
+    })
+  }
 
   const { data: recentCheckins } = await supabase
     .from('checkins')
@@ -84,8 +117,6 @@ export default async function DashboardPage() {
     attendanceMap.set(a.checkin_id, (attendanceMap.get(a.checkin_id) ?? 0) + 1)
   })
 
-  const currentMonth = now.getMonth() + 1
-
   const { data: birthdaysRaw } = await supabase
     .from('profiles')
     .select('id, full_name, birth_date, photo_url, belt, degree')
@@ -96,12 +127,17 @@ export default async function DashboardPage() {
   const birthdays = (birthdaysRaw ?? [])
     .filter(a => {
       if (!a.birth_date) return false
-      return new Date(a.birth_date + 'T00:00:00').getMonth() + 1 === currentMonth
+      return new Date(a.birth_date + 'T00:00:00').getMonth() + 1 === month
     })
     .sort((a, b) => {
       return new Date(a.birth_date! + 'T00:00:00').getDate()
            - new Date(b.birth_date! + 'T00:00:00').getDate()
     })
+
+  const monthLabel = new Date(year, month - 1, 1).toLocaleDateString('pt-BR', {
+    month: 'long',
+    year: 'numeric',
+  })
 
   const metrics = [
     {
@@ -113,7 +149,7 @@ export default async function DashboardPage() {
     },
     {
       title: 'PAGAS NO MÊS',
-      value: pagasNoMes ?? 0,
+      value: pagasNoMes,
       icon: DollarSign,
       iconColor: 'text-emerald-500',
       accentColor: 'border-l-emerald-500',
@@ -127,7 +163,7 @@ export default async function DashboardPage() {
     },
     {
       title: 'VALOR EM ATRASO',
-      value: `R$ ${valorEmAtraso.toFixed(2)}`,
+      value: valorEmAtraso.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
       icon: TrendingDown,
       iconColor: 'text-red-500',
       accentColor: 'border-l-red-500',
@@ -136,15 +172,16 @@ export default async function DashboardPage() {
 
   return (
     <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
-      {/* Greeting */}
       <div>
         <h1 className="text-lg lg:text-xl font-semibold text-zinc-900">
           Olá, {profile.full_name || 'Admin'}
         </h1>
-        <p className="text-sm text-zinc-500 mt-0.5">{academy?.name ?? 'Sua academia'}</p>
+        <p className="text-sm text-zinc-500 mt-0.5">
+          {academy?.name ?? 'Sua academia'} ·{' '}
+          <span className="capitalize">{monthLabel}</span>
+        </p>
       </div>
 
-      {/* Metric cards */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         {metrics.map((m) => (
           <div
@@ -160,7 +197,12 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      {/* Widget de aniversariantes */}
+      <DashboardCharts
+        monthLabel={monthLabel}
+        charges={chargeBreakdown}
+        attendanceByDay={attendanceByDay}
+      />
+
       {birthdays.length > 0 && (
         <div className="rounded-xl border border-zinc-200 bg-white p-5">
           <div className="flex items-center gap-2 mb-4">
@@ -175,7 +217,7 @@ export default async function DashboardPage() {
           <div className="flex flex-wrap gap-2">
             {birthdays.map(aluno => {
               const day = new Date(aluno.birth_date! + 'T00:00:00').getDate()
-              const isToday = day === now.getDate()
+              const isToday = day === todayDay
               return (
                 <div
                   key={aluno.id}
@@ -203,7 +245,6 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* Últimos check-ins */}
       <div>
         <h2 className="mb-4 text-sm font-semibold text-zinc-900">Últimos check-ins</h2>
         {recentCheckins && recentCheckins.length > 0 ? (

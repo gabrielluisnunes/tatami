@@ -1,6 +1,7 @@
 import { createClient, createStorageAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { rateLimiters, getIp } from '@/lib/rate-limit'
+import { getChargeForStudentPayment } from '@/lib/services/financials.service'
 
 // Gera payload PIX estático seguindo padrão EMV do Banco Central (BR Code)
 function generatePixPayload(
@@ -86,21 +87,16 @@ export async function GET(
     return NextResponse.json({ error: 'Acesso negado' }, { status: 403 })
   }
 
-  // Buscar cobrança
-  const { data: financial } = await supabase
-    .from('financials')
-    .select('id, amount, due_date, status, student_id')
-    .eq('id', params.id)
-    .eq('student_id', user.id)
-    .single()
+  const chargeResult = await getChargeForStudentPayment(supabase, params.id, user.id)
 
-  if (!financial) {
-    return NextResponse.json({ error: 'Cobrança não encontrada' }, { status: 404 })
-  }
-
-  if (!['pending', 'overdue'].includes(financial.status)) {
+  if (!chargeResult.ok) {
+    if (chargeResult.error === 'not_found') {
+      return NextResponse.json({ error: 'Cobrança não encontrada' }, { status: 404 })
+    }
     return NextResponse.json({ error: 'Cobrança não disponível para pagamento' }, { status: 400 })
   }
+
+  const financial = chargeResult.financial
 
   // Buscar chave PIX da academia
   const adminSupabase = createStorageAdminClient()
