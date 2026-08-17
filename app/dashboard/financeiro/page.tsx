@@ -42,11 +42,14 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
     profiles: { full_name: string } | null
   }
 
+  // Mesmo recorte do mês que "Recebido no mês" (due_date no intervalo)
   const { data: overdueRaw } = await supabase
     .from('financials')
     .select('id, amount, due_date, student_id, profiles!inner(full_name)')
     .eq('academy_id', academyId)
     .eq('status', 'overdue')
+    .gte('due_date', firstOfMonth)
+    .lte('due_date', lastOfMonth)
     .order('due_date', { ascending: true })
 
   const overdueRecords = ((overdueRaw as unknown as OverdueRaw[]) ?? []).map((f) => ({
@@ -158,7 +161,7 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
             className="flex items-center justify-center gap-2 rounded-lg border border-zinc-200 px-3 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition-colors"
           >
             <Download className="h-4 w-4" />
-            Exportar inadimplentes
+            Exportar inadimplentes 
           </a>
         </div>
       </div>
@@ -179,10 +182,12 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
         ))}
       </div>
 
-      {/* Alunos em atraso (todas as cobranças em aberto) */}
+      {/* Alunos em atraso no mês selecionado */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-semibold text-zinc-900">Alunos em atraso</h2>
+          <h2 className="text-sm font-semibold text-zinc-900 capitalize">
+            Alunos em atraso — {monthShort}
+          </h2>
           {overdueCount > 0 && (
             <span className="rounded-full bg-red-50 border border-red-200 px-2 py-0.5 text-xs font-medium text-red-700">
               {overdueCount}

@@ -39,3 +39,5 @@ docker-compose.yml
 .env.docker
 supabase/.branches
 supabase/.temp
+
+.cursor/rules/tatami-workflow.mdc

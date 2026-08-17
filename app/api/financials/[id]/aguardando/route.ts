@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { markAsAwaitingConfirmation } from '@/lib/services/financials.service'
 
 export async function PATCH(
   _request: Request,
@@ -20,30 +21,17 @@ export async function PATCH(
     return NextResponse.json({ error: 'Acesso negado' }, { status: 403 })
   }
 
-  // Verificar que a cobrança pertence ao aluno
-  const { data: financial } = await supabase
-    .from('financials')
-    .select('id, status, student_id')
-    .eq('id', params.id)
-    .eq('student_id', user.id)
-    .single()
+  const result = await markAsAwaitingConfirmation(supabase, params.id, user.id)
 
-  if (!financial) {
-    return NextResponse.json({ error: 'Cobrança não encontrada' }, { status: 404 })
-  }
-
-  if (!['pending', 'overdue'].includes(financial.status)) {
-    return NextResponse.json({ 
-      error: 'Cobrança não pode ser marcada como aguardando' 
-    }, { status: 400 })
-  }
-
-  const { error } = await supabase
-    .from('financials')
-    .update({ status: 'aguardando_confirmacao' })
-    .eq('id', params.id)
-
-  if (error) {
+  if (!result.ok) {
+    if (result.error === 'not_found') {
+      return NextResponse.json({ error: 'Cobrança não encontrada' }, { status: 404 })
+    }
+    if (result.error === 'invalid_status') {
+      return NextResponse.json({
+        error: 'Cobrança não pode ser marcada como aguardando'
+      }, { status: 400 })
+    }
     return NextResponse.json({ error: 'Erro ao atualizar status' }, { status: 500 })
   }
 

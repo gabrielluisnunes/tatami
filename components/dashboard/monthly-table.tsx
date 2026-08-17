@@ -21,22 +21,23 @@ interface MonthlyTableProps {
   monthlyPrice: number
 }
 
-type Filter = 'all' | 'paid' | 'pending' | 'overdue' | 'waiting'
+type Filter = 'all' | 'paid' | 'pending' | 'overdue' | 'awaiting_confirm' | 'no_charge'
 
 const statusConfig = {
   paid:    { label: 'Pago',        cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
   pending: { label: 'Pendente',    cls: 'bg-amber-50 text-amber-700 border-amber-200' },
   overdue: { label: 'Atrasado',    cls: 'bg-red-50 text-red-700 border-red-200' },
-  waiting: { label: 'Aguardando',  cls: 'bg-zinc-100 text-zinc-600 border-zinc-200' },
+  no_charge: { label: 'Sem cobrança',  cls: 'bg-zinc-100 text-zinc-600 border-zinc-200' },
   aguardando_confirmacao: { label: 'Aguard. confirmação', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
 }
 
 const tabs: { key: Filter; label: string }[] = [
   { key: 'all',     label: 'Todos' },
   { key: 'pending', label: 'Pendentes' },
+  { key: 'awaiting_confirm', label: 'Aguard. confirmação' },
   { key: 'paid',    label: 'Pagos' },
   { key: 'overdue', label: 'Em atraso' },
-  { key: 'waiting', label: 'Aguardando' },
+  { key: 'no_charge', label: 'Sem cobrança' },
 ]
 
 function formatLocalDate(dateStr: string) {
@@ -158,10 +159,11 @@ export function MonthlyTable({ records, monthlyPrice }: MonthlyTableProps) {
     const currentHasCharge = r.has_charge
 
     if (filter === 'all') return true
-    if (filter === 'pending') return currentHasCharge && (currentStatus === 'pending' || currentStatus === 'aguardando_confirmacao')
+    if (filter === 'pending') return currentHasCharge && currentStatus === 'pending'
+    if (filter === 'awaiting_confirm') return currentHasCharge && currentStatus === 'aguardando_confirmacao'
     if (filter === 'paid') return currentStatus === 'paid'
     if (filter === 'overdue') return currentStatus === 'overdue'
-    if (filter === 'waiting') return !currentHasCharge && !isPaid
+    if (filter === 'no_charge') return !currentHasCharge && !isPaid
     return false
   })
 
@@ -207,10 +209,11 @@ export function MonthlyTable({ records, monthlyPrice }: MonthlyTableProps) {
             const currentHasCharge = r.has_charge
 
             if (tab.key === 'all') return true
-            if (tab.key === 'pending') return currentHasCharge && (currentStatus === 'pending' || currentStatus === 'aguardando_confirmacao')
+            if (tab.key === 'pending') return currentHasCharge && currentStatus === 'pending'
+            if (tab.key === 'awaiting_confirm') return currentHasCharge && currentStatus === 'aguardando_confirmacao'
             if (tab.key === 'paid') return currentStatus === 'paid'
             if (tab.key === 'overdue') return currentStatus === 'overdue'
-            if (tab.key === 'waiting') return !currentHasCharge && !isPaid
+            if (tab.key === 'no_charge') return !currentHasCharge && !isPaid
             return false
           }).length
 
@@ -258,7 +261,7 @@ export function MonthlyTable({ records, monthlyPrice }: MonthlyTableProps) {
                 const currentHasCharge = rec.has_charge && !isPaidOptimistic
                 const isLoading = loadingId === rec.id
 
-                let badgeCfg = statusConfig.waiting
+                let badgeCfg = statusConfig.no_charge
                 if (isPaidOptimistic) {
                   badgeCfg = statusConfig.paid
                 } else if (currentHasCharge) {
@@ -272,7 +275,7 @@ export function MonthlyTable({ records, monthlyPrice }: MonthlyTableProps) {
                       {rec.payment_due_day ? `Dia ${rec.payment_due_day}` : '—'}
                     </td>
                     <td className="px-4 py-3 text-gray-500">
-                      {rec.due_date ? formatLocalDate(rec.due_date) : 'Aguardando'}
+                      {rec.due_date ? formatLocalDate(rec.due_date) : 'Sem cobrança'}
                     </td>
                     <td className="px-4 py-3 text-gray-700">
                       {rec.amount !== null
