@@ -3,26 +3,20 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sendWelcomeEmail } from '@/lib/notifications'
 import { rateLimiters, getIp } from '@/lib/rate-limit'
+import { generateTempPassword } from '@/lib/temp-password'
 
-// Charset sem caracteres ambíguos (0/O, 1/l/I)
-const PASSWORD_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789'
-
-function generateTempPassword(length = 10): string {
-  return Array.from(
-    { length },
-    () => PASSWORD_CHARS[Math.floor(Math.random() * PASSWORD_CHARS.length)]
-  ).join('')
-}
+const sportItemSchema = z.object({
+  sport: z.enum(['jiu-jitsu', 'muay-thai', 'boxe']),
+  belt: z.string().optional().nullable(),
+  degree: z.number().int().min(0).max(4).default(0),
+})
 
 const enrollSchema = z.object({
   full_name: z.string().min(2),
   email: z.string().email(),
   role: z.enum(['aluno', 'professor']),
-  sports: z.array(z.object({
-    sport: z.enum(['jiu-jitsu', 'muay-thai', 'boxe']),
-    belt: z.string().optional().nullable(),
-    degree: z.number().int().min(0).max(4).default(0),
-  })).min(1),
+  // Aluno: obrigatório. Professor: modalidades que ensina (não vira linha em student_sports).
+  sports: z.array(sportItemSchema).default([]),
   birth_date: z.string().optional(),
   phone: z.string().optional(),
   emergency_phone: z.string().optional(),
@@ -68,6 +62,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 })
   }
 
+  if (body.role === 'aluno' && body.sports.length === 0) {
+    return NextResponse.json({ error: 'Selecione pelo menos um esporte' }, { status: 400 })
+  }
+
+  if (body.role === 'professor' && body.sports.length === 0) {
+    return NextResponse.json({ error: 'Selecione pelo menos um esporte que o professor ensina' }, { status: 400 })
+  }
+
   // Busca nome e plano da academia para o email e validação
   const { data: academy } = await supabase
     .from('academies')
@@ -98,6 +100,7 @@ export async function POST(request: Request) {
   }
 
   const primarySport = body.sports[0]
+  const passwordWasGenerated = !body.password?.trim()
   const tempPassword = body.password?.trim() || generateTempPassword()
 
   const { data: created, error: createError } = await adminSupabase.auth.admin.createUser({
@@ -108,7 +111,7 @@ export async function POST(request: Request) {
       full_name: body.full_name,
       role: body.role,
       academy_id: adminProfile.academy_id,
-      belt: primarySport.belt ?? null,
+      belt: primarySport?.belt ?? null,
     },
   })
 
@@ -124,9 +127,12 @@ export async function POST(request: Request) {
     full_name: body.full_name,
     role: body.role,
     academy_id: adminProfile.academy_id,
-    sport: primarySport.sport,
-    belt: primarySport.belt ?? null,
-    degree: primarySport.sport === 'jiu-jitsu' ? (primarySport.degree ?? 0) : 0,
+  }
+
+  if (primarySport) {
+    updates.sport = primarySport.sport
+    updates.belt = primarySport.belt ?? null
+    updates.degree = primarySport.sport === 'jiu-jitsu' ? (primarySport.degree ?? 0) : 0
   }
 
   if (body.birth_date) updates.birth_date = body.birth_date
@@ -143,53 +149,59 @@ export async function POST(request: Request) {
     if (profileError) console.error('[ENROLL] profiles update error:', JSON.stringify(profileError))
   }
 
-  for (const s of body.sports) {
-    // Inserir em student_sports
-    const { error: ssError } = await adminSupabase
-      .from('student_sports')
-      .insert({
-        student_id: created.user.id,
-        academy_id: adminProfile.academy_id,
-        sport: s.sport,
-        belt: s.sport !== 'boxe' ? (s.belt ?? null) : null,
-        degree: s.sport === 'jiu-jitsu' ? (s.degree ?? 0) : 0,
-      })
-    if (ssError) console.error('[ENROLL] student_sports error:', JSON.stringify(ssError))
-
-    // Inserir em belt_history (exceto boxe)
-    if (s.sport !== 'boxe') {
-      const { error: bhError } = await adminSupabase
-        .from('belt_history')
+  // student_sports / belt_history são de aluno. Professor só ensina (turmas).
+  if (body.role === 'aluno') {
+    for (const s of body.sports) {
+      const { error: ssError } = await adminSupabase
+        .from('student_sports')
         .insert({
           student_id: created.user.id,
           academy_id: adminProfile.academy_id,
-          belt: s.belt ?? (s.sport === 'jiu-jitsu' ? 'branca' : 'branco'),
-          degree: s.sport === 'jiu-jitsu' ? (s.degree ?? 0) : 0,
           sport: s.sport,
-          graded_at: new Date().toISOString(),
-          graded_by: user.id,
-          notes: 'Graduação de cadastro inicial',
-          trainings_at_graduation: 0,
+          belt: s.sport !== 'boxe' ? (s.belt ?? null) : null,
+          degree: s.sport === 'jiu-jitsu' ? (s.degree ?? 0) : 0,
         })
-      if (bhError) console.error('[ENROLL] belt_history error:', JSON.stringify(bhError))
+      if (ssError) console.error('[ENROLL] student_sports error:', JSON.stringify(ssError))
+
+      if (s.sport !== 'boxe') {
+        const { error: bhError } = await adminSupabase
+          .from('belt_history')
+          .insert({
+            student_id: created.user.id,
+            academy_id: adminProfile.academy_id,
+            belt: s.belt ?? (s.sport === 'jiu-jitsu' ? 'branca' : 'branco'),
+            degree: s.sport === 'jiu-jitsu' ? (s.degree ?? 0) : 0,
+            sport: s.sport,
+            graded_at: new Date().toISOString(),
+            graded_by: user.id,
+            notes: 'Graduação de cadastro inicial',
+            trainings_at_graduation: 0,
+          })
+        if (bhError) console.error('[ENROLL] belt_history error:', JSON.stringify(bhError))
+      }
     }
   }
 
-  // Envia email com senha temporária (aguarda envio; não bloqueia cadastro em caso de falha)
   const origin = request.headers.get('origin') ?? 'https://tatami.app'
+  let emailSent = false
   try {
-    await sendWelcomeEmail(
+    emailSent = await sendWelcomeEmail(
       body.email,
       body.full_name,
       academy?.name ?? 'sua academia',
       tempPassword,
-      `${origin}/auth/login`
+      `${origin}/auth/login`,
+      body.role,
     )
   } catch (err: unknown) {
     const error = err as { message?: string }
     console.error('Falha ao enviar email de boas-vindas:', error?.message ?? err)
-    // Não bloquear o cadastro se o email falhar — usuário já foi criado
   }
 
-  return NextResponse.json({ success: true, user_id: created.user.id })
+  return NextResponse.json({
+    success: true,
+    user_id: created.user.id,
+    email_sent: emailSent,
+    ...(passwordWasGenerated && !emailSent ? { temp_password: tempPassword } : {}),
+  })
 }

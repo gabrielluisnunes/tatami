@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Calendar } from 'lucide-react'
+import { SPORT_LABELS } from '@/lib/professor-sports'
 
 const WEEKDAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
@@ -25,7 +26,7 @@ export default async function ProfessorTurmasPage() {
 
   const { data: classes } = await supabase
     .from('classes')
-    .select('id, name, weekdays, start_time, end_time')
+    .select('id, name, weekdays, start_time, end_time, sport')
     .eq('professor_id', user.id)
     .eq('academy_id', profile.academy_id)
     .order('start_time', { ascending: true })
@@ -48,7 +49,14 @@ export default async function ProfessorTurmasPage() {
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-sm font-semibold text-zinc-900">{cls.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-zinc-900">{cls.name}</p>
+                    {cls.sport && (
+                      <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-600">
+                        {SPORT_LABELS[cls.sport] ?? cls.sport}
+                      </span>
+                    )}
+                  </div>
                   <p className="mt-0.5 text-xs text-zinc-500">
                     {cls.weekdays?.length > 0 ? formatWeekdays(cls.weekdays) : '—'}
                   </p>

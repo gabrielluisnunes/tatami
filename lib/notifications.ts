@@ -8,12 +8,18 @@ export const resend = new Resend(env.RESEND_API_KEY)
 
 export async function sendWelcomeEmail(
   to: string,
-  studentName: string,
+  name: string,
   academyName: string,
   tempPassword: string,
-  loginUrl: string
-) {
-  await resend.emails.send({
+  loginUrl: string,
+  role: 'aluno' | 'professor' = 'aluno',
+): Promise<boolean> {
+  const isProfessor = role === 'professor'
+  const portalLabel = isProfessor ? 'portal do professor' : 'portal do aluno'
+  const roleLabel = isProfessor ? 'professor' : 'aluno'
+  const ctaLabel = isProfessor ? 'Acessar portal do professor →' : 'Acessar portal →'
+
+  const { error } = await resend.emails.send({
     from: 'Tatami <noreply@gestaotatami.com.br>',
     to,
     subject: `Seu acesso ao Tatami — ${academyName}`,
@@ -40,10 +46,10 @@ export async function sendWelcomeEmail(
         <tr>
           <td style="padding:32px;">
             <p style="margin:0 0 8px;font-size:22px;font-weight:700;color:#ffffff;">
-              Bem-vindo, ${studentName}!
+              Bem-vindo, ${name}!
             </p>
             <p style="margin:0 0 24px;font-size:14px;color:#a1a1aa;line-height:1.6;">
-              Seu acesso ao portal do aluno foi criado. Use as credenciais abaixo para entrar pela primeira vez.
+              Seu acesso ao ${portalLabel} foi criado. Use as credenciais abaixo para entrar pela primeira vez.
             </p>
 
             <!-- Credentials box -->
@@ -76,7 +82,7 @@ export async function sendWelcomeEmail(
               <tr>
                 <td style="background:#4f46e5;border-radius:10px;">
                   <a href="${loginUrl}" style="display:inline-block;padding:12px 28px;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;">
-                    Acessar portal →
+                    ${ctaLabel}
                   </a>              
                 </td>
               </tr>
@@ -88,7 +94,7 @@ export async function sendWelcomeEmail(
         <tr>
           <td style="padding:20px 32px;border-top:1px solid #27272a;">
             <p style="margin:0;font-size:11px;color:#3f3f46;text-align:center;">
-              Você recebeu este email porque foi cadastrado como aluno em ${academyName}.
+              Você recebeu este email porque foi cadastrado como ${roleLabel} em ${academyName}.
             </p>
           </td>
         </tr>
@@ -99,9 +105,9 @@ export async function sendWelcomeEmail(
 </body>
 </html>
     `.trim(),
-    text: `Bem-vindo, ${studentName}!
+    text: `Bem-vindo, ${name}!
 
-Seu acesso ao portal do aluno da ${academyName} foi criado.
+Seu acesso ao ${portalLabel} da ${academyName} foi criado.
 
 Suas credenciais:
 Email: ${to}
@@ -111,8 +117,14 @@ Acesse o portal em: ${loginUrl}
 
 Recomendamos que você altere sua senha após o primeiro acesso em Perfil > Alterar senha.
 
-Você recebeu este email porque foi cadastrado como aluno em ${academyName}.`,
+Você recebeu este email porque foi cadastrado como ${roleLabel} em ${academyName}.`,
   })
+
+  if (error) {
+    console.error('[sendWelcomeEmail] falha:', error.message)
+    return false
+  }
+  return true
 }
 
 export async function sendOverdueAlert(
