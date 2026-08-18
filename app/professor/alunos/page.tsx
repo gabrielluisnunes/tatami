@@ -1,14 +1,8 @@
 import { createClient, createStorageAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import Image from 'next/image'
-
-const beltColors: Record<string, string> = {
-  branca: 'bg-zinc-100 text-zinc-800 ring-1 ring-zinc-200',
-  azul:   'bg-blue-100 text-blue-800 ring-1 ring-blue-200',
-  roxa:   'bg-purple-100 text-purple-800 ring-1 ring-purple-200',
-  marrom: 'bg-amber-100 text-amber-900 ring-1 ring-amber-200',
-  preta:  'bg-zinc-900 text-white ring-1 ring-zinc-900',
-}
+import { getProfessorTeachingSports, SPORT_LABELS } from '@/lib/professor-sports'
+import { loadProfessorAlunos } from '@/lib/professor-students'
+import { ProfessorSportBadges } from '@/components/professor/professor-sport-badges'
 
 export default async function ProfessorAlunosPage() {
   const supabase = createClient()
@@ -25,33 +19,21 @@ export default async function ProfessorAlunosPage() {
   if (!profile?.academy_id) redirect('/auth/login')
   if (profile.role !== 'professor' && profile.role !== 'admin') redirect('/auth/login')
 
-  // createStorageAdminClient() para ler perfis de outros usuários — bypassa RLS
+  const teachingSports = await getProfessorTeachingSports(
+    supabase,
+    user.id,
+    profile.academy_id,
+    profile.role,
+  )
+
   const adminSupabase = createStorageAdminClient()
+  const alunos = await loadProfessorAlunos(
+    adminSupabase,
+    profile.academy_id,
+    teachingSports,
+  )
 
-  const { data: rawAlunos } = await adminSupabase
-    .from('profiles')
-    .select('id, full_name, belt, phone, photo_url')
-    .eq('academy_id', profile.academy_id)
-    .eq('role', 'aluno')
-    .order('full_name', { ascending: true })
-
-  const alunos = rawAlunos
-    ? await Promise.all(
-        rawAlunos.map(async (aluno) => {
-          if (
-            aluno.photo_url &&
-            !aluno.photo_url.startsWith('http') &&
-            !aluno.photo_url.startsWith('data:')
-          ) {
-            const { data } = await adminSupabase.storage
-              .from('student-photos')
-              .createSignedUrl(aluno.photo_url, 3600)
-            return { ...aluno, photo_url: data?.signedUrl || null }
-          }
-          return aluno
-        })
-      )
-    : []
+  const sportSummary = teachingSports.map(s => SPORT_LABELS[s]).join(', ')
 
   return (
     <div className="space-y-6">
@@ -59,14 +41,20 @@ export default async function ProfessorAlunosPage() {
         <h1 className="text-xl font-semibold text-zinc-900">Alunos</h1>
         <p className="text-sm text-zinc-500 mt-0.5">
           {alunos.length} aluno{alunos.length !== 1 ? 's' : ''} na academia
+          {teachingSports.length > 0 && (
+            <> · {sportSummary}</>
+          )}
         </p>
       </div>
 
-      {alunos.length > 0 ? (
+      {teachingSports.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-300 bg-white py-16 text-center px-4">
+          <p className="text-sm text-zinc-500">Nenhuma turma designada ainda.</p>
+          <p className="text-xs text-zinc-400 mt-1">Peça ao administrador para vincular turmas ao seu perfil.</p>
+        </div>
+      ) : alunos.length > 0 ? (
         <div className="space-y-2">
           {alunos.map(aluno => {
-            const beltCls = beltColors[aluno.belt?.toLowerCase() ?? 'branca']
-              ?? 'bg-zinc-100 text-zinc-800 ring-1 ring-zinc-200'
             const initials = aluno.full_name
               ?.split(' ')
               .map((n: string) => n[0])
@@ -80,7 +68,8 @@ export default async function ProfessorAlunosPage() {
                 className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white px-4 py-3"
               >
                 {aluno.photo_url ? (
-                  <Image
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
                     src={aluno.photo_url}
                     alt={aluno.full_name}
                     width={36}
@@ -98,18 +87,17 @@ export default async function ProfessorAlunosPage() {
                     <p className="text-xs text-zinc-500 truncate">{aluno.phone}</p>
                   )}
                 </div>
-                {aluno.belt && (
-                  <span className={`shrink-0 inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${beltCls}`}>
-                    {aluno.belt.charAt(0).toUpperCase() + aluno.belt.slice(1)}
-                  </span>
-                )}
+                <ProfessorSportBadges
+                  sports={aluno.sports}
+                  showSportLabel={teachingSports.length > 1}
+                />
               </div>
             )
           })}
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-300 bg-white py-16 text-center">
-          <p className="text-sm text-zinc-500">Nenhum aluno cadastrado ainda.</p>
+          <p className="text-sm text-zinc-500">Nenhum aluno nos esportes das suas turmas.</p>
         </div>
       )}
     </div>

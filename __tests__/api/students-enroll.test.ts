@@ -21,7 +21,7 @@ jest.mock('@/lib/supabase/server', () => ({
 }))
 
 jest.mock('@/lib/notifications', () => ({
-  sendWelcomeEmail: jest.fn().mockResolvedValue(undefined),
+  sendWelcomeEmail: jest.fn().mockResolvedValue(true),
 }))
 
 const createClientMock = createClient as jest.MockedFunction<typeof createClient>
@@ -113,6 +113,10 @@ describe('POST /api/students/enroll', () => {
 
   beforeAll(async () => {
     ;({ POST } = await import('@/app/api/students/enroll/route'))
+  })
+
+  beforeEach(() => {
+    sendWelcomeEmailMock.mockResolvedValue(true)
   })
 
   const validBody = {
@@ -223,7 +227,131 @@ describe('POST /api/students/enroll', () => {
     )
 
     expect(res.status).toBe(200)
-    await expect(res.json()).resolves.toEqual({ success: true, user_id: IDS.student })
+    await expect(res.json()).resolves.toEqual({
+      success: true,
+      user_id: IDS.student,
+      email_sent: true,
+    })
     expect(sendWelcomeEmailMock).toHaveBeenCalled()
+  })
+
+  it('retorna 400 se aluno não enviar esportes', async () => {
+    allowRateLimit(true)
+    mockClients({
+      user: { id: IDS.admin },
+      adminProfile: { role: 'admin', academy_id: IDS.academy },
+    })
+
+    const res = await POST(
+      new Request('http://localhost/api/students/enroll', {
+        method: 'POST',
+        body: JSON.stringify({
+          full_name: 'Aluno Teste',
+          email: 'aluno@teste.com',
+          role: 'aluno',
+        }),
+      }),
+    )
+
+    expect(res.status).toBe(400)
+  })
+
+  it('retorna 400 se professor não enviar esportes', async () => {
+    allowRateLimit(true)
+    mockClients({
+      user: { id: IDS.admin },
+      adminProfile: { role: 'admin', academy_id: IDS.academy },
+    })
+
+    const res = await POST(
+      new Request('http://localhost/api/students/enroll', {
+        method: 'POST',
+        body: JSON.stringify({
+          full_name: 'Prof Teste',
+          email: 'prof@teste.com',
+          role: 'professor',
+          belt: 'preta',
+          degree: 1,
+        }),
+      }),
+    )
+
+    expect(res.status).toBe(400)
+  })
+
+  it('cadastra professor sem inserir student_sports', async () => {
+    allowRateLimit(true)
+    mockClients({
+      user: { id: IDS.admin },
+      adminProfile: { role: 'admin', academy_id: IDS.academy },
+      academy: { name: 'Dojo', plan: 'pro' },
+      createdUserId: IDS.student,
+    })
+
+    const res = await POST(
+      new Request('http://localhost/api/students/enroll', {
+        method: 'POST',
+        headers: { origin: 'http://localhost:3000' },
+        body: JSON.stringify({
+          full_name: 'Prof Teste',
+          email: 'prof@teste.com',
+          role: 'professor',
+          sports: [{ sport: 'jiu-jitsu', belt: 'preta', degree: 1 }],
+        }),
+      }),
+    )
+
+    expect(res.status).toBe(200)
+    const adminFrom = createStorageAdminClientMock.mock.results.at(-1)?.value.from as jest.Mock
+    expect(adminFrom).not.toHaveBeenCalledWith('student_sports')
+    expect(adminFrom).not.toHaveBeenCalledWith('belt_history')
+  })
+
+  it('devolve temp_password quando email falha e senha foi gerada', async () => {
+    allowRateLimit(true)
+    sendWelcomeEmailMock.mockResolvedValue(false)
+    mockClients({
+      user: { id: IDS.admin },
+      adminProfile: { role: 'admin', academy_id: IDS.academy },
+      academy: { name: 'Dojo', plan: 'pro' },
+      createdUserId: IDS.student,
+    })
+
+    const res = await POST(
+      new Request('http://localhost/api/students/enroll', {
+        method: 'POST',
+        headers: { origin: 'http://localhost:3000' },
+        body: JSON.stringify(validBody),
+      }),
+    )
+
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json.email_sent).toBe(false)
+    expect(typeof json.temp_password).toBe('string')
+    expect(json.temp_password.length).toBeGreaterThanOrEqual(6)
+  })
+
+  it('não devolve temp_password quando admin definiu senha manual', async () => {
+    allowRateLimit(true)
+    sendWelcomeEmailMock.mockResolvedValue(false)
+    mockClients({
+      user: { id: IDS.admin },
+      adminProfile: { role: 'admin', academy_id: IDS.academy },
+      academy: { name: 'Dojo', plan: 'pro' },
+      createdUserId: IDS.student,
+    })
+
+    const res = await POST(
+      new Request('http://localhost/api/students/enroll', {
+        method: 'POST',
+        headers: { origin: 'http://localhost:3000' },
+        body: JSON.stringify({ ...validBody, password: 'senha123' }),
+      }),
+    )
+
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json.temp_password).toBeUndefined()
   })
 })

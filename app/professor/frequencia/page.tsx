@@ -2,12 +2,13 @@ import { createClient, createStorageAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Camera } from 'lucide-react'
 import Link from 'next/link'
+import { SPORT_LABELS } from '@/lib/professor-sports'
 
 interface CheckinRecord {
   id: string
   checked_in_at: string
   status: 'pending' | 'confirmed'
-  classes: { name: string } | null
+  classes: { name: string; sport?: string | null } | null
 }
 
 export default async function ProfessorFrequenciaPage() {
@@ -30,7 +31,7 @@ export default async function ProfessorFrequenciaPage() {
 
   const { data: rawCheckins } = await adminSupabase
     .from('checkins')
-    .select('id, checked_in_at, status, classes ( name )')
+    .select('id, checked_in_at, status, classes ( name, sport )')
     .eq('professor_id', user.id)
     .eq('academy_id', profile.academy_id)
     .order('checked_in_at', { ascending: false })
@@ -54,6 +55,7 @@ export default async function ProfessorFrequenciaPage() {
     id:            c.id,
     checked_in_at: c.checked_in_at,
     class_name:    c.classes?.name || '—',
+    class_sport:   c.classes?.sport ?? null,
     status:        c.status,
     count:         countMap.get(c.id) ?? 0,
   }))
@@ -72,7 +74,14 @@ export default async function ProfessorFrequenciaPage() {
             return (
               <div key={c.id} className="rounded-xl border border-zinc-200 bg-white px-4 py-3">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-zinc-900">{c.class_name}</p>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <p className="text-sm font-medium text-zinc-900 truncate">{c.class_name}</p>
+                    {c.class_sport && (
+                      <span className="shrink-0 rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-600">
+                        {SPORT_LABELS[c.class_sport] ?? c.class_sport}
+                      </span>
+                    )}
+                  </div>
                   {c.status === 'confirmed' ? (
                     <span className="text-xs font-medium text-emerald-700">Confirmado</span>
                   ) : (

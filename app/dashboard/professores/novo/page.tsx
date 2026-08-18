@@ -11,12 +11,22 @@ import {
   Select, SelectContent, SelectItem,
   SelectTrigger, SelectValue,
 } from '@/components/ui/select'
+import { EnrollPasswordFallback } from '@/components/dashboard/enroll-password-fallback'
+
+type Sport = 'jiu-jitsu' | 'muay-thai' | 'boxe'
+
+const SPORT_OPTIONS: { id: Sport; label: string }[] = [
+  { id: 'jiu-jitsu', label: 'Jiu-Jitsu' },
+  { id: 'muay-thai', label: 'Muay Thai' },
+  { id: 'boxe', label: 'Boxe' },
+]
 
 export default function NovoProfessorPage() {
   const router = useRouter()
 
   const [fullName,       setFullName]       = useState('')
   const [email,          setEmail]          = useState('')
+  const [selectedSports, setSelectedSports] = useState<Sport[]>(['jiu-jitsu'])
   const [belt,           setBelt]           = useState('branca')
   const [degree,         setDegree]         = useState<number>(0)
   const [phone,          setPhone]          = useState('')
@@ -27,13 +37,37 @@ export default function NovoProfessorPage() {
 
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState<string | null>(null)
+  const [emailFallback, setEmailFallback] = useState<{
+    name: string
+    email: string
+    tempPassword: string
+  } | null>(null)
+
+  const teachesJiuJitsu = selectedSports.includes('jiu-jitsu')
+
+  function toggleSport(sport: Sport) {
+    setSelectedSports(prev =>
+      prev.includes(sport) ? prev.filter(s => s !== sport) : [...prev, sport],
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (selectedSports.length === 0) {
+      setError('Selecione pelo menos um esporte que o professor ensina.')
+      return
+    }
+
     setLoading(true)
     setError(null)
 
     try {
+      const sports = selectedSports.map(sport => ({
+        sport,
+        belt: sport === 'jiu-jitsu' ? belt : sport === 'muay-thai' ? 'branco' : null,
+        degree: sport === 'jiu-jitsu' ? degree : 0,
+      }))
+
       const res = await fetch('/api/students/enroll', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -41,8 +75,7 @@ export default function NovoProfessorPage() {
           full_name:       fullName,
           email,
           role:            'professor',
-          belt,
-          degree,
+          sports,
           phone:           phone           || undefined,
           emergency_phone: emergencyPhone  || undefined,
           ...(customPassword.trim() ? { password: customPassword.trim() } : {}),
@@ -52,6 +85,16 @@ export default function NovoProfessorPage() {
       if (!res.ok) {
         const d = await res.json().catch(() => ({}))
         throw new Error(d.error ?? 'Erro ao cadastrar professor')
+      }
+
+      const data = await res.json()
+      if (typeof data.temp_password === 'string') {
+        setEmailFallback({
+          name: fullName,
+          email,
+          tempPassword: data.temp_password,
+        })
+        return
       }
 
       router.push('/dashboard/professores?success=true')
@@ -172,36 +215,64 @@ export default function NovoProfessorPage() {
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <Label className={labelClass}>Faixa</Label>
-            <Select value={belt} onValueChange={v => v && setBelt(v)} disabled={loading}>
-              <SelectTrigger className="rounded-xl border-gray-200 bg-white py-5 text-gray-900">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="border-gray-200 bg-white text-gray-900">
-                <SelectItem value="branca">Branca</SelectItem>
-                <SelectItem value="azul">Azul</SelectItem>
-                <SelectItem value="roxa">Roxa</SelectItem>
-                <SelectItem value="marrom">Marrom</SelectItem>
-                <SelectItem value="preta">Preta</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="space-y-2">
+            <Label className={labelClass}>Esportes que ensina</Label>
+            <div className="flex flex-wrap gap-2">
+              {SPORT_OPTIONS.map(option => {
+                const checked = selectedSports.includes(option.id)
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    disabled={loading}
+                    onClick={() => toggleSport(option.id)}
+                    className={`rounded-xl border px-3 py-2 text-sm font-medium transition ${
+                      checked
+                        ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                        : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className={labelClass}>Grau</label>
-            <select
-              value={degree}
-              onChange={e => setDegree(Number(e.target.value))}
-              className={`${inputClass} w-full px-3`}
-            >
-              <option value={0}>Sem grau</option>
-              <option value={1}>1º grau</option>
-              <option value={2}>2º grau</option>
-              <option value={3}>3º grau</option>
-              <option value={4}>4º grau</option>
-            </select>
-          </div>
+          {teachesJiuJitsu && (
+            <>
+              <div className="space-y-1.5">
+                <Label className={labelClass}>Faixa (Jiu-Jitsu)</Label>
+                <Select value={belt} onValueChange={v => v && setBelt(v)} disabled={loading}>
+                  <SelectTrigger className="rounded-xl border-gray-200 bg-white py-5 text-gray-900">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="border-gray-200 bg-white text-gray-900">
+                    <SelectItem value="branca">Branca</SelectItem>
+                    <SelectItem value="azul">Azul</SelectItem>
+                    <SelectItem value="roxa">Roxa</SelectItem>
+                    <SelectItem value="marrom">Marrom</SelectItem>
+                    <SelectItem value="preta">Preta</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className={labelClass}>Grau</label>
+                <select
+                  value={degree}
+                  onChange={e => setDegree(Number(e.target.value))}
+                  className={`${inputClass} w-full px-3`}
+                >
+                  <option value={0}>Sem grau</option>
+                  <option value={1}>1º grau</option>
+                  <option value={2}>2º grau</option>
+                  <option value={3}>3º grau</option>
+                  <option value={4}>4º grau</option>
+                </select>
+              </div>
+            </>
+          )}
 
           {error && (
             <div className="rounded-xl border border-red-800/30 bg-red-950/40 p-3 text-center">
@@ -222,7 +293,7 @@ export default function NovoProfessorPage() {
             </Link>
             <Button
               type="submit"
-              disabled={loading || !fullName || !email}
+              disabled={loading || !fullName || !email || selectedSports.length === 0}
               className="flex-1 rounded-xl bg-indigo-600 py-6 font-semibold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-500"
             >
               {loading
@@ -233,6 +304,15 @@ export default function NovoProfessorPage() {
 
         </form>
       </div>
+
+      {emailFallback && (
+        <EnrollPasswordFallback
+          name={emailFallback.name}
+          email={emailFallback.email}
+          tempPassword={emailFallback.tempPassword}
+          onContinue={() => router.push('/dashboard/professores?success=true')}
+        />
+      )}
     </div>
   )
 }
