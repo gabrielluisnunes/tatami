@@ -100,7 +100,7 @@ export async function loadProfessorAlunos(
     .select('id, full_name, belt, degree, phone, photo_url, sport')
     .eq('academy_id', academyId)
     .eq('role', 'aluno')
-    .in('id', [...studentIds])
+    .in('id', Array.from(studentIds))
     .order('full_name', { ascending: true })
 
   const alunos: ProfessorAluno[] = []
@@ -188,7 +188,7 @@ export async function loadProfessorGraduacoes(
     })
   }
 
-  return [...rows.values()].sort((a, b) =>
+  return Array.from(rows.values()).sort((a, b) =>
     a.full_name.localeCompare(b.full_name, 'pt-BR'),
   )
 }

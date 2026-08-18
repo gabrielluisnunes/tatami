@@ -43,13 +43,13 @@ export async function getProfessorTeachingSports(
     .eq('professor_id', userId)
     .eq('academy_id', academyId)
 
-  const fromClasses = [
-    ...new Set(
+  const fromClasses = Array.from(
+    new Set(
       (classes ?? [])
         .map(c => c.sport)
         .filter(isSport),
     ),
-  ]
+  )
 
   if (fromClasses.length > 0) return fromClasses
 
