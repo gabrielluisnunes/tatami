@@ -11,6 +11,7 @@ import {
   Select, SelectContent, SelectItem,
   SelectTrigger, SelectValue,
 } from '@/components/ui/select'
+import { EnrollPasswordFallback } from '@/components/dashboard/enroll-password-fallback'
 
 type Sport = 'jiu-jitsu' | 'muay-thai' | 'boxe'
 
@@ -36,6 +37,11 @@ export default function NovoProfessorPage() {
 
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState<string | null>(null)
+  const [emailFallback, setEmailFallback] = useState<{
+    name: string
+    email: string
+    tempPassword: string
+  } | null>(null)
 
   const teachesJiuJitsu = selectedSports.includes('jiu-jitsu')
 
@@ -79,6 +85,16 @@ export default function NovoProfessorPage() {
       if (!res.ok) {
         const d = await res.json().catch(() => ({}))
         throw new Error(d.error ?? 'Erro ao cadastrar professor')
+      }
+
+      const data = await res.json()
+      if (typeof data.temp_password === 'string') {
+        setEmailFallback({
+          name: fullName,
+          email,
+          tempPassword: data.temp_password,
+        })
+        return
       }
 
       router.push('/dashboard/professores?success=true')
@@ -288,6 +304,15 @@ export default function NovoProfessorPage() {
 
         </form>
       </div>
+
+      {emailFallback && (
+        <EnrollPasswordFallback
+          name={emailFallback.name}
+          email={emailFallback.email}
+          tempPassword={emailFallback.tempPassword}
+          onContinue={() => router.push('/dashboard/professores?success=true')}
+        />
+      )}
     </div>
   )
 }

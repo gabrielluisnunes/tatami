@@ -7,6 +7,7 @@ import { ArrowLeft, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { EnrollPasswordFallback } from '@/components/dashboard/enroll-password-fallback'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -74,6 +75,11 @@ export default function NovoAlunoPage() {
 
   const [error, setError]   = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [emailFallback, setEmailFallback] = useState<{
+    name: string
+    email: string
+    tempPassword: string
+  } | null>(null)
 
   // ─── CEP lookup ─────────────────────────────────────────────────────────────
 
@@ -165,6 +171,16 @@ export default function NovoAlunoPage() {
           return
         }
         throw new Error(data.error || 'Erro ao cadastrar')
+      }
+
+      const data = await response.json()
+      if (typeof data.temp_password === 'string') {
+        setEmailFallback({
+          name: fullName,
+          email,
+          tempPassword: data.temp_password,
+        })
+        return
       }
 
       router.push('/dashboard/alunos?success=true')
@@ -519,6 +535,15 @@ export default function NovoAlunoPage() {
 
         </form>
       </div>
+
+      {emailFallback && (
+        <EnrollPasswordFallback
+          name={emailFallback.name}
+          email={emailFallback.email}
+          tempPassword={emailFallback.tempPassword}
+          onContinue={() => router.push('/dashboard/alunos?success=true')}
+        />
+      )}
     </div>
   )
 }

@@ -3,16 +3,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sendWelcomeEmail } from '@/lib/notifications'
 import { rateLimiters, getIp } from '@/lib/rate-limit'
-
-// Charset sem caracteres ambíguos (0/O, 1/l/I)
-const PASSWORD_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789'
-
-function generateTempPassword(length = 10): string {
-  return Array.from(
-    { length },
-    () => PASSWORD_CHARS[Math.floor(Math.random() * PASSWORD_CHARS.length)]
-  ).join('')
-}
+import { generateTempPassword } from '@/lib/temp-password'
 
 const sportItemSchema = z.object({
   sport: z.enum(['jiu-jitsu', 'muay-thai', 'boxe']),
@@ -109,6 +100,7 @@ export async function POST(request: Request) {
   }
 
   const primarySport = body.sports[0]
+  const passwordWasGenerated = !body.password?.trim()
   const tempPassword = body.password?.trim() || generateTempPassword()
 
   const { data: created, error: createError } = await adminSupabase.auth.admin.createUser({
@@ -190,21 +182,26 @@ export async function POST(request: Request) {
     }
   }
 
-  // Envia email com senha temporária (aguarda envio; não bloqueia cadastro em caso de falha)
   const origin = request.headers.get('origin') ?? 'https://tatami.app'
+  let emailSent = false
   try {
-    await sendWelcomeEmail(
+    emailSent = await sendWelcomeEmail(
       body.email,
       body.full_name,
       academy?.name ?? 'sua academia',
       tempPassword,
-      `${origin}/auth/login`
+      `${origin}/auth/login`,
+      body.role,
     )
   } catch (err: unknown) {
     const error = err as { message?: string }
     console.error('Falha ao enviar email de boas-vindas:', error?.message ?? err)
-    // Não bloquear o cadastro se o email falhar — usuário já foi criado
   }
 
-  return NextResponse.json({ success: true, user_id: created.user.id })
+  return NextResponse.json({
+    success: true,
+    user_id: created.user.id,
+    email_sent: emailSent,
+    ...(passwordWasGenerated && !emailSent ? { temp_password: tempPassword } : {}),
+  })
 }
