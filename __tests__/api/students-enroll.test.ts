@@ -4,6 +4,8 @@
 import { rateLimiters } from '@/lib/rate-limit'
 import { createClient, createStorageAdminClient } from '@/lib/supabase/server'
 import { sendWelcomeEmail } from '@/lib/notifications'
+import { enrollMember } from '@/lib/services/students.service'
+import * as studentsRepo from '@/lib/repositories/students.repository'
 import { IDS } from '../helpers/mocks'
 
 jest.mock('@/lib/rate-limit', () => ({
@@ -24,31 +26,34 @@ jest.mock('@/lib/notifications', () => ({
   sendWelcomeEmail: jest.fn().mockResolvedValue(true),
 }))
 
+jest.mock('@/lib/services/students.service', () => ({
+  enrollMember: jest.fn(),
+}))
+
+jest.mock('@/lib/repositories/students.repository', () => ({
+  findAcademyById: jest.fn(),
+}))
+
 const createClientMock = createClient as jest.MockedFunction<typeof createClient>
 const createStorageAdminClientMock = createStorageAdminClient as jest.MockedFunction<
   typeof createStorageAdminClient
 >
 const strictLimit = rateLimiters.strict.limit as jest.Mock
 const sendWelcomeEmailMock = sendWelcomeEmail as jest.MockedFunction<typeof sendWelcomeEmail>
+const enrollMemberMock = enrollMember as jest.MockedFunction<typeof enrollMember>
+const findAcademyByIdMock = studentsRepo.findAcademyById as jest.MockedFunction<
+  typeof studentsRepo.findAcademyById
+>
 
 function allowRateLimit(ok = true) {
   strictLimit.mockResolvedValue({ success: ok })
 }
 
-function mockClients(opts: {
+function mockAuth(opts: {
   user?: { id: string } | null
   adminProfile?: { role: string; academy_id: string | null } | null
-  academy?: { name: string; plan: string } | null
-  studentCount?: number
-  createUserError?: { message: string } | null
-  createdUserId?: string
 }) {
   const profileSingle = jest.fn().mockResolvedValue({ data: opts.adminProfile ?? null })
-  const academySingle = jest.fn().mockResolvedValue({ data: opts.academy ?? { name: 'Academia', plan: 'pro' } })
-  const countHead = jest.fn().mockResolvedValue({
-    count: opts.studentCount ?? 0,
-    error: null,
-  })
 
   createClientMock.mockReturnValue({
     auth: {
@@ -59,27 +64,9 @@ function mockClients(opts: {
     from: jest.fn((table: string) => {
       if (table === 'profiles') {
         return {
-          select: jest.fn((_cols?: string, opts2?: { count?: string; head?: boolean }) => {
-            if (opts2?.head) {
-              return {
-                eq: jest.fn().mockReturnValue({
-                  eq: jest.fn().mockReturnValue(countHead()),
-                }),
-              }
-            }
-            return {
-              eq: jest.fn().mockReturnValue({
-                single: profileSingle,
-              }),
-            }
-          }),
-        }
-      }
-      if (table === 'academies') {
-        return {
           select: jest.fn().mockReturnValue({
             eq: jest.fn().mockReturnValue({
-              single: academySingle,
+              single: profileSingle,
             }),
           }),
         }
@@ -88,24 +75,7 @@ function mockClients(opts: {
     }),
   } as never)
 
-  createStorageAdminClientMock.mockReturnValue({
-    auth: {
-      admin: {
-        createUser: jest.fn().mockResolvedValue({
-          data: opts.createUserError
-            ? { user: null }
-            : { user: { id: opts.createdUserId ?? IDS.student } },
-          error: opts.createUserError ?? null,
-        }),
-      },
-    },
-    from: jest.fn().mockReturnValue({
-      update: jest.fn().mockReturnValue({
-        eq: jest.fn().mockResolvedValue({ error: null }),
-      }),
-      insert: jest.fn().mockResolvedValue({ error: null }),
-    }),
-  } as never)
+  createStorageAdminClientMock.mockReturnValue({} as never)
 }
 
 describe('POST /api/students/enroll', () => {
@@ -116,7 +86,12 @@ describe('POST /api/students/enroll', () => {
   })
 
   beforeEach(() => {
+    jest.clearAllMocks()
     sendWelcomeEmailMock.mockResolvedValue(true)
+    findAcademyByIdMock.mockResolvedValue({
+      data: { name: 'Dojo', plan: 'pro' },
+      error: null,
+    } as never)
   })
 
   const validBody = {
@@ -128,7 +103,7 @@ describe('POST /api/students/enroll', () => {
 
   it('retorna 429 quando rate limit estoura', async () => {
     allowRateLimit(false)
-    mockClients({})
+    mockAuth({})
 
     const res = await POST(
       new Request('http://localhost/api/students/enroll', {
@@ -138,11 +113,12 @@ describe('POST /api/students/enroll', () => {
     )
 
     expect(res.status).toBe(429)
+    expect(enrollMemberMock).not.toHaveBeenCalled()
   })
 
   it('retorna 401 sem usuário', async () => {
     allowRateLimit(true)
-    mockClients({ user: null })
+    mockAuth({ user: null })
 
     const res = await POST(
       new Request('http://localhost/api/students/enroll', {
@@ -156,7 +132,7 @@ describe('POST /api/students/enroll', () => {
 
   it('retorna 403 se não for admin', async () => {
     allowRateLimit(true)
-    mockClients({
+    mockAuth({
       user: { id: IDS.admin },
       adminProfile: { role: 'professor', academy_id: IDS.academy },
     })
@@ -173,7 +149,7 @@ describe('POST /api/students/enroll', () => {
 
   it('retorna 400 com body inválido', async () => {
     allowRateLimit(true)
-    mockClients({
+    mockAuth({
       user: { id: IDS.admin },
       adminProfile: { role: 'admin', academy_id: IDS.academy },
     })
@@ -190,12 +166,11 @@ describe('POST /api/students/enroll', () => {
 
   it('retorna 403 no limite do plano Starter', async () => {
     allowRateLimit(true)
-    mockClients({
+    mockAuth({
       user: { id: IDS.admin },
       adminProfile: { role: 'admin', academy_id: IDS.academy },
-      academy: { name: 'Dojo', plan: 'starter' },
-      studentCount: 50,
     })
+    enrollMemberMock.mockResolvedValue({ ok: false, error: 'plan_limit_reached' })
 
     const res = await POST(
       new Request('http://localhost/api/students/enroll', {
@@ -211,12 +186,11 @@ describe('POST /api/students/enroll', () => {
 
   it('retorna 200 e cria usuário no caminho feliz', async () => {
     allowRateLimit(true)
-    mockClients({
+    mockAuth({
       user: { id: IDS.admin },
       adminProfile: { role: 'admin', academy_id: IDS.academy },
-      academy: { name: 'Dojo', plan: 'pro' },
-      createdUserId: IDS.student,
     })
+    enrollMemberMock.mockResolvedValue({ ok: true, userId: IDS.student })
 
     const res = await POST(
       new Request('http://localhost/api/students/enroll', {
@@ -237,9 +211,14 @@ describe('POST /api/students/enroll', () => {
 
   it('retorna 400 se aluno não enviar esportes', async () => {
     allowRateLimit(true)
-    mockClients({
+    mockAuth({
       user: { id: IDS.admin },
       adminProfile: { role: 'admin', academy_id: IDS.academy },
+    })
+    enrollMemberMock.mockResolvedValue({
+      ok: false,
+      error: 'invalid_sports',
+      message: 'Selecione pelo menos um esporte',
     })
 
     const res = await POST(
@@ -258,9 +237,14 @@ describe('POST /api/students/enroll', () => {
 
   it('retorna 400 se professor não enviar esportes', async () => {
     allowRateLimit(true)
-    mockClients({
+    mockAuth({
       user: { id: IDS.admin },
       adminProfile: { role: 'admin', academy_id: IDS.academy },
+    })
+    enrollMemberMock.mockResolvedValue({
+      ok: false,
+      error: 'invalid_sports',
+      message: 'Selecione pelo menos um esporte que o professor ensina',
     })
 
     const res = await POST(
@@ -270,8 +254,6 @@ describe('POST /api/students/enroll', () => {
           full_name: 'Prof Teste',
           email: 'prof@teste.com',
           role: 'professor',
-          belt: 'preta',
-          degree: 1,
         }),
       }),
     )
@@ -279,14 +261,13 @@ describe('POST /api/students/enroll', () => {
     expect(res.status).toBe(400)
   })
 
-  it('cadastra professor sem inserir student_sports', async () => {
+  it('cadastra professor com sucesso', async () => {
     allowRateLimit(true)
-    mockClients({
+    mockAuth({
       user: { id: IDS.admin },
       adminProfile: { role: 'admin', academy_id: IDS.academy },
-      academy: { name: 'Dojo', plan: 'pro' },
-      createdUserId: IDS.student,
     })
+    enrollMemberMock.mockResolvedValue({ ok: true, userId: IDS.student })
 
     const res = await POST(
       new Request('http://localhost/api/students/enroll', {
@@ -302,20 +283,21 @@ describe('POST /api/students/enroll', () => {
     )
 
     expect(res.status).toBe(200)
-    const adminFrom = createStorageAdminClientMock.mock.results.at(-1)?.value.from as jest.Mock
-    expect(adminFrom).not.toHaveBeenCalledWith('student_sports')
-    expect(adminFrom).not.toHaveBeenCalledWith('belt_history')
+    expect(enrollMemberMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.objectContaining({ role: 'professor' }),
+    )
   })
 
   it('devolve temp_password quando email falha e senha foi gerada', async () => {
     allowRateLimit(true)
     sendWelcomeEmailMock.mockResolvedValue(false)
-    mockClients({
+    mockAuth({
       user: { id: IDS.admin },
       adminProfile: { role: 'admin', academy_id: IDS.academy },
-      academy: { name: 'Dojo', plan: 'pro' },
-      createdUserId: IDS.student,
     })
+    enrollMemberMock.mockResolvedValue({ ok: true, userId: IDS.student })
 
     const res = await POST(
       new Request('http://localhost/api/students/enroll', {
@@ -335,12 +317,11 @@ describe('POST /api/students/enroll', () => {
   it('não devolve temp_password quando admin definiu senha manual', async () => {
     allowRateLimit(true)
     sendWelcomeEmailMock.mockResolvedValue(false)
-    mockClients({
+    mockAuth({
       user: { id: IDS.admin },
       adminProfile: { role: 'admin', academy_id: IDS.academy },
-      academy: { name: 'Dojo', plan: 'pro' },
-      createdUserId: IDS.student,
     })
+    enrollMemberMock.mockResolvedValue({ ok: true, userId: IDS.student })
 
     const res = await POST(
       new Request('http://localhost/api/students/enroll', {
