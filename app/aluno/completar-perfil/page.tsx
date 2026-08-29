@@ -19,6 +19,7 @@ export default async function CompletarPerfilPage() {
 
   const hasFaceDescriptor = !!profile?.face_descriptor
   const hasPaymentDueDay = !!profile?.payment_due_day
+  const paymentDueDay = profile?.payment_due_day ?? null
 
   // Se já tem tudo completo, redirecionar para frequencia
   if (hasFaceDescriptor && hasPaymentDueDay) {
@@ -29,7 +30,12 @@ export default async function CompletarPerfilPage() {
 
   return (
     <div>
-      <CompletarPerfilForm firstName={firstName} hasFaceDescriptor={hasFaceDescriptor} />
+      <CompletarPerfilForm
+        firstName={firstName}
+        hasFaceDescriptor={hasFaceDescriptor}
+        hasPaymentDueDay={hasPaymentDueDay}
+        paymentDueDay={paymentDueDay}
+      />
     </div>
   )
 }

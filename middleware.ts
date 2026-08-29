@@ -148,14 +148,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   } 
   
-  // 7. Aluno sem foto cadastrada → completar perfil obrigatório
-  // Só redireciona para /aluno/* que não seja a própria tela de completar perfil 
+  // 7. Aluno sem foto ou sem dia de vencimento → completar perfil obrigatório
+  // Única rota /aluno/* liberada enquanto incompleto: a própria tela (logout fica no header)
   if (
     role === 'aluno' &&
     isAlunoRoute &&
     (!faceDescriptor || !paymentDueDay) &&
-    pathname !== '/aluno/completar-perfil' &&
-    pathname !== '/aluno/perfil'
+    pathname !== '/aluno/completar-perfil'
   ) {
     url.pathname = '/aluno/completar-perfil'
     return NextResponse.redirect(url)
