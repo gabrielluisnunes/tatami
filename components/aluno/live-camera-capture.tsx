@@ -20,9 +20,10 @@ type CameraStatus =
 
 interface LiveCameraCaptureProps {
   onCapture: (base64: string, descriptor: number[]) => void
+  onReset?: () => void
 }
 
-export function LiveCameraCapture({ onCapture }: LiveCameraCaptureProps) {
+export function LiveCameraCapture({ onCapture, onReset }: LiveCameraCaptureProps) {
   const faceApiStatus = useFaceApi()
 
   const videoRef  = useRef<HTMLVideoElement>(null)
@@ -75,6 +76,11 @@ export function LiveCameraCapture({ onCapture }: LiveCameraCaptureProps) {
       }
     }
   }, [stopStream])
+
+  const retake = () => {
+    onReset?.()
+    void startCamera()
+  }
 
   // Libera câmera ao desmontar
   useEffect(() => {
@@ -168,11 +174,22 @@ export function LiveCameraCapture({ onCapture }: LiveCameraCaptureProps) {
       )}
 
       {faceApiStatus === 'error' && (
-        <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
-          <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
-          <span className="text-xs text-red-800">
-            Erro ao carregar modelos de IA. Recarregue a página.
-          </span>
+        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <p className="text-xs text-red-800">
+              Erro ao carregar modelos de IA. Verifique a conexão e recarregue a página.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => window.location.reload()}
+              className="h-9 rounded-lg border-red-200 bg-white px-3 text-xs font-semibold text-red-800 hover:bg-red-50"
+            >
+              <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+              Recarregar
+            </Button>
+          </div>
         </div>
       )}
 
@@ -184,6 +201,7 @@ export function LiveCameraCapture({ onCapture }: LiveCameraCaptureProps) {
           ref={videoRef}
           muted
           playsInline
+          autoPlay
           className={`h-full w-full object-cover [transform:scaleX(-1)] ${
             capturedImage || status === 'idle' || status === 'requesting' ? 'hidden' : ''
           }`}
@@ -299,12 +317,24 @@ export function LiveCameraCapture({ onCapture }: LiveCameraCaptureProps) {
         {(status === 'no-face' || status === 'error' || status === 'camera-denied') && (
           <Button
             type="button"
-            onClick={startCamera}
+            onClick={retake}
             variant="outline"
             className="w-full rounded-xl border-zinc-200 py-6 text-zinc-700 hover:bg-zinc-50"
           >
             <RefreshCw className="mr-2 h-4 w-4" />
             Tentar novamente
+          </Button>
+        )}
+
+        {status === 'success' && (
+          <Button
+            type="button"
+            onClick={retake}
+            variant="outline"
+            className="w-full rounded-xl border-zinc-200 py-6 text-zinc-700 hover:bg-zinc-50"
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Tirar outra
           </Button>
         )}
 
