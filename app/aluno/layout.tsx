@@ -1,5 +1,5 @@
 import React from 'react'
-import { AlunoNav } from '@/components/aluno/aluno-nav'
+import { AlunoPortalFrame } from '@/components/aluno/aluno-portal-frame'
 import { Logo } from '@/components/logo'
 import { LogoutButton } from '@/components/dashboard/logout-button'
 import { createClient, createStorageAdminClient } from '@/lib/supabase/server'
@@ -38,11 +38,9 @@ export default async function AlunoLayout({ children }: { children: React.ReactN
         </div>
       </header>
 
-      <main className="mx-auto max-w-lg px-4 pt-6 pb-24">
+      <AlunoPortalFrame sports={sports}>
         {children}
-      </main>
-
-      <AlunoNav sports={sports} />
+      </AlunoPortalFrame>
     </div>
   )
 }

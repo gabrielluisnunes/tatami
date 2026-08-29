@@ -9,12 +9,15 @@ import {
 import { LiveCameraCapture } from '@/components/aluno/live-camera-capture'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
+import { getCompletarPerfilInitialStep } from '@/lib/completar-perfil-step'
 
 type FormStep = 'payment-day' | 'instructions' | 'camera' | 'saving' | 'saved'
 
 interface CompletarPerfilFormProps {
   firstName: string
   hasFaceDescriptor?: boolean
+  hasPaymentDueDay?: boolean
+  paymentDueDay?: number | null
 }
 
 const INSTRUCTIONS = [
@@ -25,19 +28,34 @@ const INSTRUCTIONS = [
   { icon: Camera,     text: 'Use apenas a câmera — upload de arquivo não é permitido' },
 ]
 
-export function CompletarPerfilForm({ firstName, hasFaceDescriptor = false }: CompletarPerfilFormProps) {
+export function CompletarPerfilForm({
+  firstName,
+  hasFaceDescriptor = false,
+  hasPaymentDueDay = false,
+  paymentDueDay = null,
+}: CompletarPerfilFormProps) {
   const router = useRouter()
 
-  const [step, setStep] = useState<FormStep>('payment-day')
-  const [paymentDay, setPaymentDay] = useState<number | null>(null)
+  const [step, setStep] = useState<FormStep>(() =>
+    getCompletarPerfilInitialStep({ hasPaymentDueDay, hasFaceDescriptor }),
+  )
+  const [paymentDay, setPaymentDay] = useState<number | null>(paymentDueDay)
   const [capturedB64, setCapturedB64] = useState<string | null>(null)
   const [descriptor, setDescriptor] = useState<number[] | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [isSavingPayment, setIsSavingPayment] = useState(false)
 
+  const resolvedPaymentDay = paymentDay ?? paymentDueDay
+
   const handleCapture = (base64: string, desc: number[]) => {
     setCapturedB64(base64)
     setDescriptor(desc)
+  }
+
+  const handleResetCapture = () => {
+    setCapturedB64(null)
+    setDescriptor(null)
+    setSaveError(null)
   }
 
   const handleSavePaymentDayOnly = async () => {
@@ -66,7 +84,7 @@ export function CompletarPerfilForm({ firstName, hasFaceDescriptor = false }: Co
   }
 
   const handleSave = async () => {
-    if (!capturedB64 || !descriptor) return
+    if (!capturedB64 || !descriptor || resolvedPaymentDay === null) return
 
     setStep('saving')
     setSaveError(null)
@@ -78,7 +96,7 @@ export function CompletarPerfilForm({ firstName, hasFaceDescriptor = false }: Co
         body:    JSON.stringify({
           photo_base64:    capturedB64,
           face_descriptor: descriptor,
-          payment_due_day: paymentDay,
+          payment_due_day: resolvedPaymentDay,
         }),
       })
 
@@ -87,19 +105,7 @@ export function CompletarPerfilForm({ firstName, hasFaceDescriptor = false }: Co
         throw new Error(d.error ?? 'Erro ao salvar foto')
       }
 
-      // Salva payment_due_day via Supabase client após o sucesso do upload
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user && paymentDay !== null) {
-        const { error: dbError } = await supabase
-          .from('profiles')
-          .update({ payment_due_day: paymentDay })
-          .eq('id', user.id)
-        if (dbError) throw dbError
-      }
-
       setStep('saved')
-      // Aguarda 1.5s para o aluno ver a confirmação antes de redirecionar
       setTimeout(() => {
         router.push('/aluno/frequencia')
         router.refresh()
@@ -117,7 +123,7 @@ export function CompletarPerfilForm({ firstName, hasFaceDescriptor = false }: Co
           <h1 className="text-xl font-semibold text-zinc-900">Escolha seu dia de pagamento</h1>
           <p className="mt-1 text-sm text-zinc-500">
             Selecione o dia do mês em que sua mensalidade irá vencer.
-            Essa escolha é definitiva e não poderá ser alterada depois.
+            Se precisar mudar depois, peça à academia.
           </p>
         </div>
 
@@ -127,7 +133,7 @@ export function CompletarPerfilForm({ firstName, hasFaceDescriptor = false }: Co
               key={day}
               type="button"
               onClick={() => setPaymentDay(day)}
-              className={`aspect-square w-full rounded-xl font-semibold text-sm transition-colors ${
+              className={`aspect-square min-h-11 min-w-11 w-full rounded-xl font-semibold text-sm transition-colors ${
                 paymentDay === day
                   ? 'bg-indigo-600 text-white ring-2 ring-indigo-400'
                   : 'bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50'
@@ -220,7 +226,7 @@ export function CompletarPerfilForm({ firstName, hasFaceDescriptor = false }: Co
         </Button>
       ) : (
         <>
-          <LiveCameraCapture onCapture={handleCapture} />
+          <LiveCameraCapture onCapture={handleCapture} onReset={handleResetCapture} />
 
           {/* Erro de salvamento */}
           {saveError && (
@@ -234,7 +240,7 @@ export function CompletarPerfilForm({ firstName, hasFaceDescriptor = false }: Co
             <Button
               type="button"
               onClick={handleSave}
-              disabled={step === 'saving'}
+              disabled={step === 'saving' || resolvedPaymentDay === null}
               className="w-full rounded-2xl bg-emerald-600 py-6 font-semibold text-white hover:bg-emerald-500 disabled:opacity-70"
             >
               {step === 'saving' ? (
