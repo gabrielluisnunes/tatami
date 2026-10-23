@@ -2,11 +2,136 @@ import { createClient, createStorageAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
-const photoSchema = z.object({
-  photo_base64:    z.string().min(1),
-  face_descriptor: z.array(z.number()).length(128),
-  payment_due_day: z.number().int().min(1).max(31),
+const faceDescriptorSchema = z.array(z.number()).length(128)
+const paymentDueDaySchema = z.number().int().min(1).max(31)
+
+const photoJsonSchema = z.object({
+  photo_base64: z.string().min(1),
+  face_descriptor: faceDescriptorSchema,
+  payment_due_day: paymentDueDaySchema.optional(),
 })
+
+type ParsedPhoto = {
+  buffer: Buffer
+  mimeType: string
+  faceDescriptor: number[]
+  paymentDueDay?: number
+}
+
+function extensionFor(mimeType: string) {
+  if (mimeType.includes('png')) return 'png'
+  if (mimeType.includes('webp')) return 'webp'
+  return 'jpeg'
+}
+
+/** Campo ausente não altera o dia. Valor presente e inválido é rejeitado. */
+function parsePaymentDueDay(raw: unknown): { ok: true; value?: number } | { ok: false } {
+  if (raw === undefined || raw === null || raw === '') return { ok: true }
+  const numeric = typeof raw === 'number' ? raw : typeof raw === 'string' ? Number(raw) : NaN
+  const parsed = paymentDueDaySchema.safeParse(numeric)
+  if (!parsed.success) return { ok: false }
+  return { ok: true, value: parsed.data }
+}
+
+function isUploadedFile(value: FormDataEntryValue | null): value is File {
+  if (value === null || typeof value === 'string') return false
+  return typeof value.arrayBuffer === 'function'
+}
+
+function parseDescriptorField(raw: FormDataEntryValue | null): number[] | null {
+  if (typeof raw !== 'string' || raw.trim() === '') return null
+  try {
+    const parsed = faceDescriptorSchema.safeParse(JSON.parse(raw))
+    return parsed.success ? parsed.data : null
+  } catch {
+    return null
+  }
+}
+
+function parseDataUrl(photoBase64: string): { buffer: Buffer; mimeType: string } | null {
+  const matches = photoBase64.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,(.+)$/)
+  if (!matches) return null
+  return {
+    mimeType: matches[1],
+    buffer: Buffer.from(matches[2], 'base64'),
+  }
+}
+
+async function parsePhotoRequest(request: Request): Promise<
+  { ok: true; photo: ParsedPhoto } | { ok: false; error: string }
+> {
+  const contentType = request.headers.get('content-type') || ''
+
+  if (contentType.includes('multipart/form-data')) {
+    let formData: FormData
+    try {
+      formData = await request.formData()
+    } catch {
+      return { ok: false, error: 'Dados inválidos (FormData)' }
+    }
+
+    const file = formData.get('photo')
+    if (!isUploadedFile(file)) {
+      return { ok: false, error: 'Foto não enviada' }
+    }
+
+    const faceDescriptor = parseDescriptorField(formData.get('face_descriptor'))
+    if (!faceDescriptor) {
+      return { ok: false, error: 'É necessário detectar o rosto para atualizar a foto' }
+    }
+
+    const dueDay = parsePaymentDueDay(formData.get('payment_due_day'))
+    if (!dueDay.ok) {
+      return { ok: false, error: 'Dia de vencimento inválido' }
+    }
+
+    const mimeType = file.type || 'image/jpeg'
+    return {
+      ok: true,
+      photo: {
+        buffer: Buffer.from(await file.arrayBuffer()),
+        mimeType,
+        faceDescriptor,
+        paymentDueDay: dueDay.value,
+      },
+    }
+  }
+
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return { ok: false, error: 'Dados inválidos' }
+  }
+
+  const parsed = photoJsonSchema.safeParse(body)
+  if (!parsed.success) {
+    const dayIssue = parsed.error.issues.some(issue => issue.path[0] === 'payment_due_day')
+    const faceIssue = parsed.error.issues.some(issue => issue.path[0] === 'face_descriptor')
+    if (faceIssue) {
+      return { ok: false, error: 'É necessário detectar o rosto para atualizar a foto' }
+    }
+    if (dayIssue) {
+      return { ok: false, error: 'Dia de vencimento inválido' }
+    }
+    return { ok: false, error: 'Dados inválidos' }
+  }
+
+  const image = parseDataUrl(parsed.data.photo_base64)
+  if (!image) {
+    return { ok: false, error: 'Formato de imagem inválido' }
+  }
+
+  return {
+    ok: true,
+    photo: {
+      buffer: image.buffer,
+      mimeType: image.mimeType,
+      faceDescriptor: parsed.data.face_descriptor,
+      paymentDueDay: parsed.data.payment_due_day,
+    },
+  }
+}
 
 export async function PATCH(request: Request) {
   const supabase = createClient()
@@ -27,55 +152,13 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'Acesso negado' }, { status: 403 })
   }
 
-  let buffer: Buffer
-  let mimeType: string
-  let ext: string
-  let faceDescriptor: number[] | null = null
-  let body = {
-    photo_base64: '',
-    face_descriptor: [] as number[],
-    payment_due_day: 1
+  const parsed = await parsePhotoRequest(request)
+  if (!parsed.ok) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 })
   }
 
-  const contentType = request.headers.get('content-type') || ''
-
-  if (contentType.includes('multipart/form-data')) {
-    try {
-      const formData = await request.formData()
-      const file = formData.get('photo') as File | null
-      if (!file) {
-        return NextResponse.json({ error: 'Foto não enviada' }, { status: 400 })
-      }
-      const arrayBuffer = await file.arrayBuffer()
-      buffer = Buffer.from(arrayBuffer)
-      mimeType = file.type || 'image/jpeg'
-      ext = mimeType.includes('png') ? 'png' : mimeType.includes('webp') ? 'webp' : 'jpeg'
-      const rawPaymentDueDay = formData.get('payment_due_day')
-      if (rawPaymentDueDay) {
-        body.payment_due_day = parseInt(rawPaymentDueDay as string, 10)
-      }
-    } catch {
-      return NextResponse.json({ error: 'Dados inválidos (FormData)' }, { status: 400 })
-    }
-  } else {
-    try {
-      const bodyJson = await request.json()
-      body = photoSchema.parse(bodyJson)
-      faceDescriptor = body.face_descriptor
-
-      const matches = body.photo_base64.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,(.+)$/)
-      if (!matches) {
-        return NextResponse.json({ error: 'Formato de imagem inválido' }, { status: 400 })
-      }
-
-      mimeType = matches[1]
-      buffer = Buffer.from(matches[2], 'base64')
-      ext = mimeType.includes('png') ? 'png' : mimeType.includes('webp') ? 'webp' : 'jpeg'
-    } catch {
-      return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 })
-    }
-  }
-
+  const { buffer, mimeType, faceDescriptor, paymentDueDay } = parsed.photo
+  const ext = extensionFor(mimeType)
   const filePath = `${profile.academy_id}/${user.id}.${ext}`
 
   const { error: uploadError } = await adminSupabase.storage
@@ -89,10 +172,10 @@ export async function PATCH(request: Request) {
 
   const updateData: Record<string, unknown> = {
     photo_url: filePath,
-    payment_due_day: body.payment_due_day,
+    face_descriptor: faceDescriptor,
   }
-  if (faceDescriptor) {
-    updateData.face_descriptor = faceDescriptor
+  if (paymentDueDay !== undefined) {
+    updateData.payment_due_day = paymentDueDay
   }
 
   const { error: updateError } = await adminSupabase
@@ -109,9 +192,9 @@ export async function PATCH(request: Request) {
     .from('student-photos')
     .createSignedUrl(filePath, 3600)
 
-  return NextResponse.json({ 
-    success: true, 
-    photo_url: signedData?.signedUrl ?? filePath 
+  return NextResponse.json({
+    success: true,
+    photo_url: signedData?.signedUrl ?? filePath,
   })
 }
 

@@ -1,26 +1,20 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
-import { Camera, Loader2, CheckCircle2, AlertCircle, RefreshCw, ChevronRight } from 'lucide-react'
-import { useFaceApi } from '@/hooks/use-face-api'
+import { useState, useEffect } from 'react'
+import { Camera, Loader2, CheckCircle2, AlertCircle, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { LogoutButton } from '@/components/dashboard/logout-button'
+import { LiveCameraCapture } from '@/components/aluno/live-camera-capture'
 
 export default function PerfilPage() {
-  const faceApiStatus = useFaceApi()
-  const modelsLoaded = faceApiStatus === 'ready'
-
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
   const [fullName, setFullName] = useState('')
-  const [step, setStep] = useState<'view' | 'camera' | 'preview' | 'saving'>('view')
-  const [capturedBlob, setCapturedBlob] = useState<Blob | null>(null)
-  const [capturedPreview, setCapturedPreview] = useState<string | null>(null)
+  const [step, setStep] = useState<'view' | 'camera'>('view')
+  const [capturedB64, setCapturedB64] = useState<string | null>(null)
+  const [descriptor, setDescriptor] = useState<number[] | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null)
-
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const streamRef = useRef<MediaStream | null>(null)
 
   useEffect(() => {
     async function loadProfile() {
@@ -40,54 +34,35 @@ export default function PerfilPage() {
     loadProfile()
   }, [])
 
-  async function startCamera() {
-    setStep('camera')
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: 640, height: 480 }
-      })
-      streamRef.current = stream
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-      }
-    } catch {
-      setResult({ success: false, message: 'Não foi possível acessar a câmera.' })
-      setStep('view')
-    }
+  function handleCapture(base64: string, desc: number[]) {
+    setCapturedB64(base64)
+    setDescriptor(desc)
+    setResult(null)
   }
 
-  function stopCamera() {
-    streamRef.current?.getTracks().forEach(t => t.stop())
-    streamRef.current = null
+  function handleResetCapture() {
+    setCapturedB64(null)
+    setDescriptor(null)
   }
 
-  function capturePhoto() {
-    if (!videoRef.current) return
-    const canvas = document.createElement('canvas')
-    canvas.width = videoRef.current.videoWidth
-    canvas.height = videoRef.current.videoHeight
-    canvas.getContext('2d')?.drawImage(videoRef.current, 0, 0)
-    canvas.toBlob(blob => {
-      if (!blob) return
-      setCapturedBlob(blob)
-      setCapturedPreview(canvas.toDataURL('image/jpeg'))
-      stopCamera()
-      setStep('preview')
-    }, 'image/jpeg', 0.9)
+  function cancelCapture() {
+    handleResetCapture()
+    setStep('view')
   }
 
   async function savePhoto() {
-    if (!capturedBlob) return
+    if (!capturedB64 || !descriptor) return
     setSaving(true)
     setResult(null)
 
     try {
-      const formData = new FormData()
-      formData.append('photo', capturedBlob, 'photo.jpg')
-
       const res = await fetch('/api/students/profile/photo', {
         method: 'PATCH',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          photo_base64: capturedB64,
+          face_descriptor: descriptor,
+        }),
       })
 
       if (!res.ok) {
@@ -96,27 +71,18 @@ export default function PerfilPage() {
       }
 
       const data = await res.json()
-      setPhotoUrl(data.photo_url ?? capturedPreview)
+      setPhotoUrl(data.photo_url ?? capturedB64)
       setResult({ success: true, message: 'Foto atualizada com sucesso!' })
-      setCapturedBlob(null)
-      setCapturedPreview(null)
+      handleResetCapture()
       setStep('view')
     } catch (err) {
       setResult({
         success: false,
-        message: err instanceof Error ? err.message : 'Erro ao salvar foto'
+        message: err instanceof Error ? err.message : 'Erro ao salvar foto',
       })
-      setStep('preview')
     } finally {
       setSaving(false)
     }
-  }
-
-  function cancelCapture() {
-    stopCamera()
-    setCapturedBlob(null)
-    setCapturedPreview(null)
-    setStep('view')
   }
 
   if (loading) {
@@ -134,7 +100,6 @@ export default function PerfilPage() {
         <p className="text-sm text-zinc-500 mt-1">Foto e configurações da conta</p>
       </div>
 
-      {/* Foto atual */}
       {step === 'view' && (
         <div className="space-y-4">
           <div className="rounded-xl border border-zinc-200 bg-white p-6">
@@ -172,16 +137,18 @@ export default function PerfilPage() {
 
             <button
               type="button"
-              onClick={startCamera}
-              disabled={!modelsLoaded}
-              className="mt-4 w-full flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors disabled:opacity-50"
+              onClick={() => {
+                handleResetCapture()
+                setResult(null)
+                setStep('camera')
+              }}
+              className="mt-4 w-full flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors"
             >
               <Camera className="h-4 w-4" />
-              {modelsLoaded ? 'Atualizar foto' : 'Carregando câmera...'}
+              Atualizar foto
             </button>
           </div>
 
-          {/* Ações da conta */}
           <div className="rounded-xl border border-zinc-200 bg-white overflow-hidden">
             <Link
               href="/aluno/senha"
@@ -200,80 +167,39 @@ export default function PerfilPage() {
         </div>
       )}
 
-      {/* Câmera */}
       {step === 'camera' && (
         <div className="space-y-4">
-          <div className="relative overflow-hidden rounded-xl bg-black border border-zinc-200 aspect-square">
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              className="w-full h-full object-cover scale-x-[-1]"
-            />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="h-56 w-56 rounded-full border-4 border-white/30" />
-            </div>
-          </div>
-          <p className="text-center text-xs text-zinc-500">
-            Posicione seu rosto dentro do círculo
-          </p>
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={cancelCapture}
-              className="flex-1 rounded-xl border border-zinc-200 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={capturePhoto}
-              className="flex-1 rounded-2xl bg-indigo-600 py-3 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors"
-            >
-              <Camera className="h-4 w-4 inline mr-2" />
-              Capturar
-            </button>
-          </div>
-        </div>
-      )}
+          <LiveCameraCapture onCapture={handleCapture} onReset={handleResetCapture} />
 
-      {/* Preview */}
-      {step === 'preview' && capturedPreview && (
-        <div className="space-y-4">
-          <div className="flex justify-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={capturedPreview}
-              alt="Preview"
-              className="h-48 w-48 rounded-full object-cover ring-4 ring-indigo-500 scale-x-[-1]"
-            />
-          </div>
-          <p className="text-center text-sm text-zinc-500">
-            Gostou da foto? Confirme para salvar.
-          </p>
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={cancelCapture}
-              disabled={saving}
-              className="flex-1 rounded-xl border border-zinc-200 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Tirar outra
-            </button>
+          {result && !result.success && (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-3 flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />
+              <p className="text-sm text-red-800">{result.message}</p>
+            </div>
+          )}
+
+          {descriptor && (
             <button
               type="button"
               onClick={savePhoto}
               disabled={saving}
-              className="flex-1 rounded-2xl bg-indigo-600 py-3 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full rounded-2xl bg-indigo-600 py-3 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {saving
                 ? <><Loader2 className="h-4 w-4 animate-spin" /> Salvando...</>
-                : <><CheckCircle2 className="h-4 w-4" /> Confirmar</>
+                : <><CheckCircle2 className="h-4 w-4" /> Confirmar foto</>
               }
             </button>
-          </div>
+          )}
+
+          <button
+            type="button"
+            onClick={cancelCapture}
+            disabled={saving}
+            className="w-full rounded-xl border border-zinc-200 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors disabled:opacity-50"
+          >
+            Cancelar
+          </button>
         </div>
       )}
     </div>
