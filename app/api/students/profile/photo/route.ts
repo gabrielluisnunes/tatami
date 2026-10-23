@@ -33,6 +33,11 @@ function parsePaymentDueDay(raw: unknown): { ok: true; value?: number } | { ok: 
   return { ok: true, value: parsed.data }
 }
 
+function isUploadedFile(value: FormDataEntryValue | null): value is File {
+  if (value === null || typeof value === 'string') return false
+  return typeof value.arrayBuffer === 'function'
+}
+
 function parseDescriptorField(raw: FormDataEntryValue | null): number[] | null {
   if (typeof raw !== 'string' || raw.trim() === '') return null
   try {
@@ -66,7 +71,7 @@ async function parsePhotoRequest(request: Request): Promise<
     }
 
     const file = formData.get('photo')
-    if (!(file instanceof File)) {
+    if (!isUploadedFile(file)) {
       return { ok: false, error: 'Foto não enviada' }
     }
 

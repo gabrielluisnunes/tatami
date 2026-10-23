@@ -70,7 +70,11 @@ function patchJson(body: Record<string, unknown>) {
 
 function patchForm(fields: { descriptor?: number[]; day?: string }) {
   const form = new FormData()
-  form.append('photo', new File([new Uint8Array([1, 2, 3])], 'photo.jpg', { type: 'image/jpeg' }))
+  form.append(
+    'photo',
+    new Blob([new Uint8Array([1, 2, 3])], { type: 'image/jpeg' }),
+    'photo.jpg',
+  )
   if (fields.descriptor) {
     form.append('face_descriptor', JSON.stringify(fields.descriptor))
   }
