@@ -3,7 +3,10 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Logo } from '@/components/logo'
+import Link from 'next/link'
+import { ArrowRight, LoaderCircle } from 'lucide-react'
+import { PasswordInput } from '@/components/auth/password-input'
+import { AuthShell, authButtonClass, authInputClass, authLabelClass } from '@/components/auth/auth-shell'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -65,74 +68,27 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-zinc-950 px-4 overflow-hidden">
-      <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
+    <AuthShell mode="login">
+      <h1 className="auth-title">Seu treino continua aqui.</h1>
+      <p className="auth-description">Entre na sua conta para continuar sua jornada.</p>
 
-      <div className="relative bg-white rounded-2xl p-8 border border-zinc-200 shadow-xl max-w-sm w-full">
-        <div className="flex justify-center mb-6">
-          <Logo className="h-10 w-auto" variant="full" />
+      <form aria-busy={loading} onSubmit={handleEmailLogin} className="mt-8 space-y-5">
+        <label className={authLabelClass} htmlFor="email">
+          E-mail
+          <input id="email" type="email" autoComplete="email" inputMode="email" placeholder="voce@exemplo.com" value={email} onChange={e => setEmail(e.target.value)} disabled={loading} required className={authInputClass} />
+        </label>
+        <div>
+          <label className={authLabelClass} htmlFor="password">Senha</label>
+          <PasswordInput id="password" autoComplete="current-password" placeholder="Sua senha" value={password} onChange={e => setPassword(e.target.value)} disabled={loading} required />
         </div>
-
-        <h1 className="text-xl font-semibold text-zinc-900 text-center mb-6">
-          Entrar na sua conta
-        </h1>
-
-        <form onSubmit={handleEmailLogin} className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-zinc-700 mb-1.5">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              placeholder="nome@exemplo.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-              required
-              className="w-full border border-zinc-200 rounded-lg px-3.5 py-2.5 text-sm text-zinc-900 placeholder-zinc-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-60"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-zinc-700 mb-1.5">
-              Senha
-            </label>
-            <input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
-              required
-              className="w-full border border-zinc-200 rounded-lg px-3.5 py-2.5 text-sm text-zinc-900 placeholder-zinc-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-60"
-            />
-          </div>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg py-2.5 text-sm font-medium mt-2 transition-colors disabled:opacity-60"
-          >
-            {loading ? 'Entrando...' : 'Entrar'}
-          </button>
-        </form>
-
-        <p className="text-center text-sm text-zinc-500 mt-6">
-          Não tem uma conta?{' '}
-          <a href="/auth/register" className="text-indigo-600 hover:text-indigo-500 font-medium">
-            Criar conta
-          </a>
-        </p>
-      </div>
-    </div>
+        {error && <p role="alert" className="auth-error">{error}</p>}
+        <button type="submit" disabled={loading} className={authButtonClass}>
+          {loading ? <><LoaderCircle size={18} className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> Entrando...</> : <>Entrar na minha conta <ArrowRight size={17} aria-hidden="true" /></>}
+        </button>
+      </form>
+      <p className="auth-switch">Sua academia ainda não está no Tatami?{' '}
+        <Link href="/auth/register">Criar conta</Link>
+      </p>
+    </AuthShell>
   )
 }
